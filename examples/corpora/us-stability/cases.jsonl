@@ -1,0 +1,1 @@
+{"family":"address-benchmark:stability-0","id":"stability-0","origin":"authored","payload":{"texts":[" 12 Alder st  ","7 Café Ave.","PO Box 0004","12 Rd Apt 03","Odd trailing input"]},"reference":{"checks":["repeat","scalar_batch","idempotence","scalar_stream","scalar_chunked"],"coverage":"complete"},"split":"conformance","subsets":["stability"],"text":""}

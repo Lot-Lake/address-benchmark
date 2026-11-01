@@ -1,0 +1,4 @@
+[
+  {"name": "demo-a", "adapter": "demo", "config": {}},
+  {"name": "demo-b", "adapter": "demo", "config": {}}
+]

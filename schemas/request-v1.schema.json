@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:address-benchmark:request:v1",
+  "title": "Input-only address benchmark request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "text",
+    "input_sha256",
+    "country",
+    "locale",
+    "task",
+    "profile",
+    "other_text",
+    "payload"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "text": {
+      "type": "string"
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "country": {
+      "const": "US"
+    },
+    "locale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task": {
+      "enum": [
+        "parse",
+        "normalize",
+        "match",
+        "format",
+        "classify",
+        "extract",
+        "infer",
+        "variants",
+        "diagnostics",
+        "stability"
+      ]
+    },
+    "profile": {
+      "type": "string"
+    },
+    "other_text": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "payload": {
+      "type": [
+        "object",
+        "null"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "task": {
+            "const": "match"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "other_text": {
+            "type": "string"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "other_text": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "task": {
+            "not": {
+              "const": "parse"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "profile": {
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ]
+}

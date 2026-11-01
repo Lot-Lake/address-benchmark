@@ -1,0 +1,60 @@
+"""Adversarial adapters for subprocess contract tests; never installed as plugins."""
+import time
+from address_benchmark.adapters import DemoParser
+
+
+class WrongIdentity(DemoParser):
+    def parse(self, request):
+        output = super().parse(request)
+        output["id"] = "wrong"
+        return output
+
+
+class Slow(DemoParser):
+    def parse(self, request):
+        time.sleep(5)
+        return super().parse(request)
+
+
+class Broken(DemoParser):
+    def parse(self, request):
+        raise RuntimeError("intentional per-row failure")
+
+
+class MutatingArtifact(DemoParser):
+    def __init__(self, config):
+        super().__init__({})
+        self.path = config["model"]
+        self.metadata["artifact_files"] = [self.path]
+
+    def parse(self, request):
+        from pathlib import Path
+        Path(self.path).write_bytes(b"changed while evaluating")
+        return super().parse(request)
+
+
+def canonical_text(text, mode="upper"):
+    return " ".join(text.upper().split())
+
+
+def canonical_batch(texts, mode="upper"):
+    return [canonical_text(text, mode) for text in texts]
+
+
+def canonical_stream(texts, mode="upper"):
+    for text in texts:
+        yield canonical_text(text, mode)
+
+
+def canonical_chunked(texts, chunk_size=2, mode="upper"):
+    values = canonical_batch(texts, mode)
+    for index in range(0, len(values), chunk_size):
+        yield values[index:index + chunk_size]
+
+
+def formatted_fields(fields):
+    return "\n".join(fields.values())
+
+
+def known_state(text):
+    return {"10001": "NY", "90210": "CA"}.get(text)

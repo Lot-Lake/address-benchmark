@@ -1,0 +1,12 @@
+address-benchmark is an original implementation, specification and authored
+conformance suite. No source code, model, raw address corpus or private listing
+extract was copied from the address-normalizer workspace or external projects.
+
+Research cites upstream projects for evaluation concepts, interfaces, provenance
+and licensing observations. Those observations are not redistribution grants.
+The MIT license here applies to this project's original material only.
+
+Optional installed tools and adapters retain their licenses, including pyperf
+(MIT), usaddress (MIT) and its transitive dependencies. Review dependency/model/
+corpus notices before packaging or publishing them. No third-party artifacts
+are included merely because an optional extra names a package.

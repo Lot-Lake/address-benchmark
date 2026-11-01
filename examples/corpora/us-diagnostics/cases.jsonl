@@ -1,0 +1,3 @@
+{"family":"address-benchmark:diagnostics-0","id":"diagnostics-0","origin":"authored","reference":{"coverage":"complete","expected":{"deliverability":"not_checked","empty_input":true}},"split":"conformance","subsets":["diagnostics"],"text":""}
+{"family":"address-benchmark:diagnostics-1","id":"diagnostics-1","origin":"authored","reference":{"coverage":"complete","expected":{"deliverability":"not_checked","empty_input":true}},"split":"conformance","subsets":["diagnostics"],"text":"   "}
+{"family":"address-benchmark:diagnostics-2","id":"diagnostics-2","origin":"authored","reference":{"coverage":"complete","expected":{"deliverability":"not_checked","empty_input":false}},"split":"conformance","subsets":["diagnostics"],"text":"12 Mock St"}

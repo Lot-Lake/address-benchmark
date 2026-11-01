@@ -1,0 +1,9 @@
+[
+  {
+    "name": "classify-control",
+    "adapter": "demo-utility",
+    "config": {
+      "task": "classify"
+    }
+  }
+]

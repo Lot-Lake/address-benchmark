@@ -1,0 +1,41 @@
+{
+  "annotation_policy": "docs/spec/annotations.md#authored-v1",
+  "construction": [
+    "Compose original fixture inputs and explicit task annotations in tools/author_corpora.py",
+    "For parsing, derive UTF-8 byte offsets from literal manually assigned tokens; no parser or gold-selected engine used",
+    "Ten independently declared same/distinct delivery-unit pairs, not labels derived from an engine's keys. No prevalence/precision claim for real listings."
+  ],
+  "country": "US",
+  "exposure": {
+    "history": [
+      "Authored and used for implementation/tests; not independent heldout evidence"
+    ],
+    "status": "public-conformance-development-exposed"
+  },
+  "family_policy": "Globally namespaced authored source families; rendering siblings retain the same family.",
+  "id": "us-identity",
+  "license": {
+    "notice": "Original fictional examples, licensed with this repository. No upstream rows, private listings, or real delivery claims.",
+    "redistribution": "allowed",
+    "spdx": "MIT"
+  },
+  "locale": "en-US",
+  "ontology": "address-benchmark.delivery-unit-identity/v1",
+  "profile": "address-benchmark.delivery-unit-key-equality/v1",
+  "provenance": {
+    "source": "Original address-benchmark contributor-authored fictional fixtures",
+    "source_sha256": "57707920ac16464fda8801bf96a4754595bed080e374a9242e711fbe54ec4eeb",
+    "upstream_revision": "authored-v1"
+  },
+  "resources": [
+    {
+      "bytes": 4198,
+      "path": "cases.jsonl",
+      "sha256": "3a5b7eef8afaab31ae05955ceb1dd0cbbe9e695f0dc21c2bcafbb27a708b19e8"
+    }
+  ],
+  "schema": "address-benchmark.corpus/v1",
+  "split_policy": "All rows are conformance; future heldouts require separate custody and family/exact-overlap audit.",
+  "task": "match",
+  "version": "1.0.0"
+}

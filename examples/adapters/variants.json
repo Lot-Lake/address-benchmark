@@ -1,0 +1,9 @@
+[
+  {
+    "name": "variants-control",
+    "adapter": "demo-utility",
+    "config": {
+      "task": "variants"
+    }
+  }
+]

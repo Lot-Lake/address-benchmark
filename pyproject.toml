@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "address-benchmark"
+version = "0.1.0"
+description = "Auditable, corpus-independent evaluation contracts for address parsers"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{name = "address-benchmark contributors"}]
+dependencies = []
+classifiers = ["Development Status :: 3 - Alpha", "Programming Language :: Python :: 3", "Topic :: Software Development :: Testing"]
+
+[project.optional-dependencies]
+timing = ["pyperf>=2.9,<3"]
+usaddress = ["usaddress>=0.5.16,<0.6"]
+
+[project.scripts]
+address-benchmark = "address_benchmark.cli:main"
+
+[project.entry-points."address_benchmark.adapters"]
+demo = "address_benchmark.adapters:DemoParser"
+refusal = "address_benchmark.adapters:RefusalParser"
+usaddress = "address_benchmark.adapters:UsaddressParser"
+
+[tool.setuptools.packages.find]
+where = ["src"]

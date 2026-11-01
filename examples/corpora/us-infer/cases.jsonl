@@ -1,0 +1,3 @@
+{"family":"address-benchmark:infer-0","id":"infer-0","origin":"authored","reference":{"coverage":"complete","expected":{"state":"NY"}},"split":"conformance","subsets":["infer"],"text":"10001"}
+{"family":"address-benchmark:infer-1","id":"infer-1","origin":"authored","reference":{"coverage":"complete","expected":{"state":"CA"}},"split":"conformance","subsets":["infer"],"text":"90210"}
+{"family":"address-benchmark:infer-2","id":"infer-2","origin":"authored","reference":{"coverage":"complete","expected":{"state":null}},"split":"conformance","subsets":["infer"],"text":"not-a-zip"}

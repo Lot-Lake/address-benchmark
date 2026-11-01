@@ -1,0 +1,9 @@
+[
+  {
+    "name": "format-control",
+    "adapter": "demo-utility",
+    "config": {
+      "task": "format"
+    }
+  }
+]

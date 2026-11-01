@@ -1,0 +1,4 @@
+{"family":"address-benchmark:classify-0","id":"classify-0","origin":"authored","reference":{"coverage":"complete","expected":"po_box"},"split":"conformance","subsets":["classify"],"text":"PO Box 018"}
+{"family":"address-benchmark:classify-1","id":"classify-1","origin":"authored","reference":{"coverage":"complete","expected":"intersection"},"split":"conformance","subsets":["classify"],"text":"Alder St & Cedar Ave"}
+{"family":"address-benchmark:classify-2","id":"classify-2","origin":"authored","reference":{"coverage":"complete","expected":"street"},"split":"conformance","subsets":["classify"],"text":"12 Lark Rd"}
+{"family":"address-benchmark:classify-3","id":"classify-3","origin":"authored","reference":{"coverage":"complete","expected":"unknown"},"split":"conformance","subsets":["classify"],"text":""}

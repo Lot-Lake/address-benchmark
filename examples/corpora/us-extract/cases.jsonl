@@ -1,0 +1,5 @@
+{"family":"address-benchmark:extract-0","id":"extract-0","origin":"authored","reference":{"coverage":"complete","expected":"0012"},"split":"conformance","subsets":["extract"],"text":"0012 Alder St"}
+{"family":"address-benchmark:extract-1","id":"extract-1","origin":"authored","reference":{"coverage":"complete","expected":"14A"},"split":"conformance","subsets":["extract"],"text":"14A Spruce Rd"}
+{"family":"address-benchmark:extract-2","id":"extract-2","origin":"authored","reference":{"coverage":"complete","expected":"12 1/2"},"split":"conformance","subsets":["extract"],"text":"12 1/2 Fir St"}
+{"family":"address-benchmark:extract-3","id":"extract-3","origin":"authored","reference":{"coverage":"complete","expected":null},"split":"conformance","subsets":["extract"],"text":"PO Box 012"}
+{"family":"address-benchmark:extract-4","id":"extract-4","origin":"authored","reference":{"coverage":"complete","expected":null},"split":"conformance","subsets":["extract"],"text":"Alder St"}
