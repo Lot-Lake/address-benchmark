@@ -55,6 +55,18 @@ become true negatives. Report key coverage. No threshold tuning or property/unit
 level switching after seeing gold. This is not ranked matching/search or entity
 clustering. Those require separately labeled candidate populations/relevance.
 
+Property-level identity (`entity_level: "property"`, profile
+`address-benchmark.property-key-equality/v1`) labels pairs at the property
+(building/parcel) level: units of one building are the same property. Each pair
+names both entity identifiers (`entities`), which must agree with the label. The
+same pair rule applies, and the match summary adds `property_keys`: properties,
+distinct keys per property (1 is ideal; `fragmented_properties` counts the rest),
+`false_merge_pairs` (distinct-property pairs with equal keys), `colliding_keys`
+(keys any two different properties received anywhere in the population) and
+missing key sides. It describes the labeled pairs, not deployment prevalence.
+Delivery-unit corpora and their results are unchanged. Example:
+`examples/corpora/us-identity-property`.
+
 ## Utility tracks
 
 - **Classification/extraction/inference/diagnostics** use `typed-json-exact/v1`: compare
