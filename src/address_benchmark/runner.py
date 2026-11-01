@@ -113,13 +113,13 @@ def execute(engine, mode, inputs, directory, *, samples, min_seconds, warmup, ti
     return record
 
 
-def validate_predictions(rows, requests, predictions, metadata):
+def validate_predictions(rows, requests, predictions, metadata, profiles=()):
     require(len(predictions) == len(rows), "prediction stream length differs")
     require(len(requests) == len(rows), "input stream length differs")
     cases = []
     for row, request, pred in zip(rows, requests, predictions):
         check_prediction(pred, request, metadata)
-        cases.append(score_case(row, pred, metadata))
+        cases.append(score_case(row, pred, metadata, profiles))
     return cases
 
 
@@ -199,7 +199,7 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
             try:
                 predictions = list(read_jsonl(directory / "predictions.jsonl"))
                 require(entry["identity"]["adapter"]["ontology"] == manifest["ontology"], "adapter/corpus ontology differs")
-                cases = validate_predictions(rows, requests, predictions, entry["identity"]["adapter"])
+                cases = validate_predictions(rows, requests, predictions, entry["identity"]["adapter"], manifest.get("scoring_profiles", ()))
                 write_jsonl(directory / "cases.jsonl", cases)
                 all_cases[name] = directory / "cases.jsonl"
                 entry["populations"] = summarize_views(cases)
@@ -290,7 +290,8 @@ def verify(output):
         require(entry == read_json(out / (name + "-accuracy") / "execution.json"), "execution record differs from report")
         if entry["status"] == "ok":
             directory = out / (name + "-accuracy")
-            cases = validate_predictions(rows, requests, list(read_jsonl(directory / "predictions.jsonl")), entry["identity"]["adapter"])
+            cases = validate_predictions(rows, requests, list(read_jsonl(directory / "predictions.jsonl")), entry["identity"]["adapter"],
+                                         read_json(out / "corpus.json").get("scoring_profiles", ()))
             require(cases == list(read_jsonl(directory / "cases.jsonl")), "rescored cases differ")
             require(summarize_views(cases) == entry["populations"], "rescored populations differ")
     for trial in report["trials"]:

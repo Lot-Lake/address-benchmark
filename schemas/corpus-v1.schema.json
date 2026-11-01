@@ -210,6 +210,16 @@
     "row_limit": {
       "type": "integer",
       "minimum": 1
+    },
+    "scoring_profiles": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "strict-streetline/v1"
+        ]
+      }
     }
   },
   "$defs": {
