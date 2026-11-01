@@ -29,7 +29,7 @@ def recorded():
                         'authored/test/all': population(), 'authored/test/subset:hard': population(2, 0),
                         'publisher/test/all': population(4, 1, complete=0),
                         'publisher/test/subset:hard': population(2, 1, complete=0)}),
-                    'b': dict(status='ok', exit_code=0, populations={'authored/test/all': population(14, 0, fine=False)}),
+                    'b': dict(status='ok', exit_code=0, populations={'authored/test/all': population(14, 0, complete=14, fine=False)}),
                     'missing': dict(status='unavailable', exit_code=69)})
 
 
