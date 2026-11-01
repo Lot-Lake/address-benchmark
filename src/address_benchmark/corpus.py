@@ -48,7 +48,13 @@ def check_reference(reference, text, task="parse"):
             require(reference["coverage"] != "none" or not reference["values"], "unlabeled normalization contains values")
         elif task == "match":
             require(type(reference.get("same_entity")) is bool if reference["coverage"] == "complete" else reference.get("same_entity") is None, "independent pair identity assertion required")
-            require(reference.get("label_basis") and reference.get("entity_level") == "delivery-unit", "explicit identity level and annotation basis required")
+            require(reference.get("label_basis") and reference.get("entity_level") in ("delivery-unit", "property"), "explicit identity level and annotation basis required")
+            if reference["entity_level"] == "property":
+                entities = reference.get("entities")
+                require(isinstance(entities, list) and len(entities) == 2 and all(isinstance(x, str) and x for x in entities),
+                        "property-level pairs name both entities")
+                require((entities[0] == entities[1]) == reference["same_entity"] if reference["coverage"] == "complete" else True,
+                        "entity identifiers contradict the same/distinct label")
         elif task == "stability":
             checks = reference.get("checks")
             require(isinstance(checks, list) and checks and len(checks) == len(set(checks))
