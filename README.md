@@ -37,6 +37,11 @@ The [plan schema](schemas/plan-v1.schema.json) and semantic validator reject unk
 
 ## Clean console tables and exports
 
+Examples from the verified production cohort: [comparison table](docs/results/2026-11-01/tables/delimiter/scores.md),
+[console export](docs/results/2026-11-01/tables/delimiter/scores.txt),
+and [standalone HTML](docs/results/2026-11-01/tables/delimiter/scores.html).
+The [strict-policy table](docs/results/2026-11-01/tables/strict/scores.md) is a separate view of the same recorded predictions.
+
 `run` and `run-plan` print a comparison table and automatically save
 `scores.txt`, `scores.md`, `scores.csv`, `scores.json` and `scores.html`.
 Datasets/views are rows; library configurations are columns. Wider console tables
@@ -70,6 +75,7 @@ are highlighted. Partial references, native failures and overlapping subsets
 retain their original meaning. Table generation checks recorded envelope
 identities and does not rescore or replace the original scoring policy. Use the
 original frozen framework version for full `verify` rescoring of older runs.
+The [scorecard contract](docs/spec/scorecards.md) documents the export semantics.
 
 ## Production parsing cohort
 

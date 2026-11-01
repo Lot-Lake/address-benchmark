@@ -1,0 +1,19 @@
+USA parser comparison
+Edge-delimiter supplied-field agreement
+
+Dataset / view                   │ Rust learned │ Rust default │ BoundaryBoys │ Doorplate │ usaddress │ fastaddress │ libpostal default │ libpostal Senzing │ Mailwoman
+─────────────────────────────────┼──────────────┼──────────────┼──────────────┼───────────┼───────────┼─────────────┼───────────────────┼───────────────────┼──────────
+GeoSearch dev                    │       98.72% │       76.88% │       70.64% │    94.31% │    88.24% │      88.24% │            84.27% │            78.70% │    89.05%
+GeoSearch test (publisher split) │       98.92% │       80.04% │       72.80% │    96.66% │    88.39% │      88.39% │            88.81% │            86.15% │    91.26%
+Doorplate suite                  │       87.08% │       83.63% │       69.79% │    93.85% │    86.11% │      86.11% │            82.45% │            88.57% │    90.76%
+Doorplate suite / normal         │       93.18% │       91.04% │       79.53% │    96.92% │    96.46% │      96.46% │            88.70% │            93.01% │    94.96%
+Doorplate suite / hard           │       51.41% │       40.19% │       22.86% │    75.28% │    20.70% │      20.70% │            48.16% │            67.12% │    70.17%
+Doorplate suite / handwritten    │       81.70% │       77.30% │       35.30% │    92.70% │    89.70% │      89.70% │            71.10% │            73.00% │    76.90%
+Expanded USA                     │       89.03% │       95.26% │       80.93% │    86.65% │    90.04% │      90.04% │            91.42% │            95.39% │    91.12%
+
+Counts and failures use the recorded scoring denominators. Partial references judge supplied labels; they are not whole-address accuracy.
+Subset rows overlap the parent dataset. Public/development-exposed fixtures do not establish unseen accuracy.
+Bold marks rounded row leaders only when measured denominators match. Missing/unsupported scores are unmeasured, never zero.
+Strict preserves punctuation. Edge-delimiter ignores component-edge comma/semicolon/colon only, plus case and whitespace.
+Timing appears only when recorded: exploratory process medians, not accuracy-run wall time. † marks sample spread above 10%; ! marks native errors/refusals.
+The report command checks recorded run identities. Exports do not rescore predictions or rehash every artifact.

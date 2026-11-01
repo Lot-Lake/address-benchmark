@@ -193,6 +193,7 @@ print(json.dumps(dict(output=str(output), tracks=len(summary), engines=len(table
 
 # The same built-in table renderer powers terminal output and all five exports.
 from address_benchmark.tables import export_scorecard, load_scorecard, render_console
-score_table = load_scorecard(args.plan, metric='delimiter', subsets=['natural', 'hard', 'hand'], title='USA parser comparison')
+available_views = {key.rsplit('/subset:', 1)[1] for track in summary.values() for engine in track['engines'].values() for key in engine['strata'] if '/subset:' in key}
+score_table = load_scorecard(args.plan, metric='delimiter', subsets=[name for name in ('natural', 'hard', 'hand') if name in available_views], title='USA parser comparison')
 export_scorecard(score_table, output, overwrite=True)
 print(render_console(score_table), end='')

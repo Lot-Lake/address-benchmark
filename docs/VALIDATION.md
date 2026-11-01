@@ -1,5 +1,34 @@
 # Validation records
 
+## 0.3.0 — console tables and scorecard exports
+
+GitHub CI [run 41355268079](https://github.com/Lot-Lake/address-benchmark/actions/runs/41355268079)
+passed **94 tests** on each of Python 3.11, 3.12 and 3.13, plus installed-package
+smoke checks. Production-code commit: `0db8e37`. The thirteen new tests cover
+weighted populations, overlapping subsets, partial eligibility, zero versus
+missing scores, denominator-aware row leaders, fine F1 counts, narrow/Unicode
+terminal output, control characters, HTML escaping, CSV quoting, source-data
+exclusion, incomplete timing, changed envelope identities, path traversal,
+column stability, CLI export behavior, automatic hashed exports and clean JSON
+stdout for plan execution.
+
+The first CI attempt exposed an incorrectly constructed test fixture: two
+denominators intended to differ were equal. The fixture was corrected and all
+three CI jobs passed. The local guarded suite never acquired the shared slot;
+only our queued guard was interrupted (actual exit 130, no test child launched).
+Other owners' workloads were preserved. No local test-pass claim follows.
+
+Strict and edge-delimiter tables were generated separately from the complete
+v0.2 production plan's recorded aggregates. No parser/model was rerun and no
+prediction or score policy was changed. Original run envelope identities were
+checked; full artifact rehash/rescoring remains the original framework's `verify`
+operation. The [published table samples](results/2026-11-01/tables/delimiter/scores.md)
+contain aggregate scores only.
+
+Standalone HTML markup, data and escaping were exercised by tests. An attempted
+browser preview of the local HTML file was rejected by the browser URL policy
+(only HTTP/HTTPS permitted); visual browser verification was not completed.
+
 ## 0.2.0 — real-corpus production comparison
 
 Executed on 2026-11-01 on macOS through the shared host workload coordinator.
