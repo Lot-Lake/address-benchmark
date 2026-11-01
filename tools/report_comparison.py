@@ -71,7 +71,7 @@ def aggregate(path):
     return values
 
 
-tables, summary, baselines = [], {}, ('rust-learned','rust-default')
+tables, summary, runtimes, baselines = [], {}, {}, ('rust-learned','rust-default')
 exact_inputs = defaultdict(list)
 for track in plan['tracks']:
     directory = root / track['output']
@@ -84,8 +84,19 @@ for track in plan['tracks']:
     summary[track['id']] = dict(run_content_id=report['content_id'], source_pins=report['source_pins'], engines={}, baseline_comparisons={}, role_confusions={})
     for name, path in casepaths.items():
         values = aggregate(path)
+        values['strata'] = {
+            key: {metric: population[metric] for metric in ('rows', 'supplied_fields', 'delimiter_fields', 'statuses')}
+            for key, population in report['accuracy'][name]['populations'].items()
+        }
         summary[track['id']]['engines'][name] = values
         tables.append(dict(corpus=track['id'], engine=name, **{k:v for k,v in values.items() if not isinstance(v,dict)}))
+        identity = report['accuracy'][name]['identity']
+        adapter = identity['adapter']
+        # Export an allowlist, never local artifact paths or installed-file inventories.
+        public_identity = {k: adapter.get(k) for k in ('name', 'version', 'dependency_versions', 'model', 'runtime', 'threading', 'accuracy_workers')}
+        public_identity['node_version'] = adapter.get('provenance', {}).get('node_version')
+        public_identity['identity_sha256'] = hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+        runtimes.setdefault(name, {})[track['id']] = public_identity
     for baseline in baselines:
         base = {c['id']: (c['delimiter_fields_agree'], c['delimiter_mismatched_roles']) for c in jsonl(casepaths[baseline])}
         comparisons = {}
@@ -131,17 +142,25 @@ overlap=dict(source_rows=sum(len(x) for x in exact_inputs.values()),distinct_exa
              cross_split_groups=[dict(input_sha256=k,members=v) for k,v in exact_inputs.items() if len({m['split'] for m in v})>1],
              family_scope='Exact-text proxy only; independent source families and training overlap unknown')
 (output/'overlap.json').write_text(json.dumps(overlap,indent=2)+'\n')
-(output/'comparison.json').write_text(json.dumps(dict(schema='address-benchmark.comparison/v1', plan_sha256=sha(args.plan), tracks=summary, overlap=dict(source_rows=overlap['source_rows'],distinct_exact_inputs=overlap['distinct_exact_inputs'],cross_split_groups=len(overlap['cross_split_groups'])), provenance=dict(plan_receipt_sha256=sha(root/'plan-results.json'), generator_sha256=sha(Path(__file__)))),indent=2)+'\n')
+(output/'comparison.json').write_text(json.dumps(dict(schema='address-benchmark.comparison/v1', plan_sha256=sha(args.plan), tracks=summary, runtimes=runtimes, overlap=dict(source_rows=overlap['source_rows'],distinct_exact_inputs=overlap['distinct_exact_inputs'],cross_split_groups=len(overlap['cross_split_groups'])), provenance=dict(plan_receipt_sha256=sha(root/'plan-results.json'), generator_sha256=sha(Path(__file__)))),indent=2)+'\n')
 
 lines=['# Fresh production parsing comparison','',
-       f"Nine engine configurations; {overlap['source_rows']:,} source rows across four panels, {overlap['distinct_exact_inputs']:,} distinct exact UTF-8 inputs. Each engine ran fresh through the benchmark plan; predictions were rehashed and rescored. Source rows are not independent source families. Exact cross-split/source overlap is retained in overlap.json.",
+       f"Nine engine configurations; {overlap['source_rows']:,} source rows across four panels, {overlap['distinct_exact_inputs']:,} distinct exact UTF-8 inputs. Each engine ran fresh through the benchmark plan; predictions were rehashed and rescored. Source rows are not independent source families. Detailed exact cross-split/source overlap is retained locally in overlap.json; public exports include aggregate overlap counts only.",
        '', 'The retained learned Rust model and the default source parser are separate columns. These public/development-exposed fixtures do not establish unseen generalization. No private runtime, corpus or raw address is included in this report.',
        '', '| Corpus | Engine | Correct / eligible | Edge-delimiter agreement | Strict agreement | Fine token F1 | Errors / refusals |',
        '| --- | --- | ---: | ---: | ---: | ---: | ---: |']
 for row in tables:
     f1='unmeasured' if row['fine_token_f1'] is None else f"{100*row['fine_token_f1']:.2f}%"
     lines.append(f"| {row['corpus']} | {row['engine']} | {row.get('delimiter_correct',0):,}/{row['eligible']:,} | {row['delimiter_percent']:.2f}% | {row['strict_percent']:.2f}% | {f1} | {row.get('errors',0)} / {row.get('refusals',0)} |")
-lines += ['', 'Both field policies use the same untouched native predictions. The edge-delimiter diagnostic ignores only component-edge comma/semicolon/colon, case and whitespace; periods, abbreviations, accents, ZIP width and internal punctuation remain significant. Fine scores require publisher fine labels and declared native token support; coarse emitters are unmeasured, not zero.',
+lines += ['', '## Runtime cohort', '', '| Engine | Installed package/model | Runtime |', '| --- | --- | --- |']
+for name, tracks in runtimes.items():
+    runtime = next(iter(tracks.values()))
+    versions = ', '.join(f'{key} {value}' for key, value in (runtime['dependency_versions'] or {}).items())
+    description = (versions + '; ' if versions else '') + runtime['model']
+    interpreter = 'Python ' + runtime['runtime'] + (('; Node ' + runtime['node_version']) if runtime['node_version'] else '')
+    lines.append(f'| {name} | {description} | {interpreter} |')
+lines += ['', 'These are the installed versions actually executed, not claims about the latest upstream release. Fastaddress model v1 shares the usaddress CRF lineage. Mailwoman accuracy uses four independent CPU processes with one ONNX intra-op thread each. BoundaryBoys is a locally installed private executable; its source is not redistributed. Full runtime/file identities are retained locally; per-track identity hashes are exported in comparison.json.',
+          '', 'Both field policies use the same untouched native predictions. The edge-delimiter diagnostic ignores only component-edge comma/semicolon/colon, case and whitespace; periods, abbreviations, accents, ZIP width and internal punctuation remain significant. Fine scores require publisher fine labels and declared native token support; coarse emitters are unmeasured, not zero.',
           '', 'Expanded USA contains 2,920 partial and 53 complete references. Its shared figure is supplied-field agreement; extra roles are unadjudicated. It is not whole-address accuracy. Doorplate has rendered and hand-authored origins; its strata are views, not additional rows. Native unplaced tokens are retained.',
           '', '## Where to investigate', '']
 for baseline in baselines:

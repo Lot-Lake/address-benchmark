@@ -29,9 +29,18 @@ Use a versioned [benchmark plan](docs/spec/plans.md) to select corpus manifests,
 address-benchmark run-plan /absolute/path/plan.json
 ```
 
+The [runnable example plan](examples/plan.json) compares demo/refusal controls on
+two original corpora. Copy `examples/` to a fresh work directory before running
+it; the plan writes one result index beside itself and refuses to overwrite it.
+
 The [plan schema](schemas/plan-v1.schema.json) and semantic validator reject unknown options, unsafe paths, implicit value types and duplicate/nested outputs. Adapters and scorers remain ordinary versioned plugins; JSON describes the experiment rather than embedding a programming language.
 
 ## Production parsing cohort
+
+The first complete run is available in the [findings and improvement priorities](docs/results/2026-11-01/findings.md),
+[nine-configuration parsing comparison](docs/results/2026-11-01/comparison.md),
+and [separate utility observations](docs/results/2026-11-01/utilities.md).
+It contains 1,023,327 fresh parsing predictions, with all 36 cells verified.
 
 Real adapters support ordered Python token APIs (usaddress, fastaddress, Doorplate), direct libpostal C parsing with separately pinned default/Senzing models, the default address-normalizer source-evidence API, a persistent Mailwoman neural bridge, and generic batch executables for the retained learned model and private local BoundaryBoys runtime. Native tokens, unplaced outputs, errors and model identities remain visible. Source byte alignment derived by an adapter is explicitly distinguished from native offsets.
 
@@ -46,6 +55,12 @@ python3 tools/report_comparison.py work/my-fresh-comparison/plan.json --out outp
 ```
 
 Use your host workload coordinator for the outer execution. `tools/execute_local_matrix.py` combines contract tests, fresh preparation and the full plan in one finite command. The source-library checkout, models and other owners' processes remain read-only. Private runtime code and corpus assets stay out of Git. `--smoke N` on preparation is a first-N integration preflight, explicitly unsuitable as population evidence.
+
+Add `--utilities --report-out outputs/comparison` to the combined driver to run
+the [separate production utility profiles](docs/spec/utility-production.md) and
+write parsing and utility reports together. Normalization and matching references
+are currently small conformance panels; unmeasured production APIs remain explicit
+in the [coverage inventory](docs/COVERAGE.md).
 
 The real-corpus v2 ontology preserves fine publisher role distinctions; the original strict metric remains alongside an explicit edge-delimiter diagnostic. These comparisons remain public/development-exposed evidence. Exact-text family proxies are not independent source families. Accuracy process wall durations include hashing/loading/I/O and must not be ranked as parse throughput.
 
@@ -125,7 +140,7 @@ The built-in paired timings are **exploratory**. pyperf supplies calibration and
 
 Each run freezes input-only requests, references, manifests, predictions, per-case/role outcomes, pair deltas, logs, actual exits, runtime/module/package/model hashes, scorer/source identities and raw trial measurements. `run.json` indexes hashed artifacts and has a content identity. `verify` rehashes and rescores accuracy with the original source version. It is an integrity check, not an author signature or proof that declared runtime metadata is truthful. Cache reuse is deliberately absent in v0.1: every engine cell runs fresh.
 
-Run directories contain inputs and references, including private addresses when used. They are ignored by Git. Publish a deliberately reviewed export, not a private run folder. License details are independent for benchmark code, corpus, runtime and model.
+Run directories contain inputs and references, including private addresses when used. They are ignored by Git. Publish a deliberately reviewed export, not a private run folder. The published production reports contain aggregates only. Detailed overlap membership and local failure reproductions are excluded. License details are independent for benchmark code, corpus, runtime and model.
 
 ## Status and contribution
 

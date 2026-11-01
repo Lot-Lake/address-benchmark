@@ -35,6 +35,8 @@ if args.report_out:
     commands.append(('report',[sys.executable,str(frozen/'tools/report_comparison.py'),str(out/'plan.json'),'--out',str(args.report_out.resolve())]))
 if args.utilities:
     commands.append(('utilities',[sys.executable,str(frozen/'tools/execute_utility_comparison.py'),'--source',args.source,'--doorplate',args.doorplate,'--out',str(out/'utilities')]))
+    if args.report_out:
+        commands.append(('utility-report',[sys.executable,str(frozen/'tools/report_utilities.py'),str(out/'utilities'),'--out',str(args.report_out.resolve())]))
 for name, command in commands:
     print(name + ": starting", flush=True)
     result = subprocess.run(command, cwd=frozen, env=env)

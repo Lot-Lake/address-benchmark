@@ -1,4 +1,45 @@
-# Local validation record — 0.1.0
+# Validation records
+
+## 0.2.0 — real-corpus production comparison
+
+Executed on 2026-11-01 on macOS through the shared host workload coordinator.
+The full driver froze this project's framework/adapter/recipe source before
+execution; source, model and corpus assets in the existing library checkouts
+were read in place. No other owner's process was stopped.
+
+| Check | Actual result |
+| --- | --- |
+| Unit, contract and subprocess integration suite | **81 tests passed**, exit 0 |
+| Full JSON parsing plan | **36/36 cells complete**, exit 0 |
+| Parsing rows / fresh predictions | **113,703 / 1,023,327** |
+| Parsing adapter errors / refusals | **0 / 0** |
+| Artifact rehash and accuracy rescore | All four tracks verified |
+| Separate utility plans | All five complete, actual exits 0; all artifacts verified |
+| New runnable JSON example | Both tracks complete and verified, exit 0 |
+| Aggregate parsing and utility reports | Generated successfully, exits 0 |
+| GitHub CI at production-code commit `59fe82a` | Passed on Python 3.11–3.13, including package smoke checks |
+
+See the [aggregate findings](results/2026-11-01/findings.md),
+[parsing comparison](results/2026-11-01/comparison.md), and
+[utility observations](results/2026-11-01/utilities.md). Full runtime/file
+identities, native outputs, references, actual exits, logs and case decisions
+remain in ignored local run folders. No external corpus/model/private runtime
+bytes are included in the public repository.
+
+Complete/verified means the benchmark executed and its artifacts rescore; it
+does **not** mean a library satisfied every assertion. In particular, our native
+normalization changes on a second pass on 4/1,024 input rows (3 distinct strings).
+Scalar/repeat/batch/stream/chunk observations agree on the same panel. Real
+normalization and matching references are small exposed conformance controls.
+These runs do not establish unseen accuracy or calibrated parsing throughput.
+
+Earlier failed/interrupted attempts remain separate local artifacts and are not
+pooled into these results. The final cohort uses frozen framework source, fresh
+native execution and four single-threaded CPU accuracy workers for Mailwoman.
+The report generator was also corrected to allow regenerating its aggregate
+JSON export; the successful rerender did not change any immutable run artifacts.
+
+## 0.1.0 — initial framework release
 
 Executed on 2026-11-01 with Python 3.12.8 on macOS, through the host workload
 coordinator. The existing address-normalizer workspace and other owners' jobs

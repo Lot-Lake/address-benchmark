@@ -1,0 +1,10 @@
+{
+  "schema": "address-benchmark.plan/v1",
+  "name": "authored-parsing-controls",
+  "engines": "adapters/engines.json",
+  "tracks": [
+    {"id": "core", "corpus": "corpora/us-core/manifest.json", "output": "runs/core"},
+    {"id": "challenge", "corpus": "corpora/us-challenge/manifest.json", "output": "runs/challenge"}
+  ],
+  "execution": {"baseline": "demo", "timing": false, "timeout": 60, "seed": 20261101}
+}

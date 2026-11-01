@@ -15,16 +15,16 @@ surface is key generation, not a separately verified pair-classifier/geocoder.
 
 | Capability | Executable benchmark support | Evidence/limitations in this release |
 | --- | --- | --- |
-| Free-text source/semantic parsing; tokenization | Ordered native evidence, fine roles/tokens/spans, partial/complete coarse scores | Authored core/challenge and separate generated views. Demo plus optional usaddress wrapper. Rich hierarchy/source-accounting adapter still needs upstream-specific work. |
-| End-to-end normalization and field-level helpers | Exact named-profile output | Authored controls and generic installed public-callable bridge. Larger postal/dictionary rules profiles need independent reviewed references. |
+| Free-text source/semantic parsing; tokenization | Ordered native evidence, fine roles/tokens/spans, partial/complete coarse scores | Nine installed production configurations on GeoSearch DEV/TEST, Doorplate v1 and expanded USA. Native coarse and fine capabilities remain distinct. Rich hierarchy/source-accounting scoring still needs upstream-specific work. |
+| End-to-end normalization and field-level helpers | Exact named-profile output | Native source-library/Doorplate adapters for four complete default-profile scourgify text assertions, projected through a common five-field renderer. Field helpers and larger postal/dictionary profiles need dedicated references. |
 | Formatting from components; USPS/display/mixed modes | Ordered structured inputs and exact named-profile strings | Authored line formatter. Real postal profiles need published jurisdiction-specific rules; no USPS certification claim. |
-| Delivery-unit/property comparison keys | Independently labeled pairs, key stability/collisions/P/R/F1/coverage | Delivery-unit authored controls and generic public-callable bridge. Property identity is a future distinct profile; clustering/ranked matching out of scope. |
-| Classification and Boolean predicates | Exact typed output under a named taxonomy/profile | Tiny authored classes. Fine-grained address-type taxonomies need reviewed crosswalks. |
+| Delivery-unit/property comparison keys | Independently labeled pairs, key stability/collisions/P/R/F1/coverage | Native source-library/Doorplate delivery-unit keys on ten independent fictional controls. No real matching population evidence. Property identity is a future distinct profile; clustering/ranked matching out of scope. |
+| Classification and Boolean predicates | Exact typed output under a named taxonomy/profile | Native source-library/Doorplate classification on 19,586 publisher assertions. Highway/street granularity differs; finer taxonomies and Boolean predicates need separate review. |
 | ZIP→state and other inferred attributes | Explicit typed inference task | Tiny control inventory only. No complete ZIP database, inferred-state-as-source credit or deliverability claim. |
 | Variants and suggestions | Closed permitted/required output inventories, duplicates | Authored finite controls; ranked/open-ended suggestions need relevance/utility labels and separate scorer. |
 | Analyze/validate and diagnostics | Exact typed assertions and native-output audit | Empty-input/deliverability-not-checked controls. Neutral diagnostic semantics need dedicated adapter mappings and independently known conditions. |
 | House/street extraction | Generic exact typed extraction profile, parsing metrics when richer evidence exists | Dedicated house-number corpus; public callable supports other extraction profiles. No falsely attributed fine-role capability. |
-| Scalar/batch/stream/chunk APIs | Scalar/repeat/native-batch/stream/chunk/idempotence observation comparisons | Authored controls and generic paired APIs retain order/tails. Backpressure/resource/performance contracts pending; do not equate scalar loop to native batching. |
+| Scalar/batch/stream/chunk APIs | Scalar/repeat/native-batch/stream/chunk/idempotence observation comparisons | Native source-library/Doorplate APIs on a frozen 1,024-string real input panel; source-library stream/chunk is a separate supported arm. Backpressure/resource/performance contracts pending; do not equate scalar loop to native batching. |
 | Bindings and repeated/upgrade stability | Per-runtime identity and repeated execution artifacts | Cross-binding and upgrade comparison backends pending. Stable wrong predictions do not imply accuracy. |
 | Performance | Paired independent-process serial API pilot, optional pyperf helper | Startup wall/load audit observations only. Native batch/stream timing, memory, allocation, payload/footprint, latency percentiles and dedicated cold-start measurements pending. |
 | Geocoding/search/postal verification | Extension boundaries documented | No implemented scorer, external provider call or score. |
@@ -41,10 +41,10 @@ population-accuracy denominators. See `tools/author_corpora.py` for exact freeze
    publish semantic version policy and compatibility fixtures. MIT makes the
    original protocol/code/data straightforward to adopt; it does not license
    third-party assets.
-2. Implement independently maintained production adapters, including native
-   public interfaces for Doorplate/libpostal/Mailwoman where license, model and
-   API scope permit. Retain raw native output and model lineage. No privileged
-   local-engine path.
+2. Extend independently maintained production adapters to unmeasured utility
+   profiles and more libraries. Native Doorplate/libpostal/Mailwoman parsing
+   interfaces are integrated; their model lineage and actual installed versions
+   remain explicit. Retain raw native output. No privileged local-engine path.
 3. Add independently annotated, legally redistributable natural-entry data,
    geography/domain/time strata, blind adjudication, frozen source-family splits
    and exposure logs. Keep challenge/generated panels separate. Add country
@@ -60,5 +60,6 @@ population-accuracy denominators. See `tools/author_corpora.py` for exact freeze
 
 Before broader publication claims: review annotations, third-party license
 inventory, naming/versioning and public asset contents; run CI on Linux/Python
-3.11–3.13; record optional-runtime results separately. The initial repository
-contains no competitive leaderboard or copied private cache.
+3.11–3.13; record optional-runtime results separately. The first production
+comparison publishes aggregate observations only, with exposure and task limits;
+the repository contains no copied private cache.

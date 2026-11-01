@@ -1,0 +1,558 @@
+{
+  "schema": "address-benchmark.utility-comparison/v1",
+  "tracks": {
+    "identity-conformance": {
+      "task": "match",
+      "run_content_id": "dc28f1fa4b145042312da9a857f5c994166bad42fafff486b0b0e6c615f54ea8",
+      "source_pins": {
+        "__init__.py": "1566bfbfab6252d185d2852e7ed275d1aac9ce29c66d0e4f666d00b1ebaa643e",
+        "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+        "adapters.py": "2f788f19047820a544eacfb7c00e2f09b22bfcc71c0ff0f08bdb8c7307ca007b",
+        "cli.py": "bb0a4073570616911ffb8ddf7d945228f6af9d1e0e2ce691d6ff835bad0266b5",
+        "conformance.py": "00c69033c0578f07db1ef4ac5de47bced968a88cf7eee0ad91a9fc2f194838ba",
+        "corpus.py": "c6128507c154e907f3a3eea58e7e26f1004df01835f8bd1fb5b301ab6734be7e",
+        "intake.py": "3e56fee9e6f773f20e9f9594f8e349affff8b7863b39832887ae2f66690818b6",
+        "io.py": "7881f2392b1bda336d09c72e5b9b89f3e21d1b6d2cfa24208bdc1d28a95aaeb3",
+        "ontologies.py": "d2a1031b9565e244e9b64f0239fccd7200ae29f170726ad1c6e6aab532151707",
+        "plan.py": "352142eb128b146dcb03a6c8d5088624a8203fcd352762db5f0d1e69c7fe7c0b",
+        "production.py": "da5444d4786577e9da30c08e0f394dce0dc7a6a11dfb383f51deabd63d139a63",
+        "protocol.py": "5c05a2754dafd1ee4a04ca6c7a42e59d901cb6a4dfad77ff2f10a0ad20b1e4de",
+        "report.py": "c1c3054cc0361f7f229ffc7f17f000ab776c7263b5914142a9be3cf062140458",
+        "runner.py": "5e4a1c70e997e36e5e15504b5e10e17511a0d814abc1482b0bcb15f6096f02b1",
+        "scoring.py": "2a5e1257cc47c68f8147000d47d4e2a0ff9b02ad2a9a6fb9a3ae428f3b986216",
+        "tasks.py": "caf5102a8b8c8903a31c614a9aa69bf78a2b6df4f4fbad967b1d7e3826b46e2c",
+        "worker.py": "1abf609aabaa88694c26a42d064df435d99953a5b72bd1a6ff8e57dadc8ed292"
+      },
+      "engines": {
+        "doorplate": {
+          "task": "match",
+          "rows": 10,
+          "source_families": 10,
+          "statuses": {
+            "ok": 10
+          },
+          "agreement": {
+            "correct": 9,
+            "denominator": 10,
+            "rate": 0.9
+          },
+          "same_entity": {
+            "tp": 3,
+            "fp": 1,
+            "fn": 0,
+            "precision": 0.75,
+            "recall": 1.0,
+            "f1": 0.8571428571428571
+          },
+          "distinct_entity_collisions": 1,
+          "true_distinct": 6,
+          "undecided_distinct": 0,
+          "key_coverage": 1.0,
+          "scope": "authored pair decisions at delivery-unit level; no clustering/ranked-search or real-world prevalence claim",
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "00c64e2db6cec67f7a8f9c7ec2d7461e232032b611884a0780a49b7a4061973d"
+        },
+        "rust-default": {
+          "task": "match",
+          "rows": 10,
+          "source_families": 10,
+          "statuses": {
+            "ok": 10
+          },
+          "agreement": {
+            "correct": 10,
+            "denominator": 10,
+            "rate": 1.0
+          },
+          "same_entity": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "distinct_entity_collisions": 0,
+          "true_distinct": 7,
+          "undecided_distinct": 0,
+          "key_coverage": 1.0,
+          "scope": "authored pair decisions at delivery-unit level; no clustering/ranked-search or real-world prevalence claim",
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "d5176b4be53f6faf40044bf620328d63ff0c69ed848fe55340a0a5e0ded2160e"
+        }
+      }
+    },
+    "normalized-components": {
+      "task": "normalize",
+      "run_content_id": "aa73777f2f1f34b086fb4c6824e3ba56ff68e79b782384f9ca14839519af2618",
+      "source_pins": {
+        "__init__.py": "1566bfbfab6252d185d2852e7ed275d1aac9ce29c66d0e4f666d00b1ebaa643e",
+        "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+        "adapters.py": "2f788f19047820a544eacfb7c00e2f09b22bfcc71c0ff0f08bdb8c7307ca007b",
+        "cli.py": "bb0a4073570616911ffb8ddf7d945228f6af9d1e0e2ce691d6ff835bad0266b5",
+        "conformance.py": "00c69033c0578f07db1ef4ac5de47bced968a88cf7eee0ad91a9fc2f194838ba",
+        "corpus.py": "c6128507c154e907f3a3eea58e7e26f1004df01835f8bd1fb5b301ab6734be7e",
+        "intake.py": "3e56fee9e6f773f20e9f9594f8e349affff8b7863b39832887ae2f66690818b6",
+        "io.py": "7881f2392b1bda336d09c72e5b9b89f3e21d1b6d2cfa24208bdc1d28a95aaeb3",
+        "ontologies.py": "d2a1031b9565e244e9b64f0239fccd7200ae29f170726ad1c6e6aab532151707",
+        "plan.py": "352142eb128b146dcb03a6c8d5088624a8203fcd352762db5f0d1e69c7fe7c0b",
+        "production.py": "da5444d4786577e9da30c08e0f394dce0dc7a6a11dfb383f51deabd63d139a63",
+        "protocol.py": "5c05a2754dafd1ee4a04ca6c7a42e59d901cb6a4dfad77ff2f10a0ad20b1e4de",
+        "report.py": "c1c3054cc0361f7f229ffc7f17f000ab776c7263b5914142a9be3cf062140458",
+        "runner.py": "5e4a1c70e997e36e5e15504b5e10e17511a0d814abc1482b0bcb15f6096f02b1",
+        "scoring.py": "2a5e1257cc47c68f8147000d47d4e2a0ff9b02ad2a9a6fb9a3ae428f3b986216",
+        "tasks.py": "caf5102a8b8c8903a31c614a9aa69bf78a2b6df4f4fbad967b1d7e3826b46e2c",
+        "worker.py": "1abf609aabaa88694c26a42d064df435d99953a5b72bd1a6ff8e57dadc8ed292"
+      },
+      "engines": {
+        "doorplate": {
+          "task": "normalize",
+          "rows": 4,
+          "source_families": 4,
+          "statuses": {
+            "ok": 4
+          },
+          "agreement": {
+            "correct": 1,
+            "denominator": 4,
+            "rate": 0.25
+          },
+          "classification_confusions": [],
+          "normalization_field_mismatches": {
+            "address_line_2": 1,
+            "address_line_1": 2
+          },
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "1b87610e87a05c120c6399f50963a9716c8a800909f26de9f8f433e82e6d4848"
+        },
+        "rust-default": {
+          "task": "normalize",
+          "rows": 4,
+          "source_families": 4,
+          "statuses": {
+            "ok": 4
+          },
+          "agreement": {
+            "correct": 4,
+            "denominator": 4,
+            "rate": 1.0
+          },
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "4cfb0f8348e92fdfd8541a4f4987f4de76092119ab852b36c109b0cce0eec226"
+        }
+      }
+    },
+    "publisher-classification": {
+      "task": "classify",
+      "run_content_id": "f5d674a3e0d65e2837b20df55c74d2013affc4ff5cc833f6c8526230bbc87c61",
+      "source_pins": {
+        "__init__.py": "1566bfbfab6252d185d2852e7ed275d1aac9ce29c66d0e4f666d00b1ebaa643e",
+        "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+        "adapters.py": "2f788f19047820a544eacfb7c00e2f09b22bfcc71c0ff0f08bdb8c7307ca007b",
+        "cli.py": "bb0a4073570616911ffb8ddf7d945228f6af9d1e0e2ce691d6ff835bad0266b5",
+        "conformance.py": "00c69033c0578f07db1ef4ac5de47bced968a88cf7eee0ad91a9fc2f194838ba",
+        "corpus.py": "c6128507c154e907f3a3eea58e7e26f1004df01835f8bd1fb5b301ab6734be7e",
+        "intake.py": "3e56fee9e6f773f20e9f9594f8e349affff8b7863b39832887ae2f66690818b6",
+        "io.py": "7881f2392b1bda336d09c72e5b9b89f3e21d1b6d2cfa24208bdc1d28a95aaeb3",
+        "ontologies.py": "d2a1031b9565e244e9b64f0239fccd7200ae29f170726ad1c6e6aab532151707",
+        "plan.py": "352142eb128b146dcb03a6c8d5088624a8203fcd352762db5f0d1e69c7fe7c0b",
+        "production.py": "da5444d4786577e9da30c08e0f394dce0dc7a6a11dfb383f51deabd63d139a63",
+        "protocol.py": "5c05a2754dafd1ee4a04ca6c7a42e59d901cb6a4dfad77ff2f10a0ad20b1e4de",
+        "report.py": "c1c3054cc0361f7f229ffc7f17f000ab776c7263b5914142a9be3cf062140458",
+        "runner.py": "5e4a1c70e997e36e5e15504b5e10e17511a0d814abc1482b0bcb15f6096f02b1",
+        "scoring.py": "2a5e1257cc47c68f8147000d47d4e2a0ff9b02ad2a9a6fb9a3ae428f3b986216",
+        "tasks.py": "caf5102a8b8c8903a31c614a9aa69bf78a2b6df4f4fbad967b1d7e3826b46e2c",
+        "worker.py": "1abf609aabaa88694c26a42d064df435d99953a5b72bd1a6ff8e57dadc8ed292"
+      },
+      "engines": {
+        "doorplate": {
+          "task": "classify",
+          "rows": 19586,
+          "source_families": 19586,
+          "statuses": {
+            "ok": 19586
+          },
+          "agreement": {
+            "correct": 19473,
+            "denominator": 19586,
+            "rate": 0.994230572858164
+          },
+          "classification_confusions": [
+            {
+              "expected": "highway",
+              "predicted": "rural",
+              "rows": 65
+            },
+            {
+              "expected": "military",
+              "predicted": "street",
+              "rows": 36
+            },
+            {
+              "expected": "street",
+              "predicted": "unknown",
+              "rows": 6
+            },
+            {
+              "expected": "street",
+              "predicted": "dual",
+              "rows": 6
+            }
+          ],
+          "normalization_field_mismatches": {},
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "6eca1855dbe9200a64179b7c4b5ac7f265087ce423157dcaa37223f39532d620"
+        },
+        "rust-default": {
+          "task": "classify",
+          "rows": 19586,
+          "source_families": 19586,
+          "statuses": {
+            "ok": 19586
+          },
+          "agreement": {
+            "correct": 19446,
+            "denominator": 19586,
+            "rate": 0.9928520371694067
+          },
+          "classification_confusions": [
+            {
+              "expected": "highway",
+              "predicted": "street",
+              "rows": 65
+            },
+            {
+              "expected": "military",
+              "predicted": "street",
+              "rows": 36
+            },
+            {
+              "expected": "po_box",
+              "predicted": "street",
+              "rows": 19
+            },
+            {
+              "expected": "rural",
+              "predicted": "street",
+              "rows": 12
+            },
+            {
+              "expected": "street",
+              "predicted": "intersection",
+              "rows": 6
+            },
+            {
+              "expected": "street",
+              "predicted": "highway",
+              "rows": 1
+            },
+            {
+              "expected": "general_delivery",
+              "predicted": "street",
+              "rows": 1
+            }
+          ],
+          "normalization_field_mismatches": {},
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "993392fd34987365a15478d4f8cf6461c416bee0fe3716895ae1d683f1a9a3fb"
+        }
+      }
+    },
+    "stability-common": {
+      "task": "stability",
+      "run_content_id": "50483132d704c14b6e059db3296a477143aaa70897837036fe9122e4e66f30c0",
+      "source_pins": {
+        "__init__.py": "1566bfbfab6252d185d2852e7ed275d1aac9ce29c66d0e4f666d00b1ebaa643e",
+        "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+        "adapters.py": "2f788f19047820a544eacfb7c00e2f09b22bfcc71c0ff0f08bdb8c7307ca007b",
+        "cli.py": "bb0a4073570616911ffb8ddf7d945228f6af9d1e0e2ce691d6ff835bad0266b5",
+        "conformance.py": "00c69033c0578f07db1ef4ac5de47bced968a88cf7eee0ad91a9fc2f194838ba",
+        "corpus.py": "c6128507c154e907f3a3eea58e7e26f1004df01835f8bd1fb5b301ab6734be7e",
+        "intake.py": "3e56fee9e6f773f20e9f9594f8e349affff8b7863b39832887ae2f66690818b6",
+        "io.py": "7881f2392b1bda336d09c72e5b9b89f3e21d1b6d2cfa24208bdc1d28a95aaeb3",
+        "ontologies.py": "d2a1031b9565e244e9b64f0239fccd7200ae29f170726ad1c6e6aab532151707",
+        "plan.py": "352142eb128b146dcb03a6c8d5088624a8203fcd352762db5f0d1e69c7fe7c0b",
+        "production.py": "da5444d4786577e9da30c08e0f394dce0dc7a6a11dfb383f51deabd63d139a63",
+        "protocol.py": "5c05a2754dafd1ee4a04ca6c7a42e59d901cb6a4dfad77ff2f10a0ad20b1e4de",
+        "report.py": "c1c3054cc0361f7f229ffc7f17f000ab776c7263b5914142a9be3cf062140458",
+        "runner.py": "5e4a1c70e997e36e5e15504b5e10e17511a0d814abc1482b0bcb15f6096f02b1",
+        "scoring.py": "2a5e1257cc47c68f8147000d47d4e2a0ff9b02ad2a9a6fb9a3ae428f3b986216",
+        "tasks.py": "caf5102a8b8c8903a31c614a9aa69bf78a2b6df4f4fbad967b1d7e3826b46e2c",
+        "worker.py": "1abf609aabaa88694c26a42d064df435d99953a5b72bd1a6ff8e57dadc8ed292"
+      },
+      "engines": {
+        "doorplate": {
+          "task": "stability",
+          "rows": 1,
+          "source_families": 1,
+          "statuses": {
+            "ok": 1
+          },
+          "agreement": {
+            "correct": 0,
+            "denominator": 1,
+            "rate": 0.0
+          },
+          "checks": {
+            "idempotence": {
+              "passed": 0,
+              "denominator": 1
+            },
+            "repeat": {
+              "passed": 1,
+              "denominator": 1
+            },
+            "scalar_batch": {
+              "passed": 1,
+              "denominator": 1
+            }
+          },
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {
+            "repeat": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "scalar_batch": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "idempotence": {
+              "changed_inputs": 9,
+              "distinct_changed_inputs": 9,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            }
+          },
+          "native_errors": {},
+          "identity_sha256": "f17ae585f0f2a22fa477f79b25db42f0e81a4e0ced1f75bcf3a8581f7d4aedb7"
+        },
+        "rust-default": {
+          "task": "stability",
+          "rows": 1,
+          "source_families": 1,
+          "statuses": {
+            "ok": 1
+          },
+          "agreement": {
+            "correct": 0,
+            "denominator": 1,
+            "rate": 0.0
+          },
+          "checks": {
+            "idempotence": {
+              "passed": 0,
+              "denominator": 1
+            },
+            "repeat": {
+              "passed": 1,
+              "denominator": 1
+            },
+            "scalar_batch": {
+              "passed": 1,
+              "denominator": 1
+            }
+          },
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {
+            "repeat": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "scalar_batch": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "idempotence": {
+              "changed_inputs": 4,
+              "distinct_changed_inputs": 3,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            }
+          },
+          "native_errors": {},
+          "identity_sha256": "b0798cf6e0cb6dfb132354794278c85d5ce895e795417d725d4ab3257a58b0bb"
+        }
+      }
+    },
+    "stability-stream-chunk": {
+      "task": "stability",
+      "run_content_id": "e073d4636b8bd4b858a0243df729f9c01cfd1b87477b00e5fa50ccb2a3356a6b",
+      "source_pins": {
+        "__init__.py": "1566bfbfab6252d185d2852e7ed275d1aac9ce29c66d0e4f666d00b1ebaa643e",
+        "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+        "adapters.py": "2f788f19047820a544eacfb7c00e2f09b22bfcc71c0ff0f08bdb8c7307ca007b",
+        "cli.py": "bb0a4073570616911ffb8ddf7d945228f6af9d1e0e2ce691d6ff835bad0266b5",
+        "conformance.py": "00c69033c0578f07db1ef4ac5de47bced968a88cf7eee0ad91a9fc2f194838ba",
+        "corpus.py": "c6128507c154e907f3a3eea58e7e26f1004df01835f8bd1fb5b301ab6734be7e",
+        "intake.py": "3e56fee9e6f773f20e9f9594f8e349affff8b7863b39832887ae2f66690818b6",
+        "io.py": "7881f2392b1bda336d09c72e5b9b89f3e21d1b6d2cfa24208bdc1d28a95aaeb3",
+        "ontologies.py": "d2a1031b9565e244e9b64f0239fccd7200ae29f170726ad1c6e6aab532151707",
+        "plan.py": "352142eb128b146dcb03a6c8d5088624a8203fcd352762db5f0d1e69c7fe7c0b",
+        "production.py": "da5444d4786577e9da30c08e0f394dce0dc7a6a11dfb383f51deabd63d139a63",
+        "protocol.py": "5c05a2754dafd1ee4a04ca6c7a42e59d901cb6a4dfad77ff2f10a0ad20b1e4de",
+        "report.py": "c1c3054cc0361f7f229ffc7f17f000ab776c7263b5914142a9be3cf062140458",
+        "runner.py": "5e4a1c70e997e36e5e15504b5e10e17511a0d814abc1482b0bcb15f6096f02b1",
+        "scoring.py": "2a5e1257cc47c68f8147000d47d4e2a0ff9b02ad2a9a6fb9a3ae428f3b986216",
+        "tasks.py": "caf5102a8b8c8903a31c614a9aa69bf78a2b6df4f4fbad967b1d7e3826b46e2c",
+        "worker.py": "1abf609aabaa88694c26a42d064df435d99953a5b72bd1a6ff8e57dadc8ed292"
+      },
+      "engines": {
+        "rust-default": {
+          "task": "stability",
+          "rows": 1,
+          "source_families": 1,
+          "statuses": {
+            "ok": 1
+          },
+          "agreement": {
+            "correct": 0,
+            "denominator": 1,
+            "rate": 0.0
+          },
+          "checks": {
+            "idempotence": {
+              "passed": 0,
+              "denominator": 1
+            },
+            "repeat": {
+              "passed": 1,
+              "denominator": 1
+            },
+            "scalar_batch": {
+              "passed": 1,
+              "denominator": 1
+            },
+            "scalar_chunked": {
+              "passed": 1,
+              "denominator": 1
+            },
+            "scalar_stream": {
+              "passed": 1,
+              "denominator": 1
+            }
+          },
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {
+            "repeat": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "scalar_batch": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "idempotence": {
+              "changed_inputs": 4,
+              "distinct_changed_inputs": 3,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "scalar_stream": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "scalar_chunked": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            }
+          },
+          "native_errors": {},
+          "identity_sha256": "b0798cf6e0cb6dfb132354794278c85d5ce895e795417d725d4ab3257a58b0bb"
+        }
+      }
+    }
+  },
+  "normalization_intake": {
+    "excluded": [
+      {
+        "id": "scourgify:test_normalize_address_record:144",
+        "reason": "structured input: requires separate input-mode adapter"
+      },
+      {
+        "id": "scourgify:test_normalize_address_record:147",
+        "reason": "structured input: requires separate input-mode adapter"
+      },
+      {
+        "id": "scourgify:test_normalize_address_record:153",
+        "reason": "structured input: requires separate input-mode adapter"
+      },
+      {
+        "id": "scourgify:test_normalize_address_record:158",
+        "reason": "structured input: requires separate input-mode adapter"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:621",
+        "reason": "custom long-hand profile not supported by this native projection"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:626",
+        "reason": "partial supplied-field assertion: not a complete five-field reference"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:631",
+        "reason": "partial supplied-field assertion: not a complete five-field reference"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:636",
+        "reason": "partial supplied-field assertion: not a complete five-field reference"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:641",
+        "reason": "partial supplied-field assertion: not a complete five-field reference"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:646",
+        "reason": "partial supplied-field assertion: not a complete five-field reference"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:651",
+        "reason": "partial supplied-field assertion: not a complete five-field reference"
+      }
+    ],
+    "included": 4,
+    "total_assertions": 15
+  }
+}
