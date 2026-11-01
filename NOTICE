@@ -10,3 +10,9 @@ Optional installed tools and adapters retain their licenses, including pyperf
 (MIT), usaddress (MIT) and its transitive dependencies. Review dependency/model/
 corpus notices before packaging or publishing them. No third-party artifacts
 are included merely because an optional extra names a package.
+
+The strict-streetline/v1 scoring profile folds values with USPS Publication 28
+tables (src/address_benchmark/pub28.py). Pub 28 is a U.S. Government work. The
+tables also keep the `observed` non-Pub 28 spellings recorded in the Doorplate
+project's Pub 28 data files (https://github.com/jeremeybingham/doorplate,
+MIT OR Apache-2.0); those spellings are used here under the MIT license.
