@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import importlib.metadata
 import json
+import itertools
 from pathlib import Path
 import sys
 import time
@@ -75,7 +76,14 @@ def main(argv=None):
         load_ns = time.perf_counter_ns() - started
         initial = runtime_identity(adapter)
         if args.mode == "accuracy":
-            write_jsonl(args.output, (invoke(adapter, request) for request in requests))
+            if hasattr(adapter, "parse_many"):
+                def outputs():
+                    for request, result in itertools.zip_longest(requests, adapter.parse_many(requests, Path(args.output).parent)):
+                        require(request is not None and result is not None, "batch prediction length differs")
+                        yield check_prediction(result, request, adapter.metadata)
+                write_jsonl(args.output, outputs())
+            else:
+                write_jsonl(args.output, (invoke(adapter, request) for request in requests))
             final = runtime_identity(adapter)
             require(initial["adapter"] == final["adapter"], "adapter metadata changed during inference")
             for group in ("imported_files", "distributions", "declared_artifacts"):

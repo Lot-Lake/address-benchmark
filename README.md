@@ -1,7 +1,7 @@
 # address-benchmark
 
 An independent, open-source benchmark framework for address utility libraries.
-Version **0.1.0** is an executable proposal for a shared standard, not an established industry standard or a leaderboard.
+Version **0.2.0** is an executable proposal for a shared standard, not an established industry standard or a leaderboard.
 
 Evaluate **parsing, normalization, formatting, identity keys, classification, extraction, ZIP/state inference, variants, diagnostics, stability and performance** as separate capabilities. Bring any library and interchangeable corpora. Keep the original inputs, native outputs, labels, task rules, failures and runtime identities available for audit. There is no weighted overall winner.
 
@@ -20,6 +20,34 @@ python3 -m unittest discover -s tests -v
 ```
 
 Or install into your virtual environment with `python3 -m pip install -e .`, then use `address-benchmark`. Use fresh output directories. On a machine with a workload coordinator, follow its local policy before running evaluations or installing/building optional runtimes.
+
+## Declare an experiment in JSON
+
+Use a versioned [benchmark plan](docs/spec/plans.md) to select corpus manifests, engine configurations, execution settings and fresh result directories:
+
+```sh
+address-benchmark run-plan /absolute/path/plan.json
+```
+
+The [plan schema](schemas/plan-v1.schema.json) and semantic validator reject unknown options, unsafe paths, implicit value types and duplicate/nested outputs. Adapters and scorers remain ordinary versioned plugins; JSON describes the experiment rather than embedding a programming language.
+
+## Production parsing cohort
+
+Real adapters support ordered Python token APIs (usaddress, fastaddress, Doorplate), direct libpostal C parsing with separately pinned default/Senzing models, the default address-normalizer source-evidence API, a persistent Mailwoman neural bridge, and generic batch executables for the retained learned model and private local BoundaryBoys runtime. Native tokens, unplaced outputs, errors and model identities remain visible. Source byte alignment derived by an adapter is explicitly distinguished from native offsets.
+
+The [real-corpus policy](docs/spec/real-corpora.md) covers GeoSearch DEV/TEST, Doorplate v1, and expanded US50/Senzing/libpostal references. The existing source assets can be read in place without copying their caches or bundling data. To create and execute a fresh local production plan:
+
+```sh
+python3 tools/prepare_local_matrix.py \
+  --source /path/to/existing/address-normalizer \
+  --doorplate /path/to/doorplate --out work/my-fresh-comparison
+python3 -m address_benchmark run-plan work/my-fresh-comparison/plan.json
+python3 tools/report_comparison.py work/my-fresh-comparison/plan.json --out outputs/comparison
+```
+
+Use your host workload coordinator for the outer execution. `tools/execute_local_matrix.py` combines contract tests, fresh preparation and the full plan in one finite command. The source-library checkout, models and other owners' processes remain read-only. Private runtime code and corpus assets stay out of Git. `--smoke N` on preparation is a first-N integration preflight, explicitly unsuitable as population evidence.
+
+The real-corpus v2 ontology preserves fine publisher role distinctions; the original strict metric remains alongside an explicit edge-delimiter diagnostic. These comparisons remain public/development-exposed evidence. Exact-text family proxies are not independent source families. Accuracy process wall durations include hashing/loading/I/O and must not be ranked as parse throughput.
 
 The demo parser is deliberately limited. The refusal adapter is a denominator/error control. Their scores test the benchmark, not the quality of production address software. Example corpora contain fictional authored cases and separate generated views; they are public conformance evidence, not naturally sampled or unseen accuracy evidence.
 
@@ -57,7 +85,7 @@ Parsing supports partial references. Other v1 tracks intentionally require compl
 3. Declare a task, ontology/profile, complete native-role mapping, unsupported roles, output ownership, dependency/model identity, threading and additional artifact files. No adapter receives reference labels.
 4. Run conformance probes, then a frozen authored corpus, then separately licensed external/private populations.
 
-See the [adapter protocol](docs/spec/adapter.md), [task/scoring specification](docs/spec/tasks.md), and [public Python callable examples](examples/adapters/README.md). The optional usaddress `parse()` wrapper is included; it preserves token tuples and declares byte spans unavailable. Install with `python3 -m pip install -e '.[usaddress]'`. Missing packages are **unavailable**, not fabricated zero scores. Candidate integrations and licensing limits are in the [adapter inventory](docs/research/adapters.md).
+See the [adapter protocol](docs/spec/adapter.md), [task/scoring specification](docs/spec/tasks.md), and [public Python callable examples](examples/adapters/README.md). The original usaddress `parse()` wrapper preserves token tuples and declares byte spans unavailable; the v2 `python-tokens` adapter additionally offers explicitly derived exact source alignment. Install with `python3 -m pip install -e '.[usaddress]'`. Missing packages are **unavailable**, not fabricated zero scores. Production interfaces and licensing limits are in the [production integration inventory](docs/research/production-integration.md).
 
 ## Our corpora, and other evidence
 

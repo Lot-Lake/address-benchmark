@@ -60,3 +60,11 @@ those are missing. Process wall duration and adapter load duration are audit
 observations, not separate startup benchmarks. Memory, allocations, latency and
 native batch/streaming timing remain future backends; unmeasured is null/absent,
 never zero. v0.1 has no result-cache reuse.
+
+Production accuracy may use explicitly declared independent native shards (the
+Mailwoman comparison uses four one-intra-op-thread processes, matching its prior
+accuracy setup). Each shard retains actual exit, input/output and logs; outputs
+are validated and concatenated in original input order. This is accuracy
+parallelism, not a throughput measurement. The top-level scheduler still selects
+one engine configuration at a time. All shard/concurrency details override any
+legacy shorthand about a single top-level adapter worker.

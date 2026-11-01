@@ -137,7 +137,6 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "path",
           "sha256"
         ],
         "properties": {
@@ -154,9 +153,63 @@
           "url": {
             "type": "string",
             "pattern": "^https://"
+          },
+          "external_path": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "format": {
+            "enum": [
+              "geosearch-reference",
+              "expanded-parser",
+              "doorplate-compare",
+              "usaddress-xml",
+              "input-panel"
+            ]
+          },
+          "split": {
+            "type": "string"
+          },
+          "origin": {
+            "enum": [
+              "natural",
+              "authored",
+              "generated",
+              "source-field-supervised",
+              "publisher-fixture"
+            ]
+          },
+          "coverage": {
+            "const": "partial"
           }
-        }
+        },
+        "oneOf": [
+          {
+            "required": [
+              "path"
+            ],
+            "not": {
+              "required": [
+                "external_path"
+              ]
+            }
+          },
+          {
+            "required": [
+              "external_path"
+            ],
+            "not": {
+              "required": [
+                "path"
+              ]
+            }
+          }
+        ]
       }
+    },
+    "row_limit": {
+      "type": "integer",
+      "minimum": 1
     }
   },
   "$defs": {
@@ -164,5 +217,31 @@
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "resources": {
+            "contains": {
+              "required": [
+                "external_path"
+              ]
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "license": {
+            "properties": {
+              "redistribution": {
+                "const": "local-only"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

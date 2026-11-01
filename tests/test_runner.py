@@ -5,6 +5,9 @@ import statistics
 import sys
 import tempfile
 import unittest
+import signal
+import subprocess
+import time
 
 from address_benchmark.corpus import input_requests, load_corpus
 from address_benchmark.io import read_json, read_jsonl, write_json
@@ -91,6 +94,32 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(entry["status"], "timeout")
         self.assertIsInstance(entry["exit_code"], int)
         self.assertNotEqual(entry["exit_code"], 0)
+
+    def test_cancellation_cleans_up_owned_adapter_process(self):
+        script=self.root/'sleeper.py'
+        script.write_text('import os,sys,time\nfrom pathlib import Path\nPath(sys.argv[1]).write_text(str(os.getpid()))\ntime.sleep(30)\n')
+        driver=self.root/'driver.py'
+        driver.write_text('import sys\nfrom pathlib import Path\nfrom address_benchmark.runner import launch\nlaunch([sys.executable,sys.argv[1],sys.argv[2]],Path(sys.argv[3]),60)\n')
+        pidfile=self.root/'child.pid'
+        process=subprocess.Popen([sys.executable,str(driver),str(script),str(pidfile),str(self.root)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        native_pid=None
+        try:
+            deadline=time.monotonic()+5
+            while not pidfile.exists() and time.monotonic()<deadline:
+                time.sleep(.02)
+            self.assertTrue(pidfile.exists(),'native child did not start')
+            native_pid=int(pidfile.read_text())
+            process.send_signal(signal.SIGINT)
+            process.wait(timeout=5)
+            receipt=read_json(self.root/'interrupted-execution.json')
+            self.assertEqual(receipt['status'],'interrupted')
+            self.assertNotEqual(receipt['exit_code'],0)
+            with self.assertRaises(ProcessLookupError):os.kill(native_pid,0)
+        finally:
+            if process.poll() is None:process.kill();process.wait()
+            if native_pid is not None:
+                try:os.killpg(native_pid,signal.SIGKILL)
+                except ProcessLookupError:pass
 
     def test_pair_timing_reverses_order_uses_same_panel(self):
         result, output = self.execute(engines=[dict(name="a", adapter="demo"), dict(name="b", adapter="demo")], timing=True)

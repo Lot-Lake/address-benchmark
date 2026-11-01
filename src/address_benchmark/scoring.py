@@ -8,11 +8,16 @@ from .protocol import FINE_TO_COARSE
 
 SCORER = "address-benchmark.scorer/v1"
 NORMALIZATION = "casefold-whitespace/v1"
+DELIMITER_POLICY = "casefold-whitespace-edge-delimiters/v1"
 
 
 def normalize(value):
     # Intentionally preserves punctuation, accents, abbreviations and digit width.
     return re.sub(r"\s+", " ", value.casefold()).strip()
+
+
+def normalize_delimiters(value):
+    return normalize(value).strip(",;:").strip()
 
 
 def project(evidence, mapping):
@@ -46,13 +51,16 @@ def fine_score(reference, prediction, metadata, kind):
     parts = prediction["evidence" if kind == "spans" else "tokens"]
     observed = Counter((metadata["role_map"][x["native_role"]] or "unsupported:" + x["native_role"], *span)
                        for x in parts for span in (x.get("spans") or []))
-    tp, fp, fn = sum((expected & observed).values()), sum((observed - expected).values()), sum((expected - observed).values())
+    matched, extra, missing = expected & observed, observed - expected, expected - observed
+    tp, fp, fn = sum(matched.values()), sum(extra.values()), sum(missing.values())
     partial = coverage == "partial"
     per_role = {}
+    role_counts = defaultdict(lambda: [0, 0, 0])
+    for index, atoms in enumerate((matched, extra, missing)):
+        for (role, _, _), count in atoms.items():
+            role_counts[role][index] += count
     for role in sorted({x[0] for x in expected} | ({x[0] for x in observed} if not partial else set())):
-        gold = Counter({k: v for k, v in expected.items() if k[0] == role})
-        pred = Counter({k: v for k, v in observed.items() if k[0] == role})
-        per_role[role] = prf(sum((gold & pred).values()), sum((pred - gold).values()), sum((gold - pred).values()), partial=partial)
+        per_role[role] = prf(*role_counts[role], partial=partial)
     return dict(status="measured", coverage=coverage, metrics=prf(tp, fp, fn, partial=partial),
                 per_role=per_role, unadjudicated=fp if partial else 0,
                 missing_span_items=sum(not x.get("spans") for x in parts))
@@ -67,7 +75,10 @@ def score_case(row, prediction, metadata):
     fields = project(prediction["evidence"], metadata["role_map"])
     complete = reference["coverage"] == "complete"
     scope = set(expected) | (set(fields) if complete else set())
-    mismatch = sorted(r for r in scope if [normalize(v) for v in expected.get(r, [])] != [normalize(v) for v in fields.get(r, [])])
+    gold_values = {r: [normalize(v) for v in values] for r, values in expected.items()}
+    predicted_values = {r: [normalize(v) for v in values] for r, values in fields.items()}
+    mismatch = sorted(r for r in scope if gold_values.get(r, []) != predicted_values.get(r, []))
+    delimiter_mismatch = sorted(r for r in scope if [v.strip(",;:").strip() for v in gold_values.get(r, [])] != [v.strip(",;:").strip() for v in predicted_values.get(r, [])])
     eligible = reference["coverage"] != "none"
     passed = prediction["status"] == "ok" and not mismatch
     return dict(task="parse", id=row["id"], family=row["family"], split=row["split"], origin=row["origin"], subsets=row["subsets"],
@@ -75,8 +86,12 @@ def score_case(row, prediction, metadata):
                 primary_agrees=passed if eligible else None,
                 supplied_fields_agree=passed if eligible else None,
                 complete_address_agrees=passed if complete else None, mismatched_roles=mismatch,
+                delimiter_fields_agree=prediction["status"] == "ok" and not delimiter_mismatch if eligible else None,
+                delimiter_complete_address_agrees=prediction["status"] == "ok" and not delimiter_mismatch if complete else None,
+                delimiter_mismatched_roles=delimiter_mismatch, delimiter_policy=DELIMITER_POLICY,
                 unadjudicated_roles=sorted(set(fields) - set(expected)) if not complete else [],
-                unsupported_reference_roles=sorted(r for r in expected if r not in {FINE_TO_COARSE[v] for v in metadata["supported_roles"]}),
+                unsupported_reference_roles=sorted(r for r in expected if r not in {FINE_TO_COARSE[v] for v in metadata.get("active_roles", metadata["supported_roles"])}),
+                unsupported_fine_reference_roles=sorted({x["role"] for x in reference["tokens"]} - set(metadata.get("active_roles", metadata["supported_roles"]))),
                 spans=fine_score(reference, prediction, metadata, "spans"),
                 tokens=fine_score(reference, prediction, metadata, "tokens"))
 
@@ -107,6 +122,8 @@ def summarize(cases):
                 statuses=dict(Counter(c["status"] for c in cases)),
                 supplied_fields=rate([c["supplied_fields_agree"] for c in cases]),
                 complete_address=rate([c["complete_address_agrees"] for c in cases]),
+                delimiter_fields=rate([c["delimiter_fields_agree"] for c in cases]),
+                delimiter_complete_address=rate([c["delimiter_complete_address_agrees"] for c in cases]),
                 spans=fine("spans"), tokens=fine("tokens"),
                 unadjudicated_rows=sum(bool(c["unadjudicated_roles"]) for c in cases))
 

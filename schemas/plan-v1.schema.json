@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:address-benchmark:plan:v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "name", "engines", "tracks"],
+  "properties": {
+    "schema": {"const": "address-benchmark.plan/v1"},
+    "name": {"type": "string", "minLength": 1},
+    "engines": {"type": "string", "minLength": 1},
+    "tracks": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["id", "corpus", "output"], "properties": {"id": {"type": "string", "minLength": 1}, "corpus": {"type": "string", "minLength": 1}, "output": {"type": "string", "minLength": 1}}}},
+    "execution": {"type": "object", "additionalProperties": false, "properties": {
+      "baseline": {"type": "string", "minLength": 1}, "timing": {"type": "boolean"},
+      "trials": {"type": "integer", "minimum": 2, "multipleOf": 2}, "samples": {"type": "integer", "minimum": 1},
+      "min_seconds": {"type": "number", "exclusiveMinimum": 0}, "warmup": {"type": "integer", "minimum": 0},
+      "timeout": {"type": "number", "exclusiveMinimum": 0}, "seed": {"type": "integer", "minimum": 0}
+    }}
+  }
+}

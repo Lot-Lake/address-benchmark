@@ -17,7 +17,7 @@ import time
 from .corpus import input_requests, load_corpus
 from .io import identity, read_json, read_jsonl, require, sha256, within, write_json, write_jsonl
 from .protocol import check_metadata, check_prediction
-from .scoring import NORMALIZATION, SCORER, score_case, summarize_views
+from .scoring import DELIMITER_POLICY, NORMALIZATION, SCORER, score_case, summarize_views
 
 RUN = "address-benchmark.run/v1"
 
@@ -51,7 +51,7 @@ def launch(command, directory, timeout):
     started = time.monotonic_ns()
     code, status, process = None, "launch-failed", None
     # Set deterministic Python hashing; preserve declared library thread settings.
-    env = {**os.environ, "PYTHONHASHSEED": "0"}
+    env = {**os.environ, "PYTHONHASHSEED": "0", "PYTHONDONTWRITEBYTECODE": "1"}
     with stdout.open("xb") as out, log.open("xb") as err:
         try:
             process = subprocess.Popen(command, stdout=out, stderr=err, env=env, start_new_session=True)
@@ -70,6 +70,22 @@ def launch(command, directory, timeout):
                 status = "timeout"
         except OSError as exc:
             err.write(str(exc).encode("utf-8"))
+        except BaseException:
+            # The outer workload guard cannot reach our separate worker session.
+            # Clean up this owned group on cancellation before propagating it.
+            if process is not None and process.poll() is None:
+                import signal
+                try:
+                    os.killpg(process.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+                try:
+                    code = process.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    os.killpg(process.pid, signal.SIGKILL)
+                    code = process.wait()
+                write_json(directory / "interrupted-execution.json", dict(command=command, status="interrupted", exit_code=code))
+            raise
     return dict(command=command, status=status, exit_code=code,
                 process_wall_ns=time.monotonic_ns() - started,
                 environment={k: env.get(k) for k in ("PYTHONHASHSEED", "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "POLARS_MAX_THREADS", "RAYON_NUM_THREADS")})
@@ -137,7 +153,7 @@ def paired_summary(trials, names, *, seed):
     return result
 
 
-def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_seconds=.1, warmup=1, timeout=120, seed=20261101):
+def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_seconds=.1, warmup=1, timeout=120, seed=20261101, baseline=None):
     manifest, rows, audit = load_corpus(corpus)
     engines = read_json(engines_path)
     require(isinstance(engines, list) and engines, "nonempty engine list required")
@@ -145,6 +161,7 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
     require(all(isinstance(name, str) and name and name.replace("-", "").replace("_", "").isalnum() and name.isascii()
                 for name in names) and len(set(names)) == len(names), "unique safe engine names required")
     require(all(isinstance(e.get("adapter"), str) and isinstance(e.get("config", {}), dict) for e in engines), "adapter/config required")
+    require(baseline is None or baseline in names, "comparison baseline must be a selected engine")
     require(trials >= 2 and trials % 2 == 0 and samples > 0 and min_seconds > 0 and warmup >= 0 and timeout > 0,
             "use an even number of >=2 trials, positive samples/duration/timeout and nonnegative warmup")
     out = Path(output).resolve()
@@ -159,7 +176,7 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
     # Immutable run records contain sensitive inputs when the corpus is private.
     report = dict(schema=RUN, created_at=datetime.now(timezone.utc).isoformat(), status="running",
                   task=manifest["task"], corpus=dict(id=manifest["id"], manifest_sha256=sha256(corpus), resources=manifest["resources"], exposure=manifest["exposure"]),
-                  scorer=SCORER, normalization=NORMALIZATION, source_pins=source_pins(),
+                  scorer=SCORER, normalization=NORMALIZATION, secondary_normalization=DELIMITER_POLICY, source_pins=source_pins(),
                   input_sha256=sha256(out / "inputs.jsonl"), engine_config_sha256=sha256(engines_path),
                   host=host_identity(),
                   settings=dict(timing=timing, trials=trials, samples=samples, min_seconds=min_seconds, warmup=warmup, timeout=timeout, seed=seed,
@@ -181,25 +198,31 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
         if entry["status"] == "ok":
             try:
                 predictions = list(read_jsonl(directory / "predictions.jsonl"))
+                require(entry["identity"]["adapter"]["ontology"] == manifest["ontology"], "adapter/corpus ontology differs")
                 cases = validate_predictions(rows, requests, predictions, entry["identity"]["adapter"])
                 write_jsonl(directory / "cases.jsonl", cases)
-                all_cases[name] = cases
+                all_cases[name] = directory / "cases.jsonl"
                 entry["populations"] = summarize_views(cases)
+                del cases, predictions
             except (ValueError, OSError, KeyError, TypeError) as exc:
                 entry.update(status="invalid", validation_error=str(exc))
         write_json(directory / "execution.json", entry)
         report["accuracy"][name] = entry
     for left, right in itertools.combinations(all_cases, 2):
-        deltas = []
-        for a, b in zip(all_cases[left], all_cases[right]):
-            deltas.append(dict(id=a["id"], family=a["family"], coverage=a["coverage"],
-                               left_agrees=a["primary_agrees"], right_agrees=b["primary_agrees"],
-                               left_mismatched_roles=a.get("mismatched_roles"), right_mismatched_roles=b.get("mismatched_roles")))
+        if baseline is not None and baseline not in (left, right):
+            continue
         file = f"delta-{left}-{right}.jsonl"
-        write_jsonl(out / file, deltas)
-        report["deltas"][f"{left}/{right}"] = dict(artifact=file,
-            left_only=sum(d["left_agrees"] is True and d["right_agrees"] is False for d in deltas),
-            right_only=sum(d["right_agrees"] is True and d["left_agrees"] is False for d in deltas))
+        counts = dict(left_only=0, right_only=0)
+        def deltas():
+            for a, b in itertools.zip_longest(read_jsonl(all_cases[left]), read_jsonl(all_cases[right])):
+                require(a is not None and b is not None and a["id"] == b["id"], "comparative case streams differ")
+                counts["left_only"] += a["primary_agrees"] is True and b["primary_agrees"] is False
+                counts["right_only"] += b["primary_agrees"] is True and a["primary_agrees"] is False
+                yield dict(id=a["id"], family=a["family"], coverage=a["coverage"],
+                           left_agrees=a["primary_agrees"], right_agrees=b["primary_agrees"],
+                           left_mismatched_roles=a.get("mismatched_roles"), right_mismatched_roles=b.get("mismatched_roles"))
+        write_jsonl(out / file, deltas())
+        report["deltas"][f"{left}/{right}"] = dict(artifact=file, **counts)
     if timing:
         # Freeze the entire corpus as one identical panel; no gold-conditioned filter.
         panel = list(requests)

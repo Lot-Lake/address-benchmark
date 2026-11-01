@@ -1,0 +1,47 @@
+{
+  "schema": "address-benchmark.dataset-catalog/v1",
+  "policy": "Corpus identities and public source links only. No raw data, private listings or models are bundled. Run preparation creates hash-pinned local manifests with asset-specific redistribution policies.",
+  "datasets": [
+    {
+      "id": "geosearch-dev",
+      "rows": 60522,
+      "source": "https://github.com/zhengcongyin/Geocoding-Address-Parsing-Benchmark",
+      "revision": "424f94167c21d1ad3f8e70b50a75174f68dfe1f0",
+      "format": "geosearch-reference",
+      "origin": "source-field-supervised",
+      "coverage": "publisher eight-role token labels, complete under the declared inventory",
+      "rights": "local-only; no upstream redistribution license established"
+    },
+    {
+      "id": "geosearch-test",
+      "rows": 30622,
+      "source": "https://github.com/zhengcongyin/Geocoding-Address-Parsing-Benchmark",
+      "revision": "424f94167c21d1ad3f8e70b50a75174f68dfe1f0",
+      "format": "geosearch-reference",
+      "origin": "source-field-supervised",
+      "coverage": "publisher eight-role token labels; publisher test split is not universal non-exposure",
+      "rights": "local-only; no upstream redistribution license established"
+    },
+    {
+      "id": "doorplate-v1",
+      "rows": 19586,
+      "source": "https://github.com/jeremeybingham/doorplate/blob/main/benchmarks/suite/v1/MANIFEST.md",
+      "revision": "0a2f1fc748f8747d926490288fac38e19421ae44",
+      "upstream_asset_sha256": "2336f0996f2d044d56d69467f6f3ea7d33a4a64a680decb43179651bf006b430",
+      "format": "doorplate-compare",
+      "strata": {"natural": 16001, "hard": 2585, "hand": 1000},
+      "origin": "source-field-supervised renderings plus publisher hand-authored cases",
+      "coverage": "publisher compatibility token labels",
+      "rights": "local-only pending source/asset-specific redistribution review; code license alone is insufficient"
+    },
+    {
+      "id": "expanded-usa",
+      "rows": 2973,
+      "sources": ["https://github.com/datamade/usaddress", "https://github.com/Senzing/libpostal-data", "https://github.com/openvenues/libpostal"],
+      "format": "expanded-parser",
+      "coverage": {"partial": 2920, "complete": 53},
+      "components": {"us50": 687, "senzing_public_us": 2233, "libpostal_c_us": 53},
+      "rights": "local-only audited intake; retained source/revision/asset/license locators include NCSA, Apache-2.0 and MIT"
+    }
+  ]
+}

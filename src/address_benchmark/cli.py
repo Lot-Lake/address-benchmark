@@ -38,14 +38,22 @@ def main(argv=None):
     execute.add_argument("--warmup", type=int, default=1)
     execute.add_argument("--timeout", type=float, default=120)
     execute.add_argument("--seed", type=int, default=20261101)
+    execute.add_argument("--baseline")
+    planned = commands.add_parser("run-plan", help="run and verify a versioned declarative JSON experiment plan")
+    planned.add_argument("plan")
     check = commands.add_parser("verify", help="rehash frozen artifacts and rescore accuracy with original source")
     check.add_argument("run")
     args = parser.parse_args(argv)
     try:
         if args.command == "run":
             result = run(args.corpus, args.engines, args.out, timing=args.timing, trials=args.trials,
-                         samples=args.samples, min_seconds=args.min_seconds, warmup=args.warmup, timeout=args.timeout, seed=args.seed)
+                         samples=args.samples, min_seconds=args.min_seconds, warmup=args.warmup, timeout=args.timeout, seed=args.seed, baseline=args.baseline)
             print(json.dumps(dict(status=result["status"], content_id=result["content_id"], report=str(Path(args.out).resolve() / "report.md"))))
+            return 0 if result["status"] == "complete" else 2
+        if args.command == "run-plan":
+            from .plan import run_plan
+            result = run_plan(args.plan)
+            print(json.dumps(result, indent=2))
             return 0 if result["status"] == "complete" else 2
         if args.command == "validate":
             manifest, rows, result = load_corpus(args.corpus)

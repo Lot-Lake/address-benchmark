@@ -302,6 +302,12 @@ BUILTINS.update({"demo-utility": DemoUtility, "python-callable": PythonCallable}
 
 
 def load_adapter(spec, config):
+    if spec in ("native-batch", "python-tokens", "libpostal", "address-normalizer-default"):
+        from .production import NativeBatch, PythonTokens, DefaultNormalizer, Libpostal
+        factory = {"native-batch": NativeBatch, "python-tokens": PythonTokens, "libpostal": Libpostal, "address-normalizer-default": DefaultNormalizer}[spec]
+        adapter = factory(config)
+        check_metadata(adapter.metadata)
+        return adapter
     if spec in BUILTINS:
         factory = BUILTINS[spec]
     elif ":" in spec:

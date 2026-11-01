@@ -6,7 +6,8 @@ from pathlib import Path
 import urllib.request
 
 from .io import digest_bytes, read_json, read_jsonl, require, sha256, within
-from .protocol import FINE_TO_COARSE, ONTOLOGY, TASK_ONTOLOGIES, Request, check_spans, request_hash, check_payload
+from .protocol import FINE_TO_COARSE, ONTOLOGY, PARSE_ONTOLOGIES, TASK_ONTOLOGIES, Request, check_spans, request_hash, check_payload
+from . import ontologies
 
 CORPUS = "address-benchmark.corpus/v1"
 
@@ -16,7 +17,8 @@ def check_manifest(manifest):
     for key in ("id", "version", "country", "locale", "task", "provenance", "license", "construction",
                 "ontology", "annotation_policy", "exposure", "resources", "split_policy", "family_policy"):
         require(key in manifest, f"missing corpus field: {key}")
-    require(manifest["task"] in TASK_ONTOLOGIES and manifest["ontology"] == TASK_ONTOLOGIES[manifest["task"]], "unsupported corpus ontology/task")
+    require(manifest["task"] in TASK_ONTOLOGIES, "unsupported corpus task")
+    require(manifest["ontology"] in PARSE_ONTOLOGIES if manifest["task"] == "parse" else manifest["ontology"] == TASK_ONTOLOGIES[manifest["task"]], "unsupported corpus ontology/task")
     require(manifest["country"] == "US", "v1 ontology is US only; add a versioned locale ontology before admitting others")
     require(manifest["task"] == "parse" or isinstance(manifest.get("profile"), str) and manifest["profile"], "named task profile required")
     require(manifest["provenance"].get("upstream_revision") and manifest["provenance"].get("source"), "source revision required")
@@ -24,8 +26,15 @@ def check_manifest(manifest):
     require(isinstance(manifest["construction"], list) and manifest["construction"], "construction history required")
     require(manifest["exposure"].get("status") and isinstance(manifest["exposure"].get("history"), list), "exposure history required")
     require(isinstance(manifest["resources"], list) and manifest["resources"], "resources required")
+    if "row_limit" in manifest:
+        require(type(manifest["row_limit"]) is int and manifest["row_limit"] > 0, "positive explicit integration row limit required")
     for resource in manifest["resources"]:
-        require(set(resource) <= {"path", "sha256", "url", "bytes"}, "unsupported resource field")
+        require(set(resource) <= {"path", "external_path", "sha256", "url", "bytes", "format", "split", "origin", "coverage"}, "unsupported resource field")
+        require(("path" in resource) != ("external_path" in resource), "one resource location required")
+        if "external_path" in resource:
+            require(manifest["license"]["redistribution"] == "local-only" and Path(resource["external_path"]).is_absolute(), "external corpus paths require explicit local-only policy")
+        if "coverage" in resource:
+            require(manifest["task"] == "parse" and resource["coverage"] == "partial", "resource coverage override may only downgrade parsing references to partial")
         require(isinstance(resource.get("sha256"), str) and len(resource["sha256"]) == 64
                 and all(x in "0123456789abcdef" for x in resource["sha256"]), "SHA-256 pin required")
 
@@ -79,18 +88,30 @@ def load_corpus(path):
     check_manifest(manifest)
     rows, seen = [], set()
     for resource in manifest["resources"]:
-        data = within(path.parent, resource["path"])
+        data = Path(resource["external_path"]).resolve() if "external_path" in resource else within(path.parent, resource["path"])
         require(data.is_file(), f"dataset unavailable: {data}; use fetch with the pinned manifest")
         require(sha256(data) == resource["sha256"], "corpus resource hash differs")
         if "bytes" in resource:
             require(data.stat().st_size == resource["bytes"], "corpus byte count differs")
-        for row in read_jsonl(data):
+        if resource.get("format"):
+            from .intake import records
+            iterator = records(data, resource, manifest)
+        else:
+            iterator = read_jsonl(data)
+        for row in iterator:
+            if manifest.get("row_limit") is not None and len(rows) >= manifest["row_limit"]:
+                break
             require(isinstance(row.get("id"), str) and row["id"] and row["id"] not in seen, "missing/duplicate corpus ID")
             seen.add(row["id"])
+            if resource.get("coverage") == "partial":
+                row["reference"]["coverage"] = "partial"
+                for layer in ("tokens", "spans"):
+                    if row["reference"][layer + "_coverage"] == "complete":
+                        row["reference"][layer + "_coverage"] = "partial"
             require(isinstance(row.get("text"), str), "address text must be a string")
             for key in ("family", "split", "origin"):
                 require(isinstance(row.get(key), str) and row[key], f"row {key} required")
-            require(row["origin"] in ("natural", "authored", "generated", "source-field-supervised"), "unknown input origin")
+            require(row["origin"] in ("natural", "authored", "generated", "source-field-supervised", "publisher-fixture"), "unknown input origin")
             require(isinstance(row.get("subsets"), list) and all(isinstance(x, str) and x for x in row["subsets"]), "subsets must be names")
             require(len(row["subsets"]) == len(set(row["subsets"])), "duplicate subset membership")
             require(isinstance(row.get("other_text"), str) if manifest["task"] == "match" else row.get("other_text") is None, "pair input differs from task")
@@ -145,6 +166,7 @@ def fetch(path, *, max_bytes=256 * 1024 * 1024):
     check_manifest(manifest)
     installed = []
     for resource in manifest["resources"]:
+        require("external_path" not in resource, "external local-only resources are supplied locally, never fetched")
         target = within(path.parent, resource["path"])
         if target.exists():
             require(sha256(target) == resource["sha256"], "existing resource hash differs; refusing overwrite")

@@ -1,5 +1,9 @@
 # Adapter readiness and attribution inventory
 
+These are the initial v0.1 readiness notes. The implemented v0.2 production
+adapters and current interface findings are described in
+[production-integration.md](production-integration.md).
+
 Research date: **2026-11-01**. This is an integration inventory, not an accuracy ranking or an endorsement of upstream performance claims. Only the authored examples and optional usaddress wrapper are in the initial implementation. No external parser source, trained model, third-party corpus, or private address extract is bundled. Installed runtime verification is a separate step from documentation research.
 
 ## Candidate integrations

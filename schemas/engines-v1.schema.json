@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:address-benchmark:engines:v1",
+  "title": "Engine configurations referenced by a v1 plan",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "type": "object", "additionalProperties": false,
+    "required": ["name", "adapter"],
+    "properties": {
+      "name": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+      "adapter": {"type": "string", "minLength": 1},
+      "python": {"type": "string", "minLength": 1},
+      "config": {"type": "object"}
+    }
+  }
+}

@@ -11,6 +11,7 @@ PREDICTION = "address-benchmark.prediction/v1"
 ONTOLOGY = "address-benchmark.us-roles/v1"
 NORMALIZE_ONTOLOGY = "address-benchmark.normalized-text/v1"
 MATCH_ONTOLOGY = "address-benchmark.delivery-unit-identity/v1"
+PARSE_ONTOLOGIES = (ONTOLOGY, "address-benchmark.us-roles/v2")
 TASK_ONTOLOGIES = {"parse": ONTOLOGY, "normalize": NORMALIZE_ONTOLOGY, "match": MATCH_ONTOLOGY}
 TASK_ONTOLOGIES.update({task: "address-benchmark.utility-output/v1" for task in ("format", "classify", "extract", "infer", "variants", "diagnostics", "stability")})
 FINE_TO_COARSE = {
@@ -78,18 +79,21 @@ class Adapter(Protocol):
 
 
 def check_metadata(metadata):
+    from . import ontologies  # Register the additive fine-role v2 inventory.
     require(isinstance(metadata, dict) and metadata.get("protocol") == PROTOCOL, "adapter protocol differs")
     required = ("name", "version", "ontology", "mapping_version", "role_map", "supported_roles",
                 "runtime", "model", "dependency_versions", "threading", "ownership", "tasks",
                 "span_support", "token_support")
     require(all(key in metadata for key in required), "incomplete adapter metadata")
     require(isinstance(metadata["tasks"], list) and len(metadata["tasks"]) == 1 and metadata["tasks"][0] in TASK_ONTOLOGIES, "one supported task per adapter configuration required")
-    require(metadata["ontology"] == TASK_ONTOLOGIES[metadata["tasks"][0]], "unsupported ontology/task")
+    require(metadata["ontology"] in PARSE_ONTOLOGIES if metadata["tasks"] == ["parse"] else metadata["ontology"] == TASK_ONTOLOGIES[metadata["tasks"][0]], "unsupported ontology/task")
     mapping = metadata["role_map"]
     require(isinstance(mapping, dict) and all(isinstance(k, str) and (v is None or v in FINE_TO_COARSE)
                                            for k, v in mapping.items()), "invalid explicit role mapping")
     require(isinstance(metadata["supported_roles"], list), "supported_roles must be a list")
     require(set(metadata["supported_roles"]) == {v for v in mapping.values() if v is not None}, "supported_roles differs from mapping")
+    if "active_roles" in metadata:
+        require(isinstance(metadata["active_roles"], list) and set(metadata["active_roles"]) <= set(metadata["supported_roles"]), "active model/API roles must be expressible by the declared mapping")
     require(all(type(metadata[k]) is bool for k in ("span_support", "token_support")), "explicit fine capabilities required")
     if metadata["tasks"] != ["parse"]:
         require(isinstance(metadata.get("profiles"), list) and metadata["profiles"] and all(isinstance(x, str) and x for x in metadata["profiles"]), "supported task profiles required")
@@ -102,9 +106,8 @@ def check_spans(spans, text):
         require(isinstance(span, list) and len(span) == 2 and all(type(x) is int for x in span), "span needs integer byte offsets")
         start, stop = span
         require(0 <= start < stop <= len(raw) and start >= end, "invalid/overlapping source spans")
-        raw[:start].decode("utf-8")
+        # A nonempty UTF-8 slice decodes iff both ends are codepoint boundaries.
         raw[start:stop].decode("utf-8")
-        raw[stop:].decode("utf-8")
         end = stop
 
 
@@ -143,7 +146,7 @@ def check_prediction(prediction, request, metadata):
     for item in prediction["evidence"] + prediction["tokens"]:
         require(isinstance(item, dict) and isinstance(item.get("native_role"), str)
                 and isinstance(item.get("value"), str), "native role/value strings required")
-        require(item["native_role"] in metadata["role_map"], "undeclared native role")
+        require(item["native_role"] in metadata["role_map"], "undeclared native role: " + item["native_role"])
         if item.get("spans") is not None:
             check_spans(item["spans"], request.text)
     for token in prediction["tokens"]:
