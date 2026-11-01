@@ -42,6 +42,16 @@
       "coverage": {"partial": 2920, "complete": 53},
       "components": {"us50": 687, "senzing_public_us": 2233, "libpostal_c_us": 53},
       "rights": "local-only audited intake; retained source/revision/asset/license locators include NCSA, Apache-2.0 and MIT"
+    },
+    {
+      "id": "nad-rendered",
+      "rows": "up to 2,000 per state from the supplied NAD extract",
+      "source": "https://data.transportation.gov/d/fc2s-wawr",
+      "revision": "NAD r24 TXT/NAD_r24.txt; the input extract's SHA-256 is recorded in the generated manifest",
+      "format": "generator: tools/render_nad.py + datasets/nad-rendered/recipe.json",
+      "origin": "generated",
+      "coverage": "complete literal references rendered from NAD structured fields",
+      "rights": "USDOT public data; generated strings are local-only and never labeled natural"
     }
   ]
 }
