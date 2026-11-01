@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
+import shutil
 import sys
 
 from .adapters import load_adapter
@@ -41,6 +43,20 @@ def main(argv=None):
     execute.add_argument("--baseline")
     planned = commands.add_parser("run-plan", help="run and verify a versioned declarative JSON experiment plan")
     planned.add_argument("plan")
+    for command in (execute, planned):
+        command.add_argument('--json', action='store_true', help='emit the original machine-readable run/plan result instead of a console table')
+    from .tables import FORMATS, METRICS
+    report = commands.add_parser('report', help='export clean score tables from a recorded run or executed plan; no engines rerun')
+    report.add_argument('source', help='run/plan JSON file or result directory')
+    report.add_argument('--format', choices=FORMATS, default='console')
+    report.add_argument('--metric', choices=METRICS, default='strict')
+    report.add_argument('--subsets', nargs='+', default=[], help='include named views, e.g. natural hard hand')
+    report.add_argument('--counts', action='store_true', help='include correct/denominator or TP/FP/FN in text tables')
+    report.add_argument('--width', type=int, default=None, help='console width; wide tables split into column groups')
+    report.add_argument('--color', choices=('auto', 'always', 'never'), default='auto')
+    report.add_argument('--ascii', action='store_true', help='use ASCII console separators')
+    report.add_argument('--title', default='Address benchmark')
+    report.add_argument('--out', help='write a fresh export file instead of stdout')
     check = commands.add_parser("verify", help="rehash frozen artifacts and rescore accuracy with original source")
     check.add_argument("run")
     args = parser.parse_args(argv)
@@ -48,13 +64,32 @@ def main(argv=None):
         if args.command == "run":
             result = run(args.corpus, args.engines, args.out, timing=args.timing, trials=args.trials,
                          samples=args.samples, min_seconds=args.min_seconds, warmup=args.warmup, timeout=args.timeout, seed=args.seed, baseline=args.baseline)
-            print(json.dumps(dict(status=result["status"], content_id=result["content_id"], report=str(Path(args.out).resolve() / "report.md"))))
+            if args.json:
+                print(json.dumps(dict(status=result["status"], content_id=result["content_id"], report=str(Path(args.out).resolve() / "report.md"))))
+            else:
+                from .tables import load_scorecard, render_console
+                print(render_console(load_scorecard(args.out), terminal_width=max(40, shutil.get_terminal_size((120, 24)).columns), color=sys.stdout.isatty() and 'NO_COLOR' not in os.environ and os.environ.get('TERM') != 'dumb'), end='')
             return 0 if result["status"] == "complete" else 2
         if args.command == "run-plan":
             from .plan import run_plan
             result = run_plan(args.plan)
-            print(json.dumps(result, indent=2))
+            if args.json:
+                print(json.dumps(result, indent=2))
+            else:
+                from .tables import load_scorecard, render_console
+                print(render_console(load_scorecard(args.plan), terminal_width=max(40, shutil.get_terminal_size((120, 24)).columns), color=sys.stdout.isatty() and 'NO_COLOR' not in os.environ and os.environ.get('TERM') != 'dumb'), end='')
             return 0 if result["status"] == "complete" else 2
+        if args.command == 'report':
+            from .tables import load_scorecard, render
+            card = load_scorecard(args.source, metric=args.metric, subsets=args.subsets, title=args.title)
+            use_color = args.color == 'always' or (args.color == 'auto' and sys.stdout.isatty() and not args.out and 'NO_COLOR' not in os.environ and os.environ.get('TERM') != 'dumb')
+            output = render(card, args.format, counts=args.counts, terminal_width=args.width if args.width is not None else max(40, shutil.get_terminal_size((120, 24)).columns), color=use_color, ascii=args.ascii)
+            if args.out:
+                with Path(args.out).open('x', encoding='utf-8', newline='') as stream:
+                    stream.write(output)
+            else:
+                print(output, end='')
+            return 0
         if args.command == "validate":
             manifest, rows, result = load_corpus(args.corpus)
             from collections import Counter

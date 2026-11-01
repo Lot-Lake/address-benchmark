@@ -1,7 +1,7 @@
 # address-benchmark
 
 An independent, open-source benchmark framework for address utility libraries.
-Version **0.2.0** is an executable proposal for a shared standard, not an established industry standard or a leaderboard.
+Version **0.3.0** is an executable proposal for a shared standard, not an established industry standard or a leaderboard.
 
 Evaluate **parsing, normalization, formatting, identity keys, classification, extraction, ZIP/state inference, variants, diagnostics, stability and performance** as separate capabilities. Bring any library and interchangeable corpora. Keep the original inputs, native outputs, labels, task rules, failures and runtime identities available for audit. There is no weighted overall winner.
 
@@ -34,6 +34,42 @@ two original corpora. Copy `examples/` to a fresh work directory before running
 it; the plan writes one result index beside itself and refuses to overwrite it.
 
 The [plan schema](schemas/plan-v1.schema.json) and semantic validator reject unknown options, unsafe paths, implicit value types and duplicate/nested outputs. Adapters and scorers remain ordinary versioned plugins; JSON describes the experiment rather than embedding a programming language.
+
+## Clean console tables and exports
+
+`run` and `run-plan` print a comparison table and automatically save
+`scores.txt`, `scores.md`, `scores.csv`, `scores.json` and `scores.html`.
+Datasets/views are rows; library configurations are columns. Wider console tables
+split into readable column groups. Color is automatic on supported terminals and
+disabled for redirected output or `NO_COLOR`. Use `--json` on the run commands
+for their original machine-readable completion records; progress goes to stderr.
+
+Reformat an existing run or executed plan without rerunning any parser:
+
+```sh
+address-benchmark report work/my-fresh-comparison/plan.json
+address-benchmark report work/my-fresh-comparison/plan.json \
+  --metric delimiter --subsets natural hard hand --width 200
+address-benchmark report work/my-fresh-comparison/plan.json \
+  --metric delimiter --subsets natural hard hand --counts --format markdown --out comparison.md
+address-benchmark report work/my-fresh-comparison/plan.json \
+  --metric delimiter --subsets natural hard hand --format html --out comparison.html
+```
+
+Formats: `console`, `markdown`, `csv`, `json`, `html`. Metrics: `strict`
+(default), `delimiter`, `complete`, `fine-f1`, `exact` (utility tasks),
+and `throughput` (recorded exploratory timing only). `--counts` adds exact
+numerators/denominators; fine F1 uses TP/FP/FN. JSON retains full numeric precision,
+statuses and denominators. CSV contains the readable comparison matrix.
+HTML is a standalone dark report with counts, row leaders, sticky labels and
+horizontal scrolling. No external fonts, scripts or network requests are needed.
+
+Missing/unsupported cells stay explicitly unmeasured. Zero remains a measured
+zero. Row leaders require matching measured denominators; all displayed ties
+are highlighted. Partial references, native failures and overlapping subsets
+retain their original meaning. Table generation checks recorded envelope
+identities and does not rescore or replace the original scoring policy. Use the
+original frozen framework version for full `verify` rescoring of older runs.
 
 ## Production parsing cohort
 

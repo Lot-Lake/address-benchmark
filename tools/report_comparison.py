@@ -190,3 +190,9 @@ table_html=''.join('<tr>'+''.join('<td>'+html.escape(str(row.get(k,'')))+'</td>'
 page='<!doctype html><meta charset="utf-8"><title>Address utility comparison</title><style>body{font:15px system-ui;max-width:1500px;margin:40px auto;padding:0 24px;color:#18221f;background:#fafaf7}h1{font-size:34px}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}td,th{padding:10px;border-bottom:1px solid #dce3dd;text-align:right}td:first-child,td:nth-child(2){text-align:left}.scroll{overflow:auto}pre{white-space:pre-wrap;line-height:1.6;max-width:1100px}a{color:#22633d}</style><h1>Address utility comparison</h1><p>Fresh nine-engine parsing run. Public and development-exposed evidence; see scopes and limitations below.</p><div class="scroll"><table><thead><tr>'+''.join('<th>'+html.escape(k)+'</th>' for k in ('Corpus','Engine','Correct','Eligible','Delimiter %','Strict %','Fine token F1','Errors','Refusals'))+'</tr></thead><tbody>'+table_html+'</tbody></table></div><h2>Findings and methodology</h2><pre>'+html.escape(markdown)+'</pre>'
 (output/'comparison.html').write_text(page)
 print(json.dumps(dict(output=str(output), tracks=len(summary), engines=len(tables)//len(summary))))
+
+# The same built-in table renderer powers terminal output and all five exports.
+from address_benchmark.tables import export_scorecard, load_scorecard, render_console
+score_table = load_scorecard(args.plan, metric='delimiter', subsets=['natural', 'hard', 'hand'], title='USA parser comparison')
+export_scorecard(score_table, output, overwrite=True)
+print(render_console(score_table), end='')

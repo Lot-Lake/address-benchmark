@@ -261,6 +261,8 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
     report["status"] = "complete" if all(e["status"] == "ok" for e in cells) else "incomplete"
     from .report import render
     (out / "report.md").write_text(render(report), encoding="utf-8")
+    from .tables import scorecard, export_scorecard
+    export_scorecard(scorecard([(manifest['id'], report)], engines=names), out)
     # Hash every artifact except the envelope itself; its identity is external.
     report["artifacts"] = {str(p.relative_to(out)): sha256(p) for p in sorted(out.rglob("*")) if p.is_file()}
     report["content_id"] = identity(report)

@@ -32,6 +32,14 @@ ordinary immutable run envelope, hashes, actual exits and accuracy rescore.
 `plan-results.json` indexes track status and content IDs. Engine unavailability
 remains explicit and makes the plan incomplete; it does not create a score.
 
+Completed execution also writes `scores.txt`, `scores.md`, `scores.csv`,
+`scores.json` and `scores.html` beside the plan. Individual run score exports
+are included in their immutable artifact index. The console defaults to the
+table; `run-plan --json` retains the machine-readable completion envelope, with
+progress on stderr. `address-benchmark report PLAN --metric delimiter
+--subsets natural hard hand --format html --out FILE` renders another view of
+the recorded results without engine execution or changed scoring.
+
 Plans have one task/corpus per track. Parsing, normalization and identity need
 their own engine configurations/plan because they request different work. There
 is no automatic promotion, gold-selected engine selector, total quality weight,
