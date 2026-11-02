@@ -74,3 +74,27 @@ class Interrupted(DemoParser):
     def close(self):
         Interrupted.closed = True
         raise RuntimeError("close failure must not swallow the interrupt")
+
+
+class UnavailableCloseFails(CloseFails):
+    def parse_many(self, requests, directory):
+        from address_benchmark.adapters import Unavailable
+        raise Unavailable('unavailable after adapter initialization')
+
+
+class InterruptCloseExits(Interrupted):
+    def close(self):
+        raise SystemExit(23)
+
+
+class ExitCloseInterrupts(DemoParser):
+    def parse(self, request):
+        raise SystemExit(23)
+
+    def close(self):
+        raise KeyboardInterrupt
+
+
+class SuccessfulCloseExits(DemoParser):
+    def close(self):
+        raise SystemExit(23)

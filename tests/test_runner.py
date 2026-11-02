@@ -67,6 +67,12 @@ class RunnerTests(unittest.TestCase):
         self.assertNotIn("populations", entry)
         self.assertEqual(verify(output)["status"], "verified")
 
+    def test_cleanup_failure_preserves_unavailable_process_exit(self):
+        result, output = self.execute(engines=[dict(name='unavailable',adapter='tests.support:UnavailableCloseFails')])
+        entry=result['accuracy']['unavailable']
+        self.assertEqual((entry['status'],entry['exit_code']),('unavailable',69))
+        self.assertEqual(verify(output)['status'],'verified')
+
     def test_wrong_identity_invalidates_cell(self):
         result, _ = self.execute(engines=[dict(name="wrong", adapter="tests.support:WrongIdentity")])
         self.assertEqual(result["accuracy"]["wrong"]["status"], "failed")
@@ -199,6 +205,23 @@ class WorkerExitTests(unittest.TestCase):
         with self.assertRaises(KeyboardInterrupt):
             self.main("tests.support:Interrupted")
         self.assertTrue(Interrupted.closed)
+
+    def test_unavailable_status_survives_a_failing_close(self):
+        self.assertEqual(self.main('tests.support:UnavailableCloseFails'),69)
+
+    def test_primary_interrupt_survives_cleanup_system_exit(self):
+        with self.assertRaises(KeyboardInterrupt):
+            self.main('tests.support:InterruptCloseExits')
+
+    def test_primary_system_exit_survives_cleanup_interrupt(self):
+        with self.assertRaises(SystemExit) as caught:
+            self.main('tests.support:ExitCloseInterrupts')
+        self.assertEqual(caught.exception.code,23)
+
+    def test_cleanup_system_exit_propagates_after_success(self):
+        with self.assertRaises(SystemExit) as caught:
+            self.main('tests.support:SuccessfulCloseExits')
+        self.assertEqual(caught.exception.code,23)
 
 
 if __name__ == "__main__":

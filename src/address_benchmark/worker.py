@@ -67,19 +67,24 @@ def main(argv=None):
     parser.add_argument("--warmup", type=int, default=1)
     args = parser.parse_args(argv)
     held = []
+    status = 0
     try:
         status = _execute(args, held)
     finally:
         # Closing never replaces an in-flight exception (e.g. KeyboardInterrupt).
+        preserve_failure = sys.exc_info()[0] is not None or status != 0
         close_failed = False
         for adapter in held:
-            if hasattr(adapter, "close"):
-                try:
-                    adapter.close()
-                except Exception:
-                    traceback.print_exc(file=sys.stderr)
-                    close_failed = True
-    return 1 if close_failed else status
+            try:
+                close = getattr(adapter, 'close', None)
+                if close is not None:
+                    close()
+            except BaseException as exc:
+                if not isinstance(exc, Exception) and not preserve_failure:
+                    raise
+                traceback.print_exc(file=sys.stderr)
+                close_failed = True
+    return 1 if status == 0 and close_failed else status
 
 
 def _execute(args, held):
