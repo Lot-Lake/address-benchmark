@@ -1,0 +1,41 @@
+{
+  "schema": "address-benchmark.corpus-recipe/v1",
+  "id": "deepparse-hf-us",
+  "version": "1.0.0",
+  "source": {
+    "dataset": "https://huggingface.co/datasets/deepparse/worldwide-addresses",
+    "revision": "cb61e5e49db87f8c3586b5494149f612460f8992",
+    "config": "us",
+    "files": [
+      {"path": "us/chunk-0.parquet", "bytes": 1342845235, "sha256": "251f9a91685ec91b0a389d0a5ddcadd8ef48831b37cb221fdbb2ec56fa34e265"},
+      {"path": "us/chunk-1.parquet", "bytes": 1493755695, "sha256": "ec90464a08e009ebbff1a89f38bb7d8bb53b21281a126a3254d0ed59fd1f92e8"},
+      {"path": "us/chunk-2.parquet", "bytes": 1493613524, "sha256": "81c9cdbb2fc0fe4d2912c3bf3ed262703d509ffbaf84d8a3b4bc102c39005ee0"},
+      {"path": "us/chunk-3.parquet", "bytes": 1426070045, "sha256": "c5ca77c73d3f78b0149a199dc8eb6113b2bec1db95171223028dd1f882890ca6"}
+    ]
+  },
+  "license": {
+    "spdx": "CC-BY-4.0",
+    "attribution": "deepparse/worldwide-addresses (Hugging Face), CC-BY-4.0. Per its dataset card it is formatted from libpostal training data (OpenStreetMap and OpenAddresses addresses); upstream attribution applies."
+  },
+  "sampler": {
+    "seed": "20261101",
+    "row_groups_per_chunk": 6,
+    "rows_per_row_group": 1250,
+    "candidates_per_row_group": 7500,
+    "language": "eng"
+  },
+  "tags": {
+    "StreetNumber": "house_number",
+    "StreetName": "road",
+    "Unit": "unit",
+    "Municipality": "city",
+    "Province": "state",
+    "PostalCode": "postcode"
+  },
+  "unmapped_tags": ["Suburb", "District", "County", "Country"],
+  "strata": {
+    "full": "house_number, road, city, state and postcode all tagged; no unmapped tag",
+    "partial": "road tagged, some of the other four absent; no unmapped tag",
+    "extra": "carries an unmapped tag; sampled (it counts toward the per-group quota) but not emitted"
+  }
+}
