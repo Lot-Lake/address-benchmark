@@ -31,6 +31,9 @@ def reference_for(words, tags, recipe):
     """(stratum, reference) for one aligned row, or None when the row is not admissible."""
     if len(words) != len(tags) or "StreetName" not in tags:
         return None
+    unknown = set(tags) - set(recipe['tags']) - set(recipe['unmapped_tags'])
+    if unknown:
+        raise ValueError('unknown publisher tags: ' + ', '.join(sorted(unknown)))
     fields, previous = {}, None
     for word, tag in zip(words, tags):
         role = recipe["tags"].get(tag)

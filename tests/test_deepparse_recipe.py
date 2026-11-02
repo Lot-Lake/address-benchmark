@@ -57,6 +57,8 @@ class DeepparseRecipeTests(unittest.TestCase):
         check_reference(reference, " ".join(words))
 
     def test_strata_and_inadmissible_rows(self):
+        with self.assertRaisesRegex(ValueError, 'unknown publisher tags: NewTag'):
+            tool.reference_for(['main', 'example'], ['StreetName', 'NewTag'], RECIPE)
         self.assertEqual(tool.reference_for(["main", "st"], ["StreetName", "StreetName"], RECIPE)[0], "partial")
         self.assertEqual(tool.reference_for(["main", "st", "kings"], ["StreetName", "StreetName", "County"], RECIPE)[0], "extra")
         self.assertIsNone(tool.reference_for(["12", "springfield"], ["StreetNumber", "Municipality"], RECIPE))
