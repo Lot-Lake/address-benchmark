@@ -113,7 +113,7 @@ The demo parser is deliberately limited. The refusal adapter is a denominator/er
 
 | Track | Implemented measurement | Runnable example |
 | --- | --- | --- |
-| Parsing | Coarse ordered field/value agreement; exact fine span/token/role P/R/F1; complete-address agreement on complete references; partial scope and unsupported roles | `us-core`, `us-challenge`, `us-rendered` + `engines.json` |
+| Parsing | Coarse ordered field/value agreement; exact fine span/token/role P/R/F1; complete-address agreement on complete references; partial scope and unsupported roles | `us-core`, `us-challenge`, `us-rendered`, `us-units-adversarial` + `engines.json` |
 | Normalization | Exact ordered strings under a frozen named rules profile | `us-normalization` + `normalize.json` |
 | Formatting | Exact output from explicit ordered fields; no hidden parsing | `us-format` + `format.json` |
 | Identity/matching keys | Independent same/distinct delivery-unit pairs; key equality, P/R/F1, collisions and missing-key coverage | `us-identity` + `identity.json` |
