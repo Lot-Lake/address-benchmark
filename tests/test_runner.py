@@ -178,5 +178,28 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(result["ratios"], [2])
 
 
+class WorkerExitTests(unittest.TestCase):
+    def main(self, spec):
+        from address_benchmark import worker
+        from address_benchmark.io import write_jsonl
+        from address_benchmark.protocol import Request, request_hash
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_jsonl(root / "inputs.jsonl", [Request("a", "1 Main St", request_hash("1 Main St"), "US", "en-US").to_dict()])
+            write_json(root / "config.json", {})
+            return worker.main(["--spec", spec, "--config", str(root / "config.json"), "--inputs", str(root / "inputs.jsonl"),
+                                "--output", str(root / "out.jsonl"), "--identity", str(root / "identity.json"), "--mode", "accuracy"])
+
+    def test_close_failure_fails_the_run(self):
+        self.assertEqual(self.main("tests.support:CloseFails"), 1)
+
+    def test_interrupt_survives_a_failing_close(self):
+        from tests.support import Interrupted
+        Interrupted.closed = False
+        with self.assertRaises(KeyboardInterrupt):
+            self.main("tests.support:Interrupted")
+        self.assertTrue(Interrupted.closed)
+
+
 if __name__ == "__main__":
     unittest.main()

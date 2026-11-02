@@ -58,3 +58,19 @@ def formatted_fields(fields):
 
 def known_state(text):
     return {"10001": "NY", "90210": "CA"}.get(text)
+
+
+class CloseFails(DemoParser):
+    def close(self):
+        raise RuntimeError("intentional close failure")
+
+
+class Interrupted(DemoParser):
+    closed = False
+
+    def parse(self, request):
+        raise KeyboardInterrupt
+
+    def close(self):
+        Interrupted.closed = True
+        raise RuntimeError("close failure must not swallow the interrupt")

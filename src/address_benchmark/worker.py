@@ -66,13 +66,30 @@ def main(argv=None):
     parser.add_argument("--min-seconds", type=float, default=.1)
     parser.add_argument("--warmup", type=int, default=1)
     args = parser.parse_args(argv)
-    adapter = None
+    held = []
+    try:
+        status = _execute(args, held)
+    finally:
+        # Closing never replaces an in-flight exception (e.g. KeyboardInterrupt).
+        close_failed = False
+        for adapter in held:
+            if hasattr(adapter, "close"):
+                try:
+                    adapter.close()
+                except Exception:
+                    traceback.print_exc(file=sys.stderr)
+                    close_failed = True
+    return 1 if close_failed else status
+
+
+def _execute(args, held):
     try:
         requests = [Request.from_dict(x) for x in read_jsonl(args.inputs)]
         require(requests, "empty input panel")
         require(args.samples > 0 and args.warmup >= 0 and args.min_seconds > 0, "invalid timing settings")
         started = time.perf_counter_ns()
         adapter = load_adapter(args.spec, read_json(args.config))
+        held.append(adapter)
         load_ns = time.perf_counter_ns() - started
         initial = runtime_identity(adapter)
         if args.mode == "accuracy":
@@ -127,13 +144,6 @@ def main(argv=None):
     except Exception:
         traceback.print_exc(file=sys.stderr)
         return 1
-    finally:
-        if adapter is not None and hasattr(adapter, "close"):
-            try:
-                adapter.close()
-            except Exception:
-                traceback.print_exc(file=sys.stderr)
-                return 1
 
 
 if __name__ == "__main__":
