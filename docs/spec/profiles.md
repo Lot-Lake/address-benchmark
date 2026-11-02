@@ -35,8 +35,9 @@ line.
 **Scope.** A complete reference scores all six fields; a field the reference
 lacks must also be absent from the prediction (no invented fields). A partial
 reference scores only the fields it supplies; an empty supplied list asserts
-that the field is absent. Unlabeled rows are not scored. Error and refusal rows
-fail.
+that the field is absent. Unlabeled rows and partial references supplying none
+of the six profile fields are unmeasured and excluded from its denominator.
+Error and refusal rows fail when at least one field is eligible.
 
 **Inference.** A ZIP-derived (or otherwise inferred) state belongs in the
 prediction's `inferred` layer. It is never source evidence, so it cannot satisfy

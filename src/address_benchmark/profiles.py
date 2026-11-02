@@ -116,6 +116,8 @@ def score_profile(name, row, prediction, metadata):
     if reference["coverage"] == "none":
         return dict(agrees=None, scored_fields=[], mismatched_fields=[], inferred_roles=inferred)
     scored = supplied_fields(reference)
+    if not scored:
+        return dict(agrees=None, scored_fields=[], mismatched_fields=[], inferred_roles=inferred)
     gold = reference_fields(row)
     mapping = metadata["role_map"]
     predicted = _collect((mapping.get(x["native_role"]), x["value"]) for x in prediction["evidence"]) if prediction["status"] == "ok" else {}

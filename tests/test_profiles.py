@@ -34,6 +34,19 @@ def agrees(r, p):
 
 
 class StreetLineProfileTests(unittest.TestCase):
+    def test_partial_reference_without_profile_fields_is_unmeasured(self):
+        reference = row('Example Building', {'building': ['Example Building']}, coverage='partial')
+        for output in (pred(), pred(status='error'), pred(status='refused')):
+            result = agrees(reference, output)
+            self.assertIsNone(result['agrees'])
+            self.assertEqual(result['scored_fields'], [])
+            self.assertEqual(summarize_profile([result])['denominator'], 0)
+
+    def test_explicit_empty_profile_field_remains_an_assertion(self):
+        reference = row('Example Building', {'unit': []}, coverage='partial')
+        self.assertTrue(agrees(reference, pred())['agrees'])
+        self.assertFalse(agrees(reference, pred(('unit', 'Apt 5')))['agrees'])
+
     def test_street_line_is_one_canonical_string_whatever_the_split(self):
         r = row("12 N Main St Exampleville NY 00123", dict(house_number=["12"], road=["N Main St"], city=["Exampleville"], state=["NY"], postcode=["00123"]))
         split = pred(("AddressNumber", "12"), ("StreetNamePreDirectional", "NORTH"), ("StreetName", "Main"), ("StreetNamePostType", "STREET"),
