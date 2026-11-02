@@ -67,6 +67,12 @@ class RunnerTests(unittest.TestCase):
         self.assertNotIn("populations", entry)
         self.assertEqual(verify(output)["status"], "verified")
 
+    def test_cleanup_failure_preserves_unavailable_process_exit(self):
+        result, output = self.execute(engines=[dict(name='unavailable',adapter='tests.support:UnavailableCloseFails')])
+        entry=result['accuracy']['unavailable']
+        self.assertEqual((entry['status'],entry['exit_code']),('unavailable',69))
+        self.assertEqual(verify(output)['status'],'verified')
+
     def test_wrong_identity_invalidates_cell(self):
         result, _ = self.execute(engines=[dict(name="wrong", adapter="tests.support:WrongIdentity")])
         self.assertEqual(result["accuracy"]["wrong"]["status"], "failed")
@@ -176,6 +182,46 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(result["status"], "incomplete")
         self.assertIsNone(result["median_ratio"])
         self.assertEqual(result["ratios"], [2])
+
+
+class WorkerExitTests(unittest.TestCase):
+    def main(self, spec):
+        from address_benchmark import worker
+        from address_benchmark.io import write_jsonl
+        from address_benchmark.protocol import Request, request_hash
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_jsonl(root / "inputs.jsonl", [Request("a", "1 Main St", request_hash("1 Main St"), "US", "en-US").to_dict()])
+            write_json(root / "config.json", {})
+            return worker.main(["--spec", spec, "--config", str(root / "config.json"), "--inputs", str(root / "inputs.jsonl"),
+                                "--output", str(root / "out.jsonl"), "--identity", str(root / "identity.json"), "--mode", "accuracy"])
+
+    def test_close_failure_fails_the_run(self):
+        self.assertEqual(self.main("tests.support:CloseFails"), 1)
+
+    def test_interrupt_survives_a_failing_close(self):
+        from tests.support import Interrupted
+        Interrupted.closed = False
+        with self.assertRaises(KeyboardInterrupt):
+            self.main("tests.support:Interrupted")
+        self.assertTrue(Interrupted.closed)
+
+    def test_unavailable_status_survives_a_failing_close(self):
+        self.assertEqual(self.main('tests.support:UnavailableCloseFails'),69)
+
+    def test_primary_interrupt_survives_cleanup_system_exit(self):
+        with self.assertRaises(KeyboardInterrupt):
+            self.main('tests.support:InterruptCloseExits')
+
+    def test_primary_system_exit_survives_cleanup_interrupt(self):
+        with self.assertRaises(SystemExit) as caught:
+            self.main('tests.support:ExitCloseInterrupts')
+        self.assertEqual(caught.exception.code,23)
+
+    def test_cleanup_system_exit_propagates_after_success(self):
+        with self.assertRaises(SystemExit) as caught:
+            self.main('tests.support:SuccessfulCloseExits')
+        self.assertEqual(caught.exception.code,23)
 
 
 if __name__ == "__main__":
