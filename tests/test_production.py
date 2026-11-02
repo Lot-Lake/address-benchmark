@@ -3,6 +3,7 @@ import json
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from address_benchmark.corpus import input_requests, load_corpus
 from address_benchmark.intake import align_native, parse_reference, records
@@ -213,6 +214,27 @@ class LibpostalSetupTests(unittest.TestCase):
             message = str(caught.exception)
             self.assertIn(str(parser / "address_parser"), message)
             self.assertNotIn(str(data / "address_parser"), message)
+
+    def test_separate_parser_setup_uses_and_pins_the_selected_model(self):
+        class Function:
+            def __init__(self, result=True):self.result,self.calls=result,[]
+            def __call__(self,*args):self.calls.append(args);return self.result
+        class Library:
+            def __getattr__(self,name):
+                value=Function();setattr(self,name,value);return value
+        with tempfile.TemporaryDirectory() as tmp:
+            library,data=self.layout(tmp,parser=False)
+            parser=Path(tmp)/'model';(parser/'address_parser').mkdir(parents=True)
+            model=parser/'address_parser/parser.dat';model.write_bytes(b'fictional model')
+            native=Library()
+            with patch('ctypes.CDLL',return_value=native):
+                adapter=Libpostal(dict(library=str(library),data_dir=str(data),parser_dir=str(parser),artifact_files=[str(library)]))
+            self.assertEqual(native.libpostal_setup_datadir.calls,[(str(data).encode(),)])
+            self.assertEqual(native.libpostal_setup_parser_datadir.calls,[(str(parser).encode(),)])
+            self.assertIn(str(model),adapter.metadata['artifact_files'])
+            adapter.close()
+            self.assertEqual(len(native.libpostal_teardown_parser.calls),1)
+            self.assertEqual(len(native.libpostal_teardown.calls),1)
 
 
 if __name__ == "__main__":

@@ -161,6 +161,10 @@ class Libpostal:
             self.close()
             raise
         self.metadata = adapter_metadata(config.get("name", "libpostal"), "neutral", config)
+        # A separate parser directory may not occur in an existing caller's
+        # base-data inventory. Pin the assets actually selected by this adapter.
+        selected = [library] + [p for directory in required for p in sorted(directory.rglob('*')) if p.is_file()]
+        self.metadata['artifact_files'] = sorted(set(self.metadata['artifact_files'] + list(map(str, selected))))
         self.metadata["native_options"] = dict(language=None, country=None)
 
     def parse(self, request):
