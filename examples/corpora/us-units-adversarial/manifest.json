@@ -1,0 +1,41 @@
+{
+  "annotation_policy": "docs/spec/annotations.md#authored-v1",
+  "construction": [
+    "Authored fictional US street-line, unit, lot, box and basement cases, grouped by the USPS Publication 28 rule each one exercises (subset = group)",
+    "Coarse reference values are literal input substrings (the lexical source segment); units, lots, floors and basements are `unit`, box families are `po_box`, the whole street line is one `road` value",
+    "Cases whose only assertion was conservation of an unclassifiable value are omitted; the route-plus-bare-value case is a partial reference with the unit left unknown",
+    "Every case was checked against private source rows before publication; shapes taken from real rows were rewritten as fictional look-alikes"
+  ],
+  "country": "US",
+  "exposure": {
+    "history": [
+      "Authored for parser development; development-exposed, not independent heldout evidence"
+    ],
+    "status": "public-conformance-development-exposed"
+  },
+  "family_policy": "One authored family per case; no rendering siblings.",
+  "id": "us-units-adversarial",
+  "license": {
+    "notice": "Original fictional examples, licensed with this repository. No upstream rows, private listings, customer data or real delivery claims.",
+    "redistribution": "allowed",
+    "spdx": "MIT"
+  },
+  "locale": "en-US",
+  "ontology": "address-benchmark.us-roles/v2",
+  "provenance": {
+    "source": "Original contributor-authored fictional fixtures (USPS Publication 28 sections cited per group)",
+    "source_sha256": "4b33614332956bec005deab58355a2841c203ec485c83df3ae89e88596c98fe3",
+    "upstream_revision": "authored-v1"
+  },
+  "resources": [
+    {
+      "bytes": 35082,
+      "path": "cases.jsonl",
+      "sha256": "4b33614332956bec005deab58355a2841c203ec485c83df3ae89e88596c98fe3"
+    }
+  ],
+  "schema": "address-benchmark.corpus/v1",
+  "split_policy": "All rows are conformance; future heldouts require separate custody and family/exact-overlap audit.",
+  "task": "parse",
+  "version": "1.0.0"
+}

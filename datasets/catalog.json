@@ -29,7 +29,11 @@
       "revision": "0a2f1fc748f8747d926490288fac38e19421ae44",
       "upstream_asset_sha256": "2336f0996f2d044d56d69467f6f3ea7d33a4a64a680decb43179651bf006b430",
       "format": "doorplate-compare",
-      "strata": {"natural": 16001, "hard": 2585, "hand": 1000},
+      "strata": {
+        "natural": 16001,
+        "hard": 2585,
+        "hand": 1000
+      },
       "origin": "source-field-supervised renderings plus publisher hand-authored cases",
       "coverage": "publisher compatibility token labels",
       "rights": "local-only pending source/asset-specific redistribution review; code license alone is insufficient"
@@ -37,11 +41,32 @@
     {
       "id": "expanded-usa",
       "rows": 2973,
-      "sources": ["https://github.com/datamade/usaddress", "https://github.com/Senzing/libpostal-data", "https://github.com/openvenues/libpostal"],
+      "sources": [
+        "https://github.com/datamade/usaddress",
+        "https://github.com/Senzing/libpostal-data",
+        "https://github.com/openvenues/libpostal"
+      ],
       "format": "expanded-parser",
-      "coverage": {"partial": 2920, "complete": 53},
-      "components": {"us50": 687, "senzing_public_us": 2233, "libpostal_c_us": 53},
+      "coverage": {
+        "partial": 2920,
+        "complete": 53
+      },
+      "components": {
+        "us50": 687,
+        "senzing_public_us": 2233,
+        "libpostal_c_us": 53
+      },
       "rights": "local-only audited intake; retained source/revision/asset/license locators include NCSA, Apache-2.0 and MIT"
+    },
+    {
+      "id": "deepparse-hf-us",
+      "rows": "about 21,000 after the extra stratum is excluded (sampler quota 30,000)",
+      "source": "https://huggingface.co/datasets/deepparse/worldwide-addresses",
+      "revision": "cb61e5e49db87f8c3586b5494149f612460f8992",
+      "format": "recipe: datasets/deepparse-hf-us/recipe.json + tools/prepare_deepparse_hf.py",
+      "origin": "source-field-supervised",
+      "coverage": "partial word-tag references; whole street line as one road value",
+      "rights": "CC-BY-4.0 with attribution; data not bundled; libpostal training lineage"
     },
     {
       "id": "nad-rendered",

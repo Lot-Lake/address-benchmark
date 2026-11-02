@@ -63,6 +63,7 @@ address-benchmark report work/my-fresh-comparison/plan.json \
 
 Formats: `console`, `markdown`, `csv`, `json`, `html`. Metrics: `strict`
 (default), `delimiter`, `complete`, `fine-f1`, `exact` (utility tasks),
+`streetline` (the [strict-streetline/v1 profile](docs/spec/profiles.md), when the corpus declares it)
 and `throughput` (recorded exploratory timing only). `--counts` adds exact
 numerators/denominators; fine F1 uses TP/FP/FN. JSON retains full numeric precision,
 statuses and denominators. CSV contains the readable comparison matrix.
@@ -112,7 +113,7 @@ The demo parser is deliberately limited. The refusal adapter is a denominator/er
 
 | Track | Implemented measurement | Runnable example |
 | --- | --- | --- |
-| Parsing | Coarse ordered field/value agreement; exact fine span/token/role P/R/F1; complete-address agreement on complete references; partial scope and unsupported roles | `us-core`, `us-challenge`, `us-rendered` + `engines.json` |
+| Parsing | Coarse ordered field/value agreement; exact fine span/token/role P/R/F1; complete-address agreement on complete references; partial scope and unsupported roles | `us-core`, `us-challenge`, `us-rendered`, `us-units-adversarial` + `engines.json` |
 | Normalization | Exact ordered strings under a frozen named rules profile | `us-normalization` + `normalize.json` |
 | Formatting | Exact output from explicit ordered fields; no hidden parsing | `us-format` + `format.json` |
 | Identity/matching keys | Independent same/distinct delivery-unit pairs; key equality, P/R/F1, collisions and missing-key coverage | `us-identity` + `identity.json` |
