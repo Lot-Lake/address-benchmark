@@ -95,6 +95,7 @@ def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', e
             if name not in names:
                 names.append(name)
         sources.append(dict(id=label, content_id=report.get('content_id'), status=report['status'],
+                            created_at=report.get('created_at'),
                             task=report['task'], scorer=report['scorer'], normalization=report['normalization'],
                             secondary_normalization=report.get('secondary_normalization')))
         effective = metric if report['task'] == 'parse' or metric == 'throughput' else 'exact'
@@ -141,7 +142,7 @@ def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', e
                 ])
 
 
-def load_scorecard(source, **options):
+def _recorded_runs(source):
     path = Path(source).resolve()
     if path.is_dir():
         path = path / ('plan-results.json' if (path / 'plan-results.json').exists() else 'run.json')
@@ -168,7 +169,32 @@ def load_scorecard(source, **options):
             engines = [e['name'] for e in read_json(path.parent / 'engines.json')]
     for _, report in runs:
         require(report['content_id'] == identity({k: v for k, v in report.items() if k != 'content_id'}), 'run content identity differs')
-    return scorecard(runs, engines=engines, **options)
+    return runs, engines
+
+
+def load_scorecard(source, *, all_views=False, **options):
+    """Read one or more explicit completed run/plan sources without pooling rows."""
+    inputs = list(source) if isinstance(source, (list, tuple)) else [source]
+    require(inputs, 'at least one report source required')
+    runs, engines = [], []
+    for path in inputs:
+        recorded, ordered = _recorded_runs(path)
+        runs.extend(recorded)
+        engines.extend(name for name in ordered if name not in engines)
+    ids = [label for label, _ in runs]
+    require(len(set(ids)) == len(ids), 'duplicate dataset IDs across report sources; select each population once')
+    require(len({report['task'] for _, report in runs}) == 1, 'different tasks require separate score tables')
+    require(len({(report['scorer'], report['normalization'], report.get('secondary_normalization')) for _, report in runs}) == 1,
+            'different scoring policies require separate score tables')
+    require(not all_views or not options.get('subsets'), 'select all views or named subsets, not both')
+    if all_views:
+        options['subsets'] = sorted({key.rsplit('/subset:', 1)[1] for _, report in runs
+                                    for entry in report['accuracy'].values() for key in entry.get('populations', {})
+                                    if '/subset:' in key and not key.endswith('/subset:all')})
+    card = scorecard(runs, engines=engines, **options)
+    if len(inputs) > 1:
+        card['notes'].append('Combined from multiple recorded experiment sources; source run identities remain separate. This is not a new simultaneous run or a pooled overall score.')
+    return card
 
 
 def leaders(row):

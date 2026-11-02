@@ -61,6 +61,25 @@ address-benchmark report work/my-fresh-comparison/plan.json \
   --metric delimiter --subsets natural hard hand --format html --out comparison.html
 ```
 
+To include newly executed corpus plans in the same report, pass each recorded
+plan explicitly. Views are selected across their union, so Deepparse's `full` /
+`partial` and NAD's four rendering strata can appear alongside existing views:
+
+```sh
+address-benchmark report work/base/plan.json work/additions/plan.json \
+  --metric delimiter --subsets natural hard hand full partial clean nocomma expanded noisy \
+  --format html --out complete-comparison.html
+# Or inspect every recorded view, including source/state subsets:
+address-benchmark report work/base/plan.json work/additions/plan.json --all-views
+```
+
+Duplicate dataset IDs and mixed task/scoring policies are rejected. Separate
+run identities and timestamps remain in JSON; composing reports does not execute
+missing datasets or turn separate batches into one simultaneous experiment.
+Corpus recipes must be materialized and included in an executed plan before they
+can contribute a measured row. Missing source files are setup work, not evidence
+that a recipe or its views were benchmarked.
+
 Formats: `console`, `markdown`, `csv`, `json`, `html`. Metrics: `strict`
 (default), `delimiter`, `complete`, `fine-f1`, `exact` (utility tasks),
 `streetline` (the [strict-streetline/v1 profile](docs/spec/profiles.md), when the corpus declares it)

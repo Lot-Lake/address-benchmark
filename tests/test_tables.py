@@ -34,6 +34,45 @@ def recorded():
 
 
 class ScoreTableTests(unittest.TestCase):
+    def saved_sources(self, root):
+        paths=[]
+        for name,view in [('deepparse-hf-us','full'),('nad-rendered','clean')]:
+            report=recorded();report['corpus']['id']=name
+            for entry in report['accuracy'].values():
+                if 'populations' in entry:
+                    entry['populations']={key.replace('subset:hard','subset:'+view):value for key,value in entry['populations'].items()}
+            report['content_id']=identity(report)
+            path=root/(name+'.json');path.write_text(json.dumps(report));paths.append(path)
+        return paths
+
+    def test_multiple_sources_include_named_new_views_without_pooling(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            paths=self.saved_sources(Path(tmp))
+            card=load_scorecard(paths,subsets=['full','clean'])
+            self.assertEqual([(r['panel'],r['view']) for r in card['rows']],
+                             [('deepparse-hf-us','all'),('deepparse-hf-us','full'),('nad-rendered','all'),('nad-rendered','clean')])
+            self.assertEqual(len(card['sources']),2)
+            self.assertIn('multiple recorded',card['notes'][-1])
+
+    def test_all_views_cli_and_duplicate_population_protection(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            paths=self.saved_sources(Path(tmp))
+            with redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(main(['report',*map(str,paths),'--all-views','--format','json']),0)
+            self.assertEqual({r['view'] for r in json.loads(output.getvalue())['rows']},{'all','full','clean'})
+            with self.assertRaisesRegex(ValueError,'duplicate dataset'):
+                load_scorecard([paths[0],paths[0]])
+            with self.assertRaisesRegex(ValueError,'requested subset'):
+                load_scorecard(paths,subsets=['noisy'])
+
+    def test_multiple_sources_cannot_mix_scoring_policies(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            paths=self.saved_sources(Path(tmp))
+            report=json.loads(paths[1].read_text());report.pop('content_id');report['normalization']='different-policy/v2';report['content_id']=identity(report)
+            paths[1].write_text(json.dumps(report))
+            with self.assertRaisesRegex(ValueError,'different scoring policies'):
+                load_scorecard(paths)
+
     def test_weighted_disjoint_populations_and_explicit_subset(self):
         card = scorecard([('Example', recorded())], subsets=['hard'])
         a = card['rows'][0]['cells']['a']

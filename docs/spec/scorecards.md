@@ -45,3 +45,12 @@ containing `run.json` supplies it. Plan exports can include completed child run
 IDs. The `report` command checks recorded envelope identities and plan links,
 then renders aggregates without execution or rescoring. Full verification of
 older predictions requires their original frozen framework version.
+
+The report command accepts multiple explicit run/plan sources and includes
+their dataset rows without pooling them. Dataset IDs must be unique and tasks /
+scorer policies must match. Named subsets are checked against the combined
+population inventory. `--all-views` selects every recorded subset except the
+redundant `all` subset; it is mutually exclusive with named subset selection.
+Source content identities and creation timestamps stay separate in JSON.
+Composition never supplies a missing execution result or establishes a single
+contemporaneous cohort. Unsupported or absent engine cells remain explicit.

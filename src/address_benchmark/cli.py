@@ -47,10 +47,12 @@ def main(argv=None):
         command.add_argument('--json', action='store_true', help='emit the original machine-readable run/plan result instead of a console table')
     from .tables import FORMATS, METRICS
     report = commands.add_parser('report', help='export clean score tables from a recorded run or executed plan; no engines rerun')
-    report.add_argument('source', help='run/plan JSON file or result directory')
+    report.add_argument('source', nargs='+', help='one or more run/plan JSON files or result directories')
     report.add_argument('--format', choices=FORMATS, default='console')
     report.add_argument('--metric', choices=METRICS, default='strict')
-    report.add_argument('--subsets', nargs='+', default=[], help='include named views, e.g. natural hard hand')
+    views = report.add_mutually_exclusive_group()
+    views.add_argument('--subsets', nargs='+', default=[], help='include named views, e.g. natural hard hand full partial clean nocomma expanded noisy')
+    views.add_argument('--all-views', action='store_true', help='include every recorded subset view from the selected sources')
     report.add_argument('--counts', action='store_true', help='include correct/denominator or TP/FP/FN in text tables')
     report.add_argument('--width', type=int, default=None, help='console width; wide tables split into column groups')
     report.add_argument('--color', choices=('auto', 'always', 'never'), default='auto')
@@ -81,7 +83,7 @@ def main(argv=None):
             return 0 if result["status"] == "complete" else 2
         if args.command == 'report':
             from .tables import load_scorecard, render
-            card = load_scorecard(args.source, metric=args.metric, subsets=args.subsets, title=args.title)
+            card = load_scorecard(args.source, metric=args.metric, subsets=args.subsets, all_views=args.all_views, title=args.title)
             use_color = args.color == 'always' or (args.color == 'auto' and sys.stdout.isatty() and not args.out and 'NO_COLOR' not in os.environ and os.environ.get('TERM') != 'dumb')
             output = render(card, args.format, counts=args.counts, terminal_width=args.width if args.width is not None else max(40, shutil.get_terminal_size((120, 24)).columns), color=use_color, ascii=args.ascii)
             if args.out:
