@@ -217,7 +217,8 @@
       "uniqueItems": true,
       "items": {
         "enum": [
-          "strict-streetline/v1"
+          "strict-streetline/v1",
+          "strict-streetline/v2"
         ]
       }
     }

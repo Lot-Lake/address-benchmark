@@ -21,7 +21,8 @@ from .protocol import FINE_TO_COARSE
 from .pub28 import DIRECTIONALS, STATES, SUFFIXES, UNIT_DESIGNATORS
 
 STREETLINE = "strict-streetline/v1"
-PROFILES = (STREETLINE,)
+STREETLINE_V2 = "strict-streetline/v2"
+PROFILES = (STREETLINE, STREETLINE_V2)
 FIELDS = ("number", "streetline", "unit", "city", "state", "zip")
 COARSE_FIELD = {"house_number": "number", "road": "streetline", "unit": "unit", "subaddress": "unit", "level": "unit",
                 "po_box": "unit", "city": "city", "state": "state", "postcode": "zip"}
@@ -71,7 +72,7 @@ def key(field, value):
     return canon(field, value).replace(" ", "")
 
 
-def _collect(items):
+def _collect(items, *, source_order=False):
     """(fine role, value) pairs in source order -> profile field values."""
     parts = {}
     for fine, value in items:
@@ -79,10 +80,8 @@ def _collect(items):
         field = COARSE_FIELD.get(coarse)
         if field is None:
             continue
-        slot = (field, STREET_PART.get(fine, "street")) if field == "streetline" else (field, None)
-        # A predirectional after a name word is inside the name (Pub 28), e.g. OLD SOUTH PLANK ROAD.
-        if slot == ("streetline", "predir") and ("streetline", "street") in parts:
-            slot = ("streetline", "street")
+        part = 'street' if source_order else STREET_PART.get(fine, 'street')
+        slot = (field, part) if field == 'streetline' else (field, None)
         parts.setdefault(slot, []).append(value)
     out = {}
     for (field, part), values in parts.items():
@@ -91,12 +90,12 @@ def _collect(items):
             for field, p in out.items()}
 
 
-def reference_fields(row):
+def reference_fields(row, *, source_order=False):
     reference = row["reference"]
     if reference["spans_coverage"] == "complete":
         raw = row["text"].encode("utf-8")
         ordered = sorted(reference["spans"], key=lambda x: x["span"])
-        return _collect((x["role"], raw[x["span"][0]:x["span"][1]].decode("utf-8")) for x in ordered)
+        return _collect(((x["role"], raw[x["span"][0]:x["span"][1]].decode("utf-8")) for x in ordered), source_order=source_order)
     values = {}
     for coarse in sorted(reference["fields"], key=lambda r: UNIT_ORDER.index(r) if r in UNIT_ORDER else -1):
         field = COARSE_FIELD.get(coarse)
@@ -121,9 +120,17 @@ def score_profile(name, row, prediction, metadata):
     scored = supplied_fields(reference)
     if not scored:
         return dict(agrees=None, scored_fields=[], mismatched_fields=[], inferred_roles=inferred)
-    gold = reference_fields(row)
+    source_order = name == STREETLINE_V2
+    gold = reference_fields(row, source_order=source_order)
     mapping = metadata["role_map"]
-    predicted = _collect((mapping.get(x["native_role"]), x["value"]) for x in prediction["evidence"]) if prediction["status"] == "ok" else {}
+    evidence = prediction['evidence']
+    if source_order:
+        # Use only the prediction's own input-coordinate evidence; never gold.
+        road = [x for x in evidence if FINE_TO_COARSE.get(mapping.get(x['native_role'])) == 'road']
+        if road and all(x.get('spans') for x in road):
+            ordered = iter(sorted(road, key=lambda x: min(span[0] for span in x['spans'])))
+            evidence = [next(ordered) if FINE_TO_COARSE.get(mapping.get(x['native_role'])) == 'road' else x for x in evidence]
+    predicted = _collect(((mapping.get(x["native_role"]), x["value"]) for x in evidence), source_order=source_order) if prediction["status"] == "ok" else {}
     mismatched = [f for f in scored if key(f, gold.get(f)) != key(f, predicted.get(f))]
     return dict(agrees=prediction["status"] == "ok" and not mismatched, scored_fields=scored,
                 mismatched_fields=mismatched, inferred_roles=inferred)

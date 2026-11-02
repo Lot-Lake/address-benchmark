@@ -11,7 +11,7 @@ import unicodedata
 
 from .io import identity, read_json, require, sha256, within
 
-METRICS = ('strict', 'delimiter', 'complete', 'fine-f1', 'exact', 'throughput', 'streetline')
+METRICS = ('strict', 'delimiter', 'complete', 'fine-f1', 'exact', 'throughput', 'streetline', 'streetline-v2')
 FORMATS = ('console', 'markdown', 'csv', 'json', 'html')
 LABELS = {'rust-learned': 'Rust learned', 'rust-default': 'Rust default',
           'boundaryboys': 'BoundaryBoys', 'doorplate': 'Doorplate',
@@ -23,7 +23,8 @@ VIEW_LABELS = {'natural': 'normal', 'hand': 'handwritten'}
 METRIC_LABELS = {'strict': 'Strict supplied-field agreement', 'delimiter': 'Edge-delimiter supplied-field agreement',
                  'complete': 'Strict complete-address agreement', 'fine-f1': 'Fine token F1',
                  'exact': 'Exact task agreement', 'throughput': 'Exploratory throughput · addresses/s',
-                 'streetline': 'strict-streetline/v1 profile agreement'}
+                 'streetline': 'strict-streetline/v1 profile agreement',
+                 'streetline-v2': 'strict-streetline/v2 source-order profile agreement'}
 
 
 def clean(value):
@@ -57,8 +58,9 @@ def _sum(populations, metric):
             statuses[name] = statuses.get(name, 0) + n
     result = dict(status='unmeasured', score=None, correct=None, denominator=0, rows=rows,
                   errors=statuses.get('error', 0), refusals=statuses.get('refused', 0))
-    if metric == 'streetline':
-        parts = [p.get('profiles', {}).get('strict-streetline/v1') for p in populations]
+    if metric in ('streetline', 'streetline-v2'):
+        profile = 'strict-streetline/v2' if metric == 'streetline-v2' else 'strict-streetline/v1'
+        parts = [p.get('profiles', {}).get(profile) for p in populations]
         if parts and all(parts):
             result.update(correct=sum(p['correct'] for p in parts), denominator=sum(p['denominator'] for p in parts),
                           inferred_state_rows=sum(p['inferred_state_rows'] for p in parts))
