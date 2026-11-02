@@ -15,7 +15,6 @@ actual run remains authoritative; a moving repository head is not a wheel pin.
 | Doorplate | `doorplate.parse_tokens(text, default_state=None, custom_layer=None)` or `Parser().parse(text).to_usaddress_tags()` | Returns `list[tuple[str, str | None]]`; null labels mean unplaced native input tokens. Retain those tokens with an explicitly unmapped sentinel role. Do not silently filter them away. The Python token interface does not expose byte offsets. Rich `ParsedAddress.to_dict()` may be retained separately for audit; normalized fields and resolved `place` are not substitutions for parsed tokens. [Official type stubs](https://github.com/jeremeybingham/doorplate/blob/main/crates/doorplate-py/python/doorplate/__init__.pyi) |
 | polars-usaddress | `polars_usaddress.parse_address(expr)` | A Polars expression returning `list[struct{token,label}]`, retaining order/repetition. Evaluate and materialize the expression explicitly. Confidence APIs add work; keep them separate. [Python expression implementation](https://github.com/nexmoov/polars-usaddress/blob/main/python/polars_usaddress/__init__.py) |
 | libpostal default / Senzing | C `libpostal_parse_address` or Python `postal.parser.parse_address` | Native ordered component/value outputs are generally coarser than street-token roles. Do not invent fine roles using gold. Separate process/model identity per model; pin the actual loaded library and data files. Expansion/normalization is another task. [C interface](https://github.com/openvenues/libpostal/blob/master/src/libpostal.h), [official Python binding](https://github.com/openvenues/pypostal/blob/master/postal/parser.py), [Senzing installation/model source](https://github.com/Senzing/libpostal-data) |
-| Mailwoman | Explicit neural classifier + runtime pipeline, preserving native tree; separately named upstream libpostal projection if selected | Freeze Node, package lock, weights, locale, CPU provider and threads. A neural pipeline must not silently fall back to a rule parser. Keep tree/projection/task identity visible and preserve repeated components. [Official project](https://github.com/sister-software/mailwoman), [neural package](https://www.npmjs.com/package/@mailwoman/neural), [projection package](https://www.npmjs.com/package/@mailwoman/libpostal) |
 | BoundaryBoys | Existing user-installed local executable, with declared source/binary fingerprints | Public web access returns 404, while the authenticated GitHub repository query reports **private**, with no declared license. This does not make the existing local runtime missing. Do not vendor private internal Go source into this MIT project. A local wrapper can identify the already installed runtime without distributing it. Public integration rights remain unverified. [Access-controlled origin](https://github.com/Andrei-Dr/BoundaryBoys) |
 | Existing learned Rust engine | Content-pinned retained model and matching native decoder/executable | The local retained manifest names an experimental learned benchmark operating point, not a production-default parser switch. Freeze its model bytes and compatible decoder before inference. If the deterministic production parser is also evaluated, give it a separate engine identity. Training/exposure limitations stay attached to both. Local `retained_model.json`, its compatible runtime manifest and the new run's file hashes are the evidence. |
 
@@ -93,29 +92,6 @@ scope, fine-versus-coarse distinctions and source families. Use the same panel
 for all engines; separate strict punctuation/value agreement from any separately
 versioned permitted-delimiter metric. Do not mistake a common projection or
 annotation-policy disagreement for a demonstrated model error.
-
-## Installed Mailwoman tree audit shape
-
-Static inspection of the installed 10.7.0 packages (`@mailwoman/core/out/decoder/
-types.d.ts`, `build-tree.js`, and `mailwoman/out/runtime-pipeline.js`) finds a
-plain `AddressTree` with `raw`, `roots`, optional `system`, and optional
-`localeCountry`. Nodes have `tag`, `value`, numeric `start/end/confidence`, and
-`children`, with optional source/provenance/script/metadata fields. The builder
-creates downward child links, not parent back-references. The declared scalar
-fields contain no BigInt. For the unresolved neural pipeline, retaining
-`JSON.stringify({tree, components})` is appropriate; serialization should still
-fail explicitly if an unexpected extension supplies a cycle or unsupported
-value. Arbitrary resolver metadata/alternatives are typed `unknown`, so this is
-not a universal serialization guarantee for every extension.
-
-Preserve the pipeline's normalized text as the coordinate basis. The runtime
-uses `result.normalized.normalized` when stamping tree spans; JavaScript string
-offsets must not be relabeled as original-input UTF-8 offsets. The upstream
-`decodeAsJSON` projection can collapse repeated tags, so it is unsuitable as the
-only native audit payload. Stream one tree per JSONL record rather than keeping
-all results in memory. A static 1–3 KB-per-ordinary-tree estimate implies roughly
-0.1–0.4 GB for 113,703 rows before wrappers, but this is a planning estimate, not
-an executed size measurement or an upper bound on optional metadata.
 
 ## Classification taxonomy and normalized-field follow-up
 

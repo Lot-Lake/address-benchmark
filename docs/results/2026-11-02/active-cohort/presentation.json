@@ -1,0 +1,410 @@
+{
+  "schema": "address-benchmark.cohort-presentation/v1",
+  "configurations": [
+    "rust-learned",
+    "rust-default",
+    "boundaryboys",
+    "doorplate",
+    "usaddress",
+    "fastaddress",
+    "libpostal-default",
+    "libpostal-senzing"
+  ],
+  "source_rows": 168067,
+  "displayed_cells": 56,
+  "recorded_predictions_in_displayed_cells": 1344536,
+  "newly_executed_predictions": 0,
+  "source_full_cohort_configurations": 9,
+  "presentation_only": true,
+  "metrics": {
+    "strict": {
+      "original_scorecard_sha256": "b66a8d1cc2879977b7a1723d4d8871579a3bf6e98ef9dae8c2af6b6a82a30f64",
+      "source_ids": [
+        {
+          "id": "geosearch-dev",
+          "content_id": "0e1adbb60c702f4d016045b5a57cd4f4c12f0c71cf6f2fe0fbc8f20a67ccff26",
+          "status": "complete",
+          "created_at": "2026-11-02T20:18:32.819466+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "geosearch-test",
+          "content_id": "8e5ac37aaf6a023f408740f60af8dbdb275c5ecdeae9c53031ac254786c04476",
+          "status": "complete",
+          "created_at": "2026-11-02T20:29:05.157590+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "doorplate-v1",
+          "content_id": "1ccf4ad912ebc1ae2fead09b0b43f6a406590ed4532a85d1332909394d31904f",
+          "status": "complete",
+          "created_at": "2026-11-02T20:34:37.502645+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "expanded-usa",
+          "content_id": "9e8f21a9f751a454ff4a44e506a116b73f92cc5354356782ee91029985efdb8f",
+          "status": "complete",
+          "created_at": "2026-11-02T20:38:34.717419+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "us-units-adversarial",
+          "content_id": "af9b8dca3fffc0ce3f90404f0271ec18bee8f6a50105212660a51b6e562ef736",
+          "status": "complete",
+          "created_at": "2026-11-02T20:39:33.980251+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "deepparse-hf-us",
+          "content_id": "cb152df968806027241b2154cada5e98bccfef15238056a2de09743e131b66e3",
+          "status": "complete",
+          "created_at": "2026-11-02T20:58:08.184421+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "nad-rendered",
+          "content_id": "e2f76149913594affb1a5addd382f91f3cad4565c9df80499bd7a53f2af3da62",
+          "status": "complete",
+          "created_at": "2026-11-02T21:01:29.279776+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        }
+      ]
+    },
+    "delimiter": {
+      "original_scorecard_sha256": "ca225d027d3bf9d51756a5b974bf65b0768b4fa026f438ea4731702bc1b2c7c1",
+      "source_ids": [
+        {
+          "id": "geosearch-dev",
+          "content_id": "0e1adbb60c702f4d016045b5a57cd4f4c12f0c71cf6f2fe0fbc8f20a67ccff26",
+          "status": "complete",
+          "created_at": "2026-11-02T20:18:32.819466+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "geosearch-test",
+          "content_id": "8e5ac37aaf6a023f408740f60af8dbdb275c5ecdeae9c53031ac254786c04476",
+          "status": "complete",
+          "created_at": "2026-11-02T20:29:05.157590+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "doorplate-v1",
+          "content_id": "1ccf4ad912ebc1ae2fead09b0b43f6a406590ed4532a85d1332909394d31904f",
+          "status": "complete",
+          "created_at": "2026-11-02T20:34:37.502645+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "expanded-usa",
+          "content_id": "9e8f21a9f751a454ff4a44e506a116b73f92cc5354356782ee91029985efdb8f",
+          "status": "complete",
+          "created_at": "2026-11-02T20:38:34.717419+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "us-units-adversarial",
+          "content_id": "af9b8dca3fffc0ce3f90404f0271ec18bee8f6a50105212660a51b6e562ef736",
+          "status": "complete",
+          "created_at": "2026-11-02T20:39:33.980251+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "deepparse-hf-us",
+          "content_id": "cb152df968806027241b2154cada5e98bccfef15238056a2de09743e131b66e3",
+          "status": "complete",
+          "created_at": "2026-11-02T20:58:08.184421+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "nad-rendered",
+          "content_id": "e2f76149913594affb1a5addd382f91f3cad4565c9df80499bd7a53f2af3da62",
+          "status": "complete",
+          "created_at": "2026-11-02T21:01:29.279776+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        }
+      ]
+    },
+    "streetline": {
+      "original_scorecard_sha256": "5cbabac49fe8242f457223d6d04f7f0e3d4088aa62292ec693678422ef5a2bf6",
+      "source_ids": [
+        {
+          "id": "geosearch-dev",
+          "content_id": "0e1adbb60c702f4d016045b5a57cd4f4c12f0c71cf6f2fe0fbc8f20a67ccff26",
+          "status": "complete",
+          "created_at": "2026-11-02T20:18:32.819466+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "geosearch-test",
+          "content_id": "8e5ac37aaf6a023f408740f60af8dbdb275c5ecdeae9c53031ac254786c04476",
+          "status": "complete",
+          "created_at": "2026-11-02T20:29:05.157590+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "doorplate-v1",
+          "content_id": "1ccf4ad912ebc1ae2fead09b0b43f6a406590ed4532a85d1332909394d31904f",
+          "status": "complete",
+          "created_at": "2026-11-02T20:34:37.502645+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "expanded-usa",
+          "content_id": "9e8f21a9f751a454ff4a44e506a116b73f92cc5354356782ee91029985efdb8f",
+          "status": "complete",
+          "created_at": "2026-11-02T20:38:34.717419+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "us-units-adversarial",
+          "content_id": "af9b8dca3fffc0ce3f90404f0271ec18bee8f6a50105212660a51b6e562ef736",
+          "status": "complete",
+          "created_at": "2026-11-02T20:39:33.980251+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "deepparse-hf-us",
+          "content_id": "cb152df968806027241b2154cada5e98bccfef15238056a2de09743e131b66e3",
+          "status": "complete",
+          "created_at": "2026-11-02T20:58:08.184421+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "nad-rendered",
+          "content_id": "e2f76149913594affb1a5addd382f91f3cad4565c9df80499bd7a53f2af3da62",
+          "status": "complete",
+          "created_at": "2026-11-02T21:01:29.279776+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        }
+      ]
+    },
+    "streetline-v2": {
+      "original_scorecard_sha256": "f8629d966558bdce0638971391be2f0674b1ae49b8b713b97d939a8fbd4a8c5c",
+      "source_ids": [
+        {
+          "id": "geosearch-dev",
+          "status": "complete",
+          "created_at": "2026-11-02T20:18:32.819466+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1",
+          "native_run_content_id": "0e1adbb60c702f4d016045b5a57cd4f4c12f0c71cf6f2fe0fbc8f20a67ccff26",
+          "derivation_content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c",
+          "content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c"
+        },
+        {
+          "id": "geosearch-test",
+          "status": "complete",
+          "created_at": "2026-11-02T20:29:05.157590+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1",
+          "native_run_content_id": "8e5ac37aaf6a023f408740f60af8dbdb275c5ecdeae9c53031ac254786c04476",
+          "derivation_content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c",
+          "content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c"
+        },
+        {
+          "id": "doorplate-v1",
+          "status": "complete",
+          "created_at": "2026-11-02T20:34:37.502645+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1",
+          "native_run_content_id": "1ccf4ad912ebc1ae2fead09b0b43f6a406590ed4532a85d1332909394d31904f",
+          "derivation_content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c",
+          "content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c"
+        },
+        {
+          "id": "expanded-usa",
+          "status": "complete",
+          "created_at": "2026-11-02T20:38:34.717419+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1",
+          "native_run_content_id": "9e8f21a9f751a454ff4a44e506a116b73f92cc5354356782ee91029985efdb8f",
+          "derivation_content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c",
+          "content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c"
+        },
+        {
+          "id": "us-units-adversarial",
+          "status": "complete",
+          "created_at": "2026-11-02T20:39:33.980251+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1",
+          "native_run_content_id": "af9b8dca3fffc0ce3f90404f0271ec18bee8f6a50105212660a51b6e562ef736",
+          "derivation_content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c",
+          "content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c"
+        },
+        {
+          "id": "deepparse-hf-us",
+          "status": "complete",
+          "created_at": "2026-11-02T20:58:08.184421+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1",
+          "native_run_content_id": "cb152df968806027241b2154cada5e98bccfef15238056a2de09743e131b66e3",
+          "derivation_content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c",
+          "content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c"
+        },
+        {
+          "id": "nad-rendered",
+          "status": "complete",
+          "created_at": "2026-11-02T21:01:29.279776+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1",
+          "native_run_content_id": "e2f76149913594affb1a5addd382f91f3cad4565c9df80499bd7a53f2af3da62",
+          "derivation_content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c",
+          "content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c"
+        }
+      ]
+    },
+    "fine-f1": {
+      "original_scorecard_sha256": "1d81cba8b2154669ad06017bb92e31caceb7703a9883072b7bb302967fec94fe",
+      "source_ids": [
+        {
+          "id": "geosearch-dev",
+          "content_id": "0e1adbb60c702f4d016045b5a57cd4f4c12f0c71cf6f2fe0fbc8f20a67ccff26",
+          "status": "complete",
+          "created_at": "2026-11-02T20:18:32.819466+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "geosearch-test",
+          "content_id": "8e5ac37aaf6a023f408740f60af8dbdb275c5ecdeae9c53031ac254786c04476",
+          "status": "complete",
+          "created_at": "2026-11-02T20:29:05.157590+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "doorplate-v1",
+          "content_id": "1ccf4ad912ebc1ae2fead09b0b43f6a406590ed4532a85d1332909394d31904f",
+          "status": "complete",
+          "created_at": "2026-11-02T20:34:37.502645+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "expanded-usa",
+          "content_id": "9e8f21a9f751a454ff4a44e506a116b73f92cc5354356782ee91029985efdb8f",
+          "status": "complete",
+          "created_at": "2026-11-02T20:38:34.717419+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "us-units-adversarial",
+          "content_id": "af9b8dca3fffc0ce3f90404f0271ec18bee8f6a50105212660a51b6e562ef736",
+          "status": "complete",
+          "created_at": "2026-11-02T20:39:33.980251+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "deepparse-hf-us",
+          "content_id": "cb152df968806027241b2154cada5e98bccfef15238056a2de09743e131b66e3",
+          "status": "complete",
+          "created_at": "2026-11-02T20:58:08.184421+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        },
+        {
+          "id": "nad-rendered",
+          "content_id": "e2f76149913594affb1a5addd382f91f3cad4565c9df80499bd7a53f2af3da62",
+          "status": "complete",
+          "created_at": "2026-11-02T21:01:29.279776+00:00",
+          "task": "parse",
+          "scorer": "address-benchmark.scorer/v1",
+          "normalization": "casefold-whitespace/v1",
+          "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+        }
+      ]
+    }
+  }
+}

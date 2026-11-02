@@ -50,10 +50,8 @@ Fine token/span-role scores use original native tokens with conservative exact
 sequential **input-only** source alignment where an API has no offsets. These
 are explicitly adapter-derived spans. Unresolved pieces stay unresolved and
 retain missing-span diagnostics. Coarse-only APIs (libpostal, BoundaryBoys,
-default semantic components and the Mailwoman coarse emitter) cannot acquire
+and default semantic components) cannot acquire
 fine role support by consulting gold; their fine token scores are unmeasured.
-Mailwoman's native tree and normalized coordinate basis are retained separately;
-its JavaScript/normalized offsets are not passed off as original UTF-8 spans.
 
 The retained learned Rust model and the default deterministic source parser are
 separate columns. Models, native extensions, executables, shared library/model

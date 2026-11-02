@@ -3,7 +3,7 @@ recursive-include docs *.md
 recursive-include schemas *.json *.md
 recursive-include examples *.json *.jsonl *.py *.md
 recursive-include tools *.py
-recursive-include adapters *.py *.mjs
+recursive-include adapters *.py
 recursive-include datasets *.json *.md
 recursive-include tests *.py
 global-exclude *.py[cod]

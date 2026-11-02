@@ -15,8 +15,7 @@ METRICS = ('strict', 'delimiter', 'complete', 'fine-f1', 'exact', 'throughput', 
 FORMATS = ('console', 'markdown', 'csv', 'json', 'html')
 LABELS = {'rust-learned': 'Rust learned', 'rust-default': 'Rust default',
           'boundaryboys': 'BoundaryBoys', 'doorplate': 'Doorplate',
-          'libpostal-default': 'libpostal default', 'libpostal-senzing': 'libpostal Senzing',
-          'mailwoman': 'Mailwoman'}
+          'libpostal-default': 'libpostal default', 'libpostal-senzing': 'libpostal Senzing'}
 PANEL_LABELS = {'geosearch-dev': 'GeoSearch dev', 'geosearch-test': 'GeoSearch test (publisher split)',
                 'doorplate-v1': 'Doorplate suite', 'expanded-usa': 'Expanded USA'}
 VIEW_LABELS = {'natural': 'normal', 'hand': 'handwritten'}

@@ -6,12 +6,10 @@ assets stay at their existing locations; derived run artifacts remain local.
 from pathlib import Path
 import argparse
 import json
-import sys
 import subprocess
 
-from address_benchmark.io import read_json, require, sha256, write_json, write_jsonl
-from address_benchmark.ontologies import MAILWOMAN_EMITTER_MAP, ONTOLOGY_V2
-from address_benchmark.production import adapter_metadata
+from address_benchmark.io import read_json, require, sha256, write_json
+from address_benchmark.ontologies import ONTOLOGY_V2
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--source", type=Path, required=True, help="read-only existing address-normalizer checkout")
@@ -22,7 +20,6 @@ args = parser.parse_args()
 source, out = args.source.resolve(), args.out.resolve()
 out.mkdir(parents=True)
 (out / "corpora").mkdir()
-project = Path(__file__).resolve().parents[1]
 runtime_path = source / ".cache/us-common-matrix-20261101/build-v1/runtimes.json"
 runtime = read_json(runtime_path)
 retained = read_json(source / "experiments/us_parser/retained_model.json")
@@ -81,21 +78,6 @@ for name in ("default", "senzing"):
     files = [library] + [p for p in sorted(folder.rglob("*")) if p.is_file()]
     add("libpostal-" + name, "libpostal", dict(name="libpostal-" + name, library=str(library), data_dir=str(folder), artifact_files=list(map(str, files)), active_native_roles=["house","category","near","house_number","road","unit","level","staircase","entrance","po_box","postcode","suburb","city_district","city","island","state_district","state","country_region","country","world_region"], model_identity="libpostal model=" + name))
 
-node, _, mail_runtime = runtime["commands"]["mailwoman"]["prefix"]
-mail_files = [p for p in sorted(Path(mail_runtime).rglob("*")) if p.is_file() and p.suffix != ".pyc" and "__pycache__" not in p.parts]
-bridge = project / "adapters/mailwoman_batch.mjs"
-meta = adapter_metadata("mailwoman-neural-10.7.0", "neutral", dict(artifact_files=[node, str(bridge), *map(str, mail_files)], model_identity="@mailwoman/neural-weights-en-us@10.7.0; CPU; one intra-op thread", provenance=dict(api="createRuntimePipeline + treeToParseMatches + toLibpostalComponents; native tree retained")))
-meta["role_map"].update(MAILWOMAN_EMITTER_MAP)
-meta["supported_roles"] = sorted({v for v in meta["role_map"].values() if v is not None})
-meta["mapping_version"] = "mailwoman-emitter-native/v1"
-meta["dependency_versions"] = {name: read_json(Path(mail_runtime) / "node_modules" / name / "package.json")["version"] for name in ("mailwoman", "@mailwoman/neural", "@mailwoman/neural-weights-en-us", "@mailwoman/libpostal")}
-meta["provenance"]["node_version"] = subprocess.check_output([node, "--version"], text=True).strip()
-card = read_json(Path(mail_runtime) / "node_modules/@mailwoman/neural-weights-en-us/model-card.json")
-emitted = {"region":"state","locality":"city","dependent_locality":"suburb","subregion":"state_district","venue":"house","street":"road","intersection_a":"road","intersection_b":"road"}
-native_tags = {tag[2:] for tag in card["labels"] if tag.startswith(("B-", "I-"))}
-active_mail_roles = sorted({meta["role_map"][emitted.get(tag,tag)] for tag in native_tags if meta["role_map"].get(emitted.get(tag,tag)) is not None})
-add("mailwoman", "adapters.mailwoman_batch:Factory", dict(name="mailwoman-neural", namespace="neutral", command=[node, str(bridge), mail_runtime, "{inputs}", "{outputs}"],
-    artifact_files=meta["artifact_files"], model_identity=meta["model"], provenance=meta["provenance"], dependency_versions=meta["dependency_versions"], active_roles=active_mail_roles, accuracy_workers=4))
 write_json(out / "engines.json", engines)
 write_json(out / "plan.json", dict(schema="address-benchmark.plan/v1", name="production-parsing-comparison", engines="engines.json", tracks=tracks,
     execution=dict(baseline="rust-learned", timing=False, timeout=3600)))
