@@ -10,6 +10,28 @@ same records as before. Each case carries `profiles.<name>` (`agrees`,
 `report --metric streetline` renders it. Changing any rule or table needs a new
 version.
 
+## strict-streetline/v2
+
+Opt in with `"scoring_profiles": ["strict-streetline/v2"]` and report with
+`report --metric streetline-v2`. Both versions may be declared together.
+
+V2 uses the same six fields, canonicalization, reference coverage and inference
+rules as v1. It changes only street-line assembly: road components retain their
+source order instead of being grouped into pre-directional/name/suffix/post-directional
+slots. This preserves internal directionals and pre-types, such as
+`OLD SOUTH PLANK ROAD` and `N AVENUE A`.
+
+Complete fine reference spans are ordered by their input byte offsets. Coarse
+reference road values retain their supplied order. Prediction road evidence is
+ordered by its own earliest input span when every road item supplies spans;
+otherwise its native evidence-list order is used. Spanless adapters must emit
+road evidence in source order for this profile. No reference values or spans
+repair or reorder a prediction. Other fields retain v1 assembly behavior.
+
+V1 remains available with its published fixed-part assembly. Existing manifests
+and recorded v1 scores are unchanged; selecting v2 does not relabel or rescore an
+old run. A report without recorded v2 results shows that metric as unmeasured.
+
 ## strict-streetline/v1
 
 Six fields, built from parsed **evidence** only, through the native → fine →
