@@ -7,7 +7,7 @@ import unittest
 from address_benchmark.corpus import check_manifest
 from address_benchmark.io import read_json, write_json
 from address_benchmark.ontologies import ONTOLOGY_V2, US_FINE
-from address_benchmark.profiles import STREETLINE, canon, score_profile, summarize_profile
+from address_benchmark.profiles import STREETLINE, STREETLINE_V2, canon, score_profile, summarize_profile
 from address_benchmark.runner import run, verify
 from address_benchmark.scoring import score_case, summarize
 from address_benchmark.tables import scorecard
@@ -29,8 +29,8 @@ def pred(*items, inferred=(), status="ok"):
                 tokens=[], inferred=list(inferred), normalized=[], native=None)
 
 
-def agrees(r, p):
-    return score_profile(STREETLINE, r, p, META)
+def agrees(r, p, profile=STREETLINE):
+    return score_profile(profile, r, p, META)
 
 
 class StreetLineProfileTests(unittest.TestCase):
@@ -97,6 +97,38 @@ class StreetLineProfileTests(unittest.TestCase):
         unlabeled = row("12 Main St", {}, coverage="none")
         self.assertIsNone(agrees(unlabeled, pred())["agrees"])
 
+    def test_directional_after_a_name_word_stays_inside_the_name(self):
+        # Pub 28: a directional inside the name is not a predirectional ("OLD SOUTH PLANK ROAD").
+        text = "293 OLD SOUTH PLANK ROAD WALDEN NY 12586"
+        spans = [dict(role="us:AddressNumber", span=[0, 3]), dict(role="us:StreetNamePreModifier", span=[4, 7]),
+                 dict(role="us:StreetNamePreDirectional", span=[8, 13]), dict(role="us:StreetName", span=[14, 19]),
+                 dict(role="us:StreetNamePostType", span=[20, 24]), dict(role="us:PlaceName", span=[25, 31]),
+                 dict(role="us:StateName", span=[32, 34]), dict(role="us:ZipCode", span=[35, 40])]
+        r = row(text, dict(house_number=["293"], road=["OLD SOUTH PLANK ROAD"], city=["WALDEN"], state=["NY"], postcode=["12586"]), spans=spans)
+        p = pred(("AddressNumber", "293"), ("StreetName", "OLD SOUTH PLANK"), ("StreetNamePostType", "ROAD"),
+                 ("PlaceName", "WALDEN"), ("StateName", "NY"), ("ZipCode", "12586"))
+        self.assertFalse(agrees(r, p)["agrees"], 'v1 retains its published fixed-part behavior')
+        self.assertTrue(agrees(r, p, STREETLINE_V2)["agrees"])
+        reordered = pred(("AddressNumber", "293"), ("StreetName", "SOUTH OLD PLANK"), ("StreetNamePostType", "ROAD"),
+                         ("PlaceName", "WALDEN"), ("StateName", "NY"), ("ZipCode", "12586"))
+        self.assertEqual(agrees(r, reordered, STREETLINE_V2)["mismatched_fields"], ["streetline"])
+
+    def test_role_ordered_values_keep_v1_and_can_use_own_spans_for_v2(self):
+        r = row('N OAK ST', {'road':['N OAK ST']})
+        p = pred(('StreetName','OAK'),('StreetNamePreDirectional','N'),('StreetNamePostType','ST'))
+        self.assertTrue(agrees(r,p)['agrees'])
+        self.assertFalse(agrees(r,p,STREETLINE_V2)['agrees'], 'spanless v2 requires source-ordered evidence')
+        for item,span in zip(p['evidence'],[[2,5],[0,1],[6,8]]):item['spans']=[span]
+        self.assertTrue(agrees(r,p,STREETLINE_V2)['agrees'])
+
+    def test_v2_preserves_pretype_modifier_and_internal_directional_order(self):
+        for text,items in [
+            ('OLD SOUTH PLANK ROAD',[('StreetNamePreModifier','OLD'),('StreetNamePreDirectional','SOUTH'),('StreetName','PLANK'),('StreetNamePostType','ROAD')]),
+            ('N AVENUE A',[('StreetNamePreDirectional','N'),('StreetNamePreType','AVENUE'),('StreetName','A')]),
+            ('OLD EAST NECK ROAD',[('StreetNamePreModifier','OLD'),('StreetNamePreDirectional','EAST'),('StreetName','NECK'),('StreetNamePostType','ROAD')])]:
+            with self.subTest(text=text):
+                self.assertTrue(agrees(row(text,{'road':[text]}),pred(*items),STREETLINE_V2)['agrees'])
+
     def test_reference_spans_give_the_original_token_order(self):
         text = "PO Box 9 Apt 2"
         spans = [dict(role="us:USPSBoxType", span=[0, 6]), dict(role="us:USPSBoxID", span=[7, 8]),
@@ -150,6 +182,7 @@ class ProfileWiringTests(unittest.TestCase):
 
     def test_manifest_profile_names_are_checked(self):
         check_manifest(self.manifest(scoring_profiles=[STREETLINE]))
+        check_manifest(self.manifest(scoring_profiles=[STREETLINE, STREETLINE_V2]))
         with self.assertRaisesRegex(ValueError, "scoring profile"):
             check_manifest(self.manifest(scoring_profiles=["strict-streetline/v0"]))
         with self.assertRaisesRegex(ValueError, "scoring profile"):
@@ -186,6 +219,21 @@ class ProfileWiringTests(unittest.TestCase):
         self.assertNotIn("profiles", result["accuracy"]["demo"]["populations"]["authored/conformance/all"])
         cell = scorecard([("core", result)], metric="streetline")["rows"][0]["cells"]["demo"]
         self.assertEqual(cell["status"], "unmeasured")
+
+    def test_both_profile_versions_run_verify_and_report_independently(self):
+        result, output = self.run_corpus(self.manifest(scoring_profiles=[STREETLINE, STREETLINE_V2]))
+        population = result['accuracy']['demo']['populations']['authored/conformance/all']
+        self.assertEqual(set(population['profiles']), {STREETLINE, STREETLINE_V2})
+        self.assertEqual(verify(output)['status'], 'verified')
+        for metric, profile in [('streetline', STREETLINE), ('streetline-v2', STREETLINE_V2)]:
+            cell = scorecard([('core', result)], metric=metric)['rows'][0]['cells']['demo']
+            self.assertEqual(cell['correct'], population['profiles'][profile]['correct'])
+            self.assertEqual(cell['denominator'], population['profiles'][profile]['denominator'])
+
+    def test_v2_is_unmeasured_in_a_v1_only_run(self):
+        result, _ = self.run_corpus(self.manifest(scoring_profiles=[STREETLINE]))
+        cell = scorecard([('core', result)], metric='streetline-v2')['rows'][0]['cells']['demo']
+        self.assertEqual(cell['status'], 'unmeasured')
 
 
 if __name__ == "__main__":

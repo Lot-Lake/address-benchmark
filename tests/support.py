@@ -58,3 +58,43 @@ def formatted_fields(fields):
 
 def known_state(text):
     return {"10001": "NY", "90210": "CA"}.get(text)
+
+
+class CloseFails(DemoParser):
+    def close(self):
+        raise RuntimeError("intentional close failure")
+
+
+class Interrupted(DemoParser):
+    closed = False
+
+    def parse(self, request):
+        raise KeyboardInterrupt
+
+    def close(self):
+        Interrupted.closed = True
+        raise RuntimeError("close failure must not swallow the interrupt")
+
+
+class UnavailableCloseFails(CloseFails):
+    def parse_many(self, requests, directory):
+        from address_benchmark.adapters import Unavailable
+        raise Unavailable('unavailable after adapter initialization')
+
+
+class InterruptCloseExits(Interrupted):
+    def close(self):
+        raise SystemExit(23)
+
+
+class ExitCloseInterrupts(DemoParser):
+    def parse(self, request):
+        raise SystemExit(23)
+
+    def close(self):
+        raise KeyboardInterrupt
+
+
+class SuccessfulCloseExits(DemoParser):
+    def close(self):
+        raise SystemExit(23)

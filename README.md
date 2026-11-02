@@ -82,7 +82,7 @@ that a recipe or its views were benchmarked.
 
 Formats: `console`, `markdown`, `csv`, `json`, `html`. Metrics: `strict`
 (default), `delimiter`, `complete`, `fine-f1`, `exact` (utility tasks),
-`streetline` (the [strict-streetline/v1 profile](docs/spec/profiles.md), when the corpus declares it)
+`streetline` or `streetline-v2` (the versioned [street-line profiles](docs/spec/profiles.md), when the corpus declares them)
 and `throughput` (recorded exploratory timing only). `--counts` adds exact
 numerators/denominators; fine F1 uses TP/FP/FN. JSON retains full numeric precision,
 statuses and denominators. CSV contains the readable comparison matrix.
