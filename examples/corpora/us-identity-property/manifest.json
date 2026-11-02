@@ -1,0 +1,40 @@
+{
+  "annotation_policy": "docs/spec/annotations.md#authored-v1",
+  "construction": [
+    "Authored fictional same-property and distinct-property pairs with explicit entity identifiers",
+    "Units of one building are the same property; this is fixture policy, not universal identity law"
+  ],
+  "country": "US",
+  "exposure": {
+    "history": [
+      "Authored and used for implementation/tests; not independent heldout evidence"
+    ],
+    "status": "public-conformance-development-exposed"
+  },
+  "family_policy": "One authored family per pair.",
+  "id": "us-identity-property",
+  "license": {
+    "notice": "Original fictional examples, licensed with this repository. No upstream rows, private listings, or real delivery claims.",
+    "redistribution": "allowed",
+    "spdx": "MIT"
+  },
+  "locale": "en-US",
+  "ontology": "address-benchmark.delivery-unit-identity/v1",
+  "profile": "address-benchmark.property-key-equality/v1",
+  "provenance": {
+    "source": "Original contributor-authored fictional fixtures",
+    "source_sha256": "c4523c96ba37ea2736622a4f35572527834e70b2cfb23691b19045dd232a7f0d",
+    "upstream_revision": "authored-v1"
+  },
+  "resources": [
+    {
+      "bytes": 4409,
+      "path": "cases.jsonl",
+      "sha256": "c4523c96ba37ea2736622a4f35572527834e70b2cfb23691b19045dd232a7f0d"
+    }
+  ],
+  "schema": "address-benchmark.corpus/v1",
+  "split_policy": "All rows are conformance; future heldouts require separate custody and family/exact-overlap audit.",
+  "task": "match",
+  "version": "1.0.0"
+}
