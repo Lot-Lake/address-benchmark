@@ -19,13 +19,6 @@ COARSE_ALIASES = {"house": "building", "postal_delivery": "po_box"}
 NEUTRAL_ROLES = set(US_COARSE.values()) | {"road", "house_number", "unit", "level", "name", "country_region", "island", "world_region", "entrance", "staircase"}
 GEO_NATIVE = dict(HOUSENUM="AddressNumber", PREDIRECTIONAL="StreetNamePreDirectional", STREET="StreetName",
                   ROADTYPE="StreetNamePostType", POSTDIRECTIONAL="StreetNamePostDirectional", CITY="PlaceName", STATE="StateName", POSTAL="ZipCode")
-# The upstream Mailwoman emitter passes unrecognized ComponentTag names through.
-# Foreign/ambiguous tags stay explicit null, not silently omitted or US-guessed.
-MAILWOMAN_EMITTER_MAP = dict(attention="recipient", block=None, building_name="building", building_number=None,
-    cedex=None, dependent_locality="suburb", district="district", locality="city", locality_unit=None,
-    municipality=None, prefecture=None, region="state", street="road", street_prefix="road",
-    street_prefix_particle="road", street_suffix="road", sub_block=None, subregion="state_district", venue="building",
-    intersection_a="road", intersection_b="road")
 
 
 def register():

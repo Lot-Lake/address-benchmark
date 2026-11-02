@@ -1,0 +1,16 @@
+{
+  "prepared_engines": [
+    "rust-learned",
+    "rust-default",
+    "boundaryboys",
+    "doorplate",
+    "usaddress",
+    "fastaddress",
+    "libpostal-default",
+    "libpostal-senzing"
+  ],
+  "retired_command_absent_from_input_ledger": true,
+  "authored_corpora_validated": 14,
+  "demo_conformance": "passed",
+  "unit_tests_passed": 152
+}

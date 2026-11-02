@@ -42,7 +42,7 @@ population-accuracy denominators. See `tools/author_corpora.py` for exact freeze
    original protocol/code/data straightforward to adopt; it does not license
    third-party assets.
 2. Extend independently maintained production adapters to unmeasured utility
-   profiles and more libraries. Native Doorplate/libpostal/Mailwoman parsing
+   profiles and more libraries. Native Doorplate/libpostal parsing
    interfaces are integrated; their model lineage and actual installed versions
    remain explicit. Retain raw native output. No privileged local-engine path.
 3. Add independently annotated, legally redistributable natural-entry data,

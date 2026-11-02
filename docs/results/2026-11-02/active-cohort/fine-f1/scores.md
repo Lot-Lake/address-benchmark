@@ -1,0 +1,36 @@
+# USA parser comparison / active eight-configuration cohort
+
+Fine token F1
+
+| Dataset / view | Rust learned | Rust default | BoundaryBoys | Doorplate | usaddress | fastaddress | libpostal default | libpostal Senzing |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| GeoSearch dev | **99.69%** | unmeasured | unmeasured | 96.12% | 95.39% | 95.39% | unmeasured | unmeasured |
+| GeoSearch test (publisher split) | **99.68%** | unmeasured | unmeasured | 95.99% | 94.70% | 94.70% | unmeasured | unmeasured |
+| Doorplate suite | 96.33% | unmeasured | unmeasured | **98.00%** | 96.08% | 96.08% | unmeasured | unmeasured |
+| Doorplate suite / normal | 97.87% | unmeasured | unmeasured | **99.21%** | 98.92% | 98.92% | unmeasured | unmeasured |
+| Doorplate suite / hard | 89.24% | unmeasured | unmeasured | **91.74%** | 80.69% | 80.69% | unmeasured | unmeasured |
+| Doorplate suite / handwritten | 92.96% | unmeasured | unmeasured | **97.33%** | 96.57% | 96.57% | unmeasured | unmeasured |
+| Expanded USA | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured |
+| Expanded USA / partial | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured |
+| us-units-adversarial | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured |
+| deepparse-hf-us | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured |
+| deepparse-hf-us / full | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured |
+| deepparse-hf-us / partial | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured |
+| nad-rendered | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured |
+| nad-rendered / clean | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured |
+| nad-rendered / nocomma | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured |
+| nad-rendered / expanded | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured |
+| nad-rendered / noisy | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured |
+
+- Counts and failures use the recorded scoring denominators. Partial references judge supplied labels; they are not whole-address accuracy.
+- Subset rows overlap the parent dataset. Public/development-exposed fixtures do not establish unseen accuracy.
+- Bold marks rounded row leaders only when measured denominators match. Missing/unsupported scores are unmeasured, never zero.
+- Strict preserves punctuation. Edge-delimiter ignores component-edge comma/semicolon/colon only, plus case and whitespace.
+- Timing appears only when recorded: exploratory process medians, not accuracy-run wall time. † marks sample spread above 10%; ! marks native errors/refusals.
+- The report command checks recorded run identities. Exports do not rescore predictions or rehash every artifact.
+- Combined from multiple recorded experiment sources; source run identities remain separate. This is not a new simultaneous run or a pooled overall score.
+- Deepparse full means all five tagged core fields are present; both full and partial views still have partial reference coverage. This source has libpostal training lineage.
+- NAD rows are generated from an explicit frozen sample of the official public API. Fifty indexed 1,000-record OBJECTID windows were acquired; eligible states were sampled/rendered by the merged generator. This is not the r24 TXT archive or an exact reproduction of an unshared screenshot.
+- The first five panels come from the earlier verified run; Deepparse/NAD were executed afterward with the same frozen framework and configured engines. Separate source run identities and timestamps are retained.
+- Doorplate publisher references contain trailing field delimiters in 12,331/19,586 rows. Strict measures literal punctuation fidelity here; use delimiter or versioned streetline scores for canonical component comparison. Reference values/spans were not rewritten.
+- Cohort presentation only: eight retained configurations selected from the previously recorded nine-configuration execution batches. Scores and denominators are unchanged; row leaders reflect the displayed cohort. No parser was rerun for this export. Original full-cohort reports retain their original identities and counts.

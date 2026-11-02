@@ -99,14 +99,16 @@ The [scorecard contract](docs/spec/scorecards.md) documents the export semantics
 
 ## Production parsing cohort
 
-Latest: [complete corpus/view comparison on 2026-11-02](docs/results/2026-11-02/complete-view-run/README.md) — nine configurations, seven populations including Deepparse full/partial and all four NAD views; 1,512,603 recorded predictions across two verified batches. Includes separate strict/delimiter/v1 exports and an explicitly derived v2 rescore.
+Latest: [active eight-configuration comparison](docs/results/2026-11-02/active-cohort/README.md) — seven populations including Deepparse full/partial and all four NAD views. This is a presentation of the eight retained configurations from two verified execution batches, with separate strict/delimiter/v1 exports and an explicitly derived v2 rescore.
+
+The [original nine-configuration report](docs/results/2026-11-02/complete-view-run/README.md) remains an immutable historical record. Removed integrations are absent from current setup tools; historical scores and execution counts retain their original cohort.
 
 The first complete run is available in the [findings and improvement priorities](docs/results/2026-11-01/findings.md),
 [nine-configuration parsing comparison](docs/results/2026-11-01/comparison.md),
 and [separate utility observations](docs/results/2026-11-01/utilities.md).
 It contains 1,023,327 fresh parsing predictions, with all 36 cells verified.
 
-Real adapters support ordered Python token APIs (usaddress, fastaddress, Doorplate), direct libpostal C parsing with separately pinned default/Senzing models, the default address-normalizer source-evidence API, a persistent Mailwoman neural bridge, and generic batch executables for the retained learned model and private local BoundaryBoys runtime. Native tokens, unplaced outputs, errors and model identities remain visible. Source byte alignment derived by an adapter is explicitly distinguished from native offsets.
+Real adapters support ordered Python token APIs (usaddress, fastaddress, Doorplate), direct libpostal C parsing with separately pinned default/Senzing models, the default address-normalizer source-evidence API, and generic batch executables for the retained learned model and private local BoundaryBoys runtime. Native tokens, unplaced outputs, errors and model identities remain visible. Source byte alignment derived by an adapter is explicitly distinguished from native offsets.
 
 The [real-corpus policy](docs/spec/real-corpora.md) covers GeoSearch DEV/TEST, Doorplate v1, and expanded US50/Senzing/libpostal references. The existing source assets can be read in place without copying their caches or bundling data. To create and execute a fresh local production plan:
 

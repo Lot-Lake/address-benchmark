@@ -8,13 +8,12 @@ from unittest.mock import patch
 from address_benchmark.corpus import input_requests, load_corpus
 from address_benchmark.intake import align_native, parse_reference, records
 from address_benchmark.io import read_json, sha256, write_json
-from address_benchmark.ontologies import MAILWOMAN_EMITTER_MAP, ONTOLOGY_V2, US_FINE
+from address_benchmark.ontologies import ONTOLOGY_V2, US_FINE
 from address_benchmark.plan import load_plan, run_plan
 from address_benchmark.adapters import Unavailable
 from address_benchmark.production import Libpostal, NativeBatch, adapter_metadata, convert, role_map
 from address_benchmark.protocol import Request, check_prediction, request_hash
 from address_benchmark.scoring import normalize_delimiters, score_case
-from adapters.mailwoman_batch import Factory as ShardedBatch
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -44,14 +43,6 @@ class IntakeTests(unittest.TestCase):
         self.assertNotEqual(US_FINE["StreetNamePreDirectional"], US_FINE["StreetNamePostDirectional"])
         self.assertNotEqual(US_FINE["AddressNumber"], US_FINE["AddressNumberPrefix"])
 
-    def test_mailwoman_pass_through_roles_are_declared(self):
-        self.assertEqual(MAILWOMAN_EMITTER_MAP["street_suffix"], "road")
-        self.assertIsNone(MAILWOMAN_EMITTER_MAP["prefecture"])
-        meta = adapter_metadata("mailwoman", "neutral", {})
-        meta["role_map"].update(MAILWOMAN_EMITTER_MAP)
-        meta["supported_roles"] = sorted({v for v in meta["role_map"].values() if v is not None})
-        request = Request("x", "Avenue", request_hash("Avenue"), "US", "en-US")
-        check_prediction(convert(request, [("Avenue", "street_suffix")], "neutral", {}), request, meta)
 
     def test_model_inventory_does_not_claim_every_mappable_role(self):
         meta=adapter_metadata('limited','neutral',dict(active_native_roles=['city']))
@@ -122,18 +113,6 @@ class IntakeTests(unittest.TestCase):
             self.assertEqual(output[0]["evidence"][0]["value"], "00123")
             self.assertEqual(read_json(root / "native-execution.json")["exit_code"], 0)
 
-    def test_accuracy_shards_preserve_order_and_actual_exits(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root=Path(tmp)
-            script=root/'runtime.py'
-            script.write_text('import json,sys,hashlib\nf=open(sys.argv[2],"x")\nfor line in open(sys.argv[1]):\n r=json.loads(line);f.write(json.dumps(dict(id=r["id"],input_sha256=hashlib.sha256(r["input"].encode()).hexdigest(),namespace="neutral",labels=[dict(value=r["input"],label="postcode")],error=None))+"\\n")\nf.close()\n')
-            config=dict(name='sharded',namespace='neutral',command=[sys.executable,str(script),'{inputs}','{outputs}'],active_roles=['postcode'],accuracy_workers=4)
-            adapter=ShardedBatch(config)
-            requests=[Request(str(i),f'{i:05}',request_hash(f'{i:05}'),'US','en-US') for i in range(11)]
-            output=list(adapter.parse_many(requests,root))
-            self.assertEqual([x['id'] for x in output],[r.id for r in requests])
-            exits=[read_json(p)['exit_code'] for p in root.glob('shard-*/native-execution.json')]
-            self.assertEqual(exits,[0,0,0,0])
 
 
 class PlanTests(unittest.TestCase):

@@ -1,5 +1,17 @@
 # Validation records
 
+## Active parsing cohort — 2026-11-02
+
+The retired integration, native role mapping, bridges and setup requirements
+were removed. The guarded suite passed **152 tests** (exit 0). Demo conformance
+and all 14 authored corpus manifests passed. Production preparation generated the
+eight retained configurations with the retired command absent from its input
+runtime ledger. The latest eight-column exports preserve every displayed cell
+score and denominator from the original recorded scorecards. No parser rerun or
+rescore was performed for cohort selection. Historical reports and their original
+cohort counts remain unchanged. See the [active cohort](results/2026-11-02/active-cohort/README.md)
+and its presentation/validation records.
+
 ## 0.3.0 — console tables and scorecard exports
 
 GitHub CI [run 41355268079](https://github.com/Lot-Lake/address-benchmark/actions/runs/41355268079)
@@ -63,8 +75,8 @@ normalization and matching references are small exposed conformance controls.
 These runs do not establish unseen accuracy or calibrated parsing throughput.
 
 Earlier failed/interrupted attempts remain separate local artifacts and are not
-pooled into these results. The final cohort uses frozen framework source, fresh
-native execution and four single-threaded CPU accuracy workers for Mailwoman.
+pooled into these results. These historical runs used frozen framework source and fresh native execution;
+worker details remain in their linked historical reports.
 The report generator was also corrected to allow regenerating its aggregate
 JSON export; the successful rerender did not change any immutable run artifacts.
 
