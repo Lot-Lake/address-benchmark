@@ -1,0 +1,696 @@
+{
+  "schema": "address-benchmark.utility-comparison/v1",
+  "tracks": {
+    "identity-conformance": {
+      "task": "match",
+      "run_content_id": "8c1bb3ea1f65acf8f4722f5f842506347d6fe7f05ea8f0315449e077657f2a53",
+      "source_pins": {
+        "__init__.py": "bd62a60524456bbd52584ce39eb883cee2cd2c19bb9a1e0ba8f7fcbf6c7096d5",
+        "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+        "adapters.py": "2f788f19047820a544eacfb7c00e2f09b22bfcc71c0ff0f08bdb8c7307ca007b",
+        "cli.py": "90329c6a0d182922e1b67b6e6e8e448f325d8190b34aa674d1fe05c6a32a0216",
+        "conformance.py": "00c69033c0578f07db1ef4ac5de47bced968a88cf7eee0ad91a9fc2f194838ba",
+        "corpus.py": "bacfc5e3bac329c0899865a1495b958a04bc89801142416691feef58054794d1",
+        "intake.py": "3e56fee9e6f773f20e9f9594f8e349affff8b7863b39832887ae2f66690818b6",
+        "io.py": "7881f2392b1bda336d09c72e5b9b89f3e21d1b6d2cfa24208bdc1d28a95aaeb3",
+        "ontologies.py": "d2a1031b9565e244e9b64f0239fccd7200ae29f170726ad1c6e6aab532151707",
+        "plan.py": "2b32e55d0257dbd060cb751cd3994e797cd2560b401b611317575eb73e8b3a41",
+        "production.py": "da5444d4786577e9da30c08e0f394dce0dc7a6a11dfb383f51deabd63d139a63",
+        "profiles.py": "acaacaeb3dd92aa2fae4ee80b6ee797a82154172c5a0c2e26cdd1067b713cb0d",
+        "protocol.py": "5c05a2754dafd1ee4a04ca6c7a42e59d901cb6a4dfad77ff2f10a0ad20b1e4de",
+        "pub28.py": "dd5c8994a05318e9f056d57591bda659a9364d94d3ea3dde3b0c5fd0831f7a2e",
+        "report.py": "c1c3054cc0361f7f229ffc7f17f000ab776c7263b5914142a9be3cf062140458",
+        "runner.py": "63b3a24c22563790cff37cf8db39f8e9ba21e6cdd32eb1c289ad0da15591479c",
+        "scoring.py": "430433f0638c4a9503edc87ef727f5af596453e87c176fa4fbaa721be8454dcc",
+        "tables.py": "aa680e56be96ee02825e3100ac125bbf8bff757198401092651965f9e5b3abca",
+        "tasks.py": "87f9bdbf55fe39da13f644727ba9189d038bbea25adcf8aaa2f8728d6aff5ac3",
+        "worker.py": "1abf609aabaa88694c26a42d064df435d99953a5b72bd1a6ff8e57dadc8ed292"
+      },
+      "engines": {
+        "doorplate": {
+          "task": "match",
+          "rows": 10,
+          "source_families": 10,
+          "statuses": {
+            "ok": 10
+          },
+          "agreement": {
+            "correct": 9,
+            "denominator": 10,
+            "rate": 0.9
+          },
+          "same_entity": {
+            "tp": 3,
+            "fp": 1,
+            "fn": 0,
+            "precision": 0.75,
+            "recall": 1.0,
+            "f1": 0.8571428571428571
+          },
+          "distinct_entity_collisions": 1,
+          "true_distinct": 6,
+          "undecided_distinct": 0,
+          "key_coverage": 1.0,
+          "scope": "authored pair decisions at delivery-unit level; no clustering/ranked-search or real-world prevalence claim",
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "96c2dd2d76bbf3ec74e556057fc4e4a7d951418944926aaacd3d825ab7746584"
+        },
+        "rust-default": {
+          "task": "match",
+          "rows": 10,
+          "source_families": 10,
+          "statuses": {
+            "ok": 10
+          },
+          "agreement": {
+            "correct": 10,
+            "denominator": 10,
+            "rate": 1.0
+          },
+          "same_entity": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "distinct_entity_collisions": 0,
+          "true_distinct": 7,
+          "undecided_distinct": 0,
+          "key_coverage": 1.0,
+          "scope": "authored pair decisions at delivery-unit level; no clustering/ranked-search or real-world prevalence claim",
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "e77c63bb89e6080263d25304ad5275254867af434e96bb9dc9c42cc770c81d52"
+        }
+      }
+    },
+    "normalized-components": {
+      "task": "normalize",
+      "run_content_id": "4d0166d68f3771e045a810131b1968eb5101aec28fbb82440bef32ac0ab67a22",
+      "source_pins": {
+        "__init__.py": "bd62a60524456bbd52584ce39eb883cee2cd2c19bb9a1e0ba8f7fcbf6c7096d5",
+        "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+        "adapters.py": "2f788f19047820a544eacfb7c00e2f09b22bfcc71c0ff0f08bdb8c7307ca007b",
+        "cli.py": "90329c6a0d182922e1b67b6e6e8e448f325d8190b34aa674d1fe05c6a32a0216",
+        "conformance.py": "00c69033c0578f07db1ef4ac5de47bced968a88cf7eee0ad91a9fc2f194838ba",
+        "corpus.py": "bacfc5e3bac329c0899865a1495b958a04bc89801142416691feef58054794d1",
+        "intake.py": "3e56fee9e6f773f20e9f9594f8e349affff8b7863b39832887ae2f66690818b6",
+        "io.py": "7881f2392b1bda336d09c72e5b9b89f3e21d1b6d2cfa24208bdc1d28a95aaeb3",
+        "ontologies.py": "d2a1031b9565e244e9b64f0239fccd7200ae29f170726ad1c6e6aab532151707",
+        "plan.py": "2b32e55d0257dbd060cb751cd3994e797cd2560b401b611317575eb73e8b3a41",
+        "production.py": "da5444d4786577e9da30c08e0f394dce0dc7a6a11dfb383f51deabd63d139a63",
+        "profiles.py": "acaacaeb3dd92aa2fae4ee80b6ee797a82154172c5a0c2e26cdd1067b713cb0d",
+        "protocol.py": "5c05a2754dafd1ee4a04ca6c7a42e59d901cb6a4dfad77ff2f10a0ad20b1e4de",
+        "pub28.py": "dd5c8994a05318e9f056d57591bda659a9364d94d3ea3dde3b0c5fd0831f7a2e",
+        "report.py": "c1c3054cc0361f7f229ffc7f17f000ab776c7263b5914142a9be3cf062140458",
+        "runner.py": "63b3a24c22563790cff37cf8db39f8e9ba21e6cdd32eb1c289ad0da15591479c",
+        "scoring.py": "430433f0638c4a9503edc87ef727f5af596453e87c176fa4fbaa721be8454dcc",
+        "tables.py": "aa680e56be96ee02825e3100ac125bbf8bff757198401092651965f9e5b3abca",
+        "tasks.py": "87f9bdbf55fe39da13f644727ba9189d038bbea25adcf8aaa2f8728d6aff5ac3",
+        "worker.py": "1abf609aabaa88694c26a42d064df435d99953a5b72bd1a6ff8e57dadc8ed292"
+      },
+      "engines": {
+        "doorplate": {
+          "task": "normalize",
+          "rows": 4,
+          "source_families": 4,
+          "statuses": {
+            "ok": 4
+          },
+          "agreement": {
+            "correct": 1,
+            "denominator": 4,
+            "rate": 0.25
+          },
+          "classification_confusions": [],
+          "normalization_field_mismatches": {
+            "address_line_2": 1,
+            "address_line_1": 2
+          },
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "c5233f5b4c1f2d2b0fad7159420c9f19b4b9e5ffe6a75e88833f2b78c657f7e2"
+        },
+        "rust-default": {
+          "task": "normalize",
+          "rows": 4,
+          "source_families": 4,
+          "statuses": {
+            "ok": 4
+          },
+          "agreement": {
+            "correct": 4,
+            "denominator": 4,
+            "rate": 1.0
+          },
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "78edfd0c057aed3e042f21bc221e85b5dd786a84290233e0a018bee5b03d0b65"
+        }
+      }
+    },
+    "property-identity": {
+      "task": "match",
+      "run_content_id": "d8345de2d81be3fc760af073a3b42aded6a244569209f0a2237c71acb5264f4f",
+      "source_pins": {
+        "__init__.py": "bd62a60524456bbd52584ce39eb883cee2cd2c19bb9a1e0ba8f7fcbf6c7096d5",
+        "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+        "adapters.py": "2f788f19047820a544eacfb7c00e2f09b22bfcc71c0ff0f08bdb8c7307ca007b",
+        "cli.py": "90329c6a0d182922e1b67b6e6e8e448f325d8190b34aa674d1fe05c6a32a0216",
+        "conformance.py": "00c69033c0578f07db1ef4ac5de47bced968a88cf7eee0ad91a9fc2f194838ba",
+        "corpus.py": "bacfc5e3bac329c0899865a1495b958a04bc89801142416691feef58054794d1",
+        "intake.py": "3e56fee9e6f773f20e9f9594f8e349affff8b7863b39832887ae2f66690818b6",
+        "io.py": "7881f2392b1bda336d09c72e5b9b89f3e21d1b6d2cfa24208bdc1d28a95aaeb3",
+        "ontologies.py": "d2a1031b9565e244e9b64f0239fccd7200ae29f170726ad1c6e6aab532151707",
+        "plan.py": "2b32e55d0257dbd060cb751cd3994e797cd2560b401b611317575eb73e8b3a41",
+        "production.py": "da5444d4786577e9da30c08e0f394dce0dc7a6a11dfb383f51deabd63d139a63",
+        "profiles.py": "acaacaeb3dd92aa2fae4ee80b6ee797a82154172c5a0c2e26cdd1067b713cb0d",
+        "protocol.py": "5c05a2754dafd1ee4a04ca6c7a42e59d901cb6a4dfad77ff2f10a0ad20b1e4de",
+        "pub28.py": "dd5c8994a05318e9f056d57591bda659a9364d94d3ea3dde3b0c5fd0831f7a2e",
+        "report.py": "c1c3054cc0361f7f229ffc7f17f000ab776c7263b5914142a9be3cf062140458",
+        "runner.py": "63b3a24c22563790cff37cf8db39f8e9ba21e6cdd32eb1c289ad0da15591479c",
+        "scoring.py": "430433f0638c4a9503edc87ef727f5af596453e87c176fa4fbaa721be8454dcc",
+        "tables.py": "aa680e56be96ee02825e3100ac125bbf8bff757198401092651965f9e5b3abca",
+        "tasks.py": "87f9bdbf55fe39da13f644727ba9189d038bbea25adcf8aaa2f8728d6aff5ac3",
+        "worker.py": "1abf609aabaa88694c26a42d064df435d99953a5b72bd1a6ff8e57dadc8ed292"
+      },
+      "engines": {
+        "doorplate": {
+          "task": "match",
+          "rows": 8,
+          "source_families": 8,
+          "statuses": {
+            "ok": 8
+          },
+          "agreement": {
+            "correct": 8,
+            "denominator": 8,
+            "rate": 1.0
+          },
+          "same_entity": {
+            "tp": 4,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "distinct_entity_collisions": 0,
+          "true_distinct": 4,
+          "undecided_distinct": 0,
+          "key_coverage": 1.0,
+          "scope": "pair decisions at property level; no clustering/ranked-search or real-world prevalence claim",
+          "property_keys": {
+            "properties": 8,
+            "keys_per_property": {
+              "1": 8
+            },
+            "properties_with_keys": 8,
+            "properties_without_keys": 0,
+            "property_key_coverage": 1.0,
+            "fragmented_properties": 0,
+            "same_property_pairs": 4,
+            "distinct_property_pairs": 4,
+            "false_merge_pairs": 0,
+            "colliding_keys": 0,
+            "properties_in_collisions": 0,
+            "missing_key_sides": 0
+          },
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "97d6f0f351c43625d9cd8a6817698709195f448d5c998ba6961a9d295758d1ed"
+        },
+        "rust-default": {
+          "task": "match",
+          "rows": 8,
+          "source_families": 8,
+          "statuses": {
+            "ok": 8
+          },
+          "agreement": {
+            "correct": 6,
+            "denominator": 8,
+            "rate": 0.75
+          },
+          "same_entity": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 2,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666
+          },
+          "distinct_entity_collisions": 0,
+          "true_distinct": 4,
+          "undecided_distinct": 0,
+          "key_coverage": 1.0,
+          "scope": "pair decisions at property level; no clustering/ranked-search or real-world prevalence claim",
+          "property_keys": {
+            "properties": 8,
+            "keys_per_property": {
+              "1": 7,
+              "4": 1
+            },
+            "properties_with_keys": 8,
+            "properties_without_keys": 0,
+            "property_key_coverage": 1.0,
+            "fragmented_properties": 1,
+            "same_property_pairs": 4,
+            "distinct_property_pairs": 4,
+            "false_merge_pairs": 0,
+            "colliding_keys": 0,
+            "properties_in_collisions": 0,
+            "missing_key_sides": 0
+          },
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "92d4741fecc84ef5d149e1f812375ce9b8a11491dde00e690c3ff642f4257e11"
+        }
+      }
+    },
+    "publisher-classification": {
+      "task": "classify",
+      "run_content_id": "78967bc47b00f096124ea906c8b0648ef531560b8007e08eb443ee088e12c67f",
+      "source_pins": {
+        "__init__.py": "bd62a60524456bbd52584ce39eb883cee2cd2c19bb9a1e0ba8f7fcbf6c7096d5",
+        "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+        "adapters.py": "2f788f19047820a544eacfb7c00e2f09b22bfcc71c0ff0f08bdb8c7307ca007b",
+        "cli.py": "90329c6a0d182922e1b67b6e6e8e448f325d8190b34aa674d1fe05c6a32a0216",
+        "conformance.py": "00c69033c0578f07db1ef4ac5de47bced968a88cf7eee0ad91a9fc2f194838ba",
+        "corpus.py": "bacfc5e3bac329c0899865a1495b958a04bc89801142416691feef58054794d1",
+        "intake.py": "3e56fee9e6f773f20e9f9594f8e349affff8b7863b39832887ae2f66690818b6",
+        "io.py": "7881f2392b1bda336d09c72e5b9b89f3e21d1b6d2cfa24208bdc1d28a95aaeb3",
+        "ontologies.py": "d2a1031b9565e244e9b64f0239fccd7200ae29f170726ad1c6e6aab532151707",
+        "plan.py": "2b32e55d0257dbd060cb751cd3994e797cd2560b401b611317575eb73e8b3a41",
+        "production.py": "da5444d4786577e9da30c08e0f394dce0dc7a6a11dfb383f51deabd63d139a63",
+        "profiles.py": "acaacaeb3dd92aa2fae4ee80b6ee797a82154172c5a0c2e26cdd1067b713cb0d",
+        "protocol.py": "5c05a2754dafd1ee4a04ca6c7a42e59d901cb6a4dfad77ff2f10a0ad20b1e4de",
+        "pub28.py": "dd5c8994a05318e9f056d57591bda659a9364d94d3ea3dde3b0c5fd0831f7a2e",
+        "report.py": "c1c3054cc0361f7f229ffc7f17f000ab776c7263b5914142a9be3cf062140458",
+        "runner.py": "63b3a24c22563790cff37cf8db39f8e9ba21e6cdd32eb1c289ad0da15591479c",
+        "scoring.py": "430433f0638c4a9503edc87ef727f5af596453e87c176fa4fbaa721be8454dcc",
+        "tables.py": "aa680e56be96ee02825e3100ac125bbf8bff757198401092651965f9e5b3abca",
+        "tasks.py": "87f9bdbf55fe39da13f644727ba9189d038bbea25adcf8aaa2f8728d6aff5ac3",
+        "worker.py": "1abf609aabaa88694c26a42d064df435d99953a5b72bd1a6ff8e57dadc8ed292"
+      },
+      "engines": {
+        "doorplate": {
+          "task": "classify",
+          "rows": 19586,
+          "source_families": 19586,
+          "statuses": {
+            "ok": 19586
+          },
+          "agreement": {
+            "correct": 19473,
+            "denominator": 19586,
+            "rate": 0.994230572858164
+          },
+          "classification_confusions": [
+            {
+              "expected": "highway",
+              "predicted": "rural",
+              "rows": 65
+            },
+            {
+              "expected": "military",
+              "predicted": "street",
+              "rows": 36
+            },
+            {
+              "expected": "street",
+              "predicted": "unknown",
+              "rows": 6
+            },
+            {
+              "expected": "street",
+              "predicted": "dual",
+              "rows": 6
+            }
+          ],
+          "normalization_field_mismatches": {},
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "56b08f101b84b7e76749749f9a8d5f7b2ff995b67b37799f7a638dbebc0b2ebf"
+        },
+        "rust-default": {
+          "task": "classify",
+          "rows": 19586,
+          "source_families": 19586,
+          "statuses": {
+            "ok": 19586
+          },
+          "agreement": {
+            "correct": 19446,
+            "denominator": 19586,
+            "rate": 0.9928520371694067
+          },
+          "classification_confusions": [
+            {
+              "expected": "highway",
+              "predicted": "street",
+              "rows": 65
+            },
+            {
+              "expected": "military",
+              "predicted": "street",
+              "rows": 36
+            },
+            {
+              "expected": "po_box",
+              "predicted": "street",
+              "rows": 19
+            },
+            {
+              "expected": "rural",
+              "predicted": "street",
+              "rows": 12
+            },
+            {
+              "expected": "street",
+              "predicted": "intersection",
+              "rows": 6
+            },
+            {
+              "expected": "street",
+              "predicted": "highway",
+              "rows": 1
+            },
+            {
+              "expected": "general_delivery",
+              "predicted": "street",
+              "rows": 1
+            }
+          ],
+          "normalization_field_mismatches": {},
+          "stability_observations": {},
+          "native_errors": {},
+          "identity_sha256": "37dc4f081b0fbe58729d1d7f79b8ec9ff0d55abb8875500b0c64e692bf369303"
+        }
+      }
+    },
+    "stability-common": {
+      "task": "stability",
+      "run_content_id": "b1eaf44cbf9c58253af25918ca7ad08fbfce176f420f27e12515a5e9017f29c4",
+      "source_pins": {
+        "__init__.py": "bd62a60524456bbd52584ce39eb883cee2cd2c19bb9a1e0ba8f7fcbf6c7096d5",
+        "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+        "adapters.py": "2f788f19047820a544eacfb7c00e2f09b22bfcc71c0ff0f08bdb8c7307ca007b",
+        "cli.py": "90329c6a0d182922e1b67b6e6e8e448f325d8190b34aa674d1fe05c6a32a0216",
+        "conformance.py": "00c69033c0578f07db1ef4ac5de47bced968a88cf7eee0ad91a9fc2f194838ba",
+        "corpus.py": "bacfc5e3bac329c0899865a1495b958a04bc89801142416691feef58054794d1",
+        "intake.py": "3e56fee9e6f773f20e9f9594f8e349affff8b7863b39832887ae2f66690818b6",
+        "io.py": "7881f2392b1bda336d09c72e5b9b89f3e21d1b6d2cfa24208bdc1d28a95aaeb3",
+        "ontologies.py": "d2a1031b9565e244e9b64f0239fccd7200ae29f170726ad1c6e6aab532151707",
+        "plan.py": "2b32e55d0257dbd060cb751cd3994e797cd2560b401b611317575eb73e8b3a41",
+        "production.py": "da5444d4786577e9da30c08e0f394dce0dc7a6a11dfb383f51deabd63d139a63",
+        "profiles.py": "acaacaeb3dd92aa2fae4ee80b6ee797a82154172c5a0c2e26cdd1067b713cb0d",
+        "protocol.py": "5c05a2754dafd1ee4a04ca6c7a42e59d901cb6a4dfad77ff2f10a0ad20b1e4de",
+        "pub28.py": "dd5c8994a05318e9f056d57591bda659a9364d94d3ea3dde3b0c5fd0831f7a2e",
+        "report.py": "c1c3054cc0361f7f229ffc7f17f000ab776c7263b5914142a9be3cf062140458",
+        "runner.py": "63b3a24c22563790cff37cf8db39f8e9ba21e6cdd32eb1c289ad0da15591479c",
+        "scoring.py": "430433f0638c4a9503edc87ef727f5af596453e87c176fa4fbaa721be8454dcc",
+        "tables.py": "aa680e56be96ee02825e3100ac125bbf8bff757198401092651965f9e5b3abca",
+        "tasks.py": "87f9bdbf55fe39da13f644727ba9189d038bbea25adcf8aaa2f8728d6aff5ac3",
+        "worker.py": "1abf609aabaa88694c26a42d064df435d99953a5b72bd1a6ff8e57dadc8ed292"
+      },
+      "engines": {
+        "doorplate": {
+          "task": "stability",
+          "rows": 1,
+          "source_families": 1,
+          "statuses": {
+            "ok": 1
+          },
+          "agreement": {
+            "correct": 0,
+            "denominator": 1,
+            "rate": 0.0
+          },
+          "checks": {
+            "idempotence": {
+              "passed": 0,
+              "denominator": 1
+            },
+            "repeat": {
+              "passed": 1,
+              "denominator": 1
+            },
+            "scalar_batch": {
+              "passed": 1,
+              "denominator": 1
+            }
+          },
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {
+            "repeat": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "scalar_batch": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "idempotence": {
+              "changed_inputs": 9,
+              "distinct_changed_inputs": 9,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            }
+          },
+          "native_errors": {},
+          "identity_sha256": "6266a83fd63f437a86cf87802f761a61fdb79576c03810799653cd90410f50b0"
+        },
+        "rust-default": {
+          "task": "stability",
+          "rows": 1,
+          "source_families": 1,
+          "statuses": {
+            "ok": 1
+          },
+          "agreement": {
+            "correct": 0,
+            "denominator": 1,
+            "rate": 0.0
+          },
+          "checks": {
+            "idempotence": {
+              "passed": 0,
+              "denominator": 1
+            },
+            "repeat": {
+              "passed": 1,
+              "denominator": 1
+            },
+            "scalar_batch": {
+              "passed": 1,
+              "denominator": 1
+            }
+          },
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {
+            "repeat": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "scalar_batch": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "idempotence": {
+              "changed_inputs": 4,
+              "distinct_changed_inputs": 3,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            }
+          },
+          "native_errors": {},
+          "identity_sha256": "a61d57224763b30256c56121707c6064a9d0938e641adc157d60d28f37d1ca09"
+        }
+      }
+    },
+    "stability-stream-chunk": {
+      "task": "stability",
+      "run_content_id": "041dc1aa0933cc08907e5017ccf1d70acf8d93aa7fd4dbed9d4d0310b30f12c3",
+      "source_pins": {
+        "__init__.py": "bd62a60524456bbd52584ce39eb883cee2cd2c19bb9a1e0ba8f7fcbf6c7096d5",
+        "__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+        "adapters.py": "2f788f19047820a544eacfb7c00e2f09b22bfcc71c0ff0f08bdb8c7307ca007b",
+        "cli.py": "90329c6a0d182922e1b67b6e6e8e448f325d8190b34aa674d1fe05c6a32a0216",
+        "conformance.py": "00c69033c0578f07db1ef4ac5de47bced968a88cf7eee0ad91a9fc2f194838ba",
+        "corpus.py": "bacfc5e3bac329c0899865a1495b958a04bc89801142416691feef58054794d1",
+        "intake.py": "3e56fee9e6f773f20e9f9594f8e349affff8b7863b39832887ae2f66690818b6",
+        "io.py": "7881f2392b1bda336d09c72e5b9b89f3e21d1b6d2cfa24208bdc1d28a95aaeb3",
+        "ontologies.py": "d2a1031b9565e244e9b64f0239fccd7200ae29f170726ad1c6e6aab532151707",
+        "plan.py": "2b32e55d0257dbd060cb751cd3994e797cd2560b401b611317575eb73e8b3a41",
+        "production.py": "da5444d4786577e9da30c08e0f394dce0dc7a6a11dfb383f51deabd63d139a63",
+        "profiles.py": "acaacaeb3dd92aa2fae4ee80b6ee797a82154172c5a0c2e26cdd1067b713cb0d",
+        "protocol.py": "5c05a2754dafd1ee4a04ca6c7a42e59d901cb6a4dfad77ff2f10a0ad20b1e4de",
+        "pub28.py": "dd5c8994a05318e9f056d57591bda659a9364d94d3ea3dde3b0c5fd0831f7a2e",
+        "report.py": "c1c3054cc0361f7f229ffc7f17f000ab776c7263b5914142a9be3cf062140458",
+        "runner.py": "63b3a24c22563790cff37cf8db39f8e9ba21e6cdd32eb1c289ad0da15591479c",
+        "scoring.py": "430433f0638c4a9503edc87ef727f5af596453e87c176fa4fbaa721be8454dcc",
+        "tables.py": "aa680e56be96ee02825e3100ac125bbf8bff757198401092651965f9e5b3abca",
+        "tasks.py": "87f9bdbf55fe39da13f644727ba9189d038bbea25adcf8aaa2f8728d6aff5ac3",
+        "worker.py": "1abf609aabaa88694c26a42d064df435d99953a5b72bd1a6ff8e57dadc8ed292"
+      },
+      "engines": {
+        "rust-default": {
+          "task": "stability",
+          "rows": 1,
+          "source_families": 1,
+          "statuses": {
+            "ok": 1
+          },
+          "agreement": {
+            "correct": 0,
+            "denominator": 1,
+            "rate": 0.0
+          },
+          "checks": {
+            "idempotence": {
+              "passed": 0,
+              "denominator": 1
+            },
+            "repeat": {
+              "passed": 1,
+              "denominator": 1
+            },
+            "scalar_batch": {
+              "passed": 1,
+              "denominator": 1
+            },
+            "scalar_chunked": {
+              "passed": 1,
+              "denominator": 1
+            },
+            "scalar_stream": {
+              "passed": 1,
+              "denominator": 1
+            }
+          },
+          "classification_confusions": [],
+          "normalization_field_mismatches": {},
+          "stability_observations": {
+            "repeat": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "scalar_batch": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "idempotence": {
+              "changed_inputs": 4,
+              "distinct_changed_inputs": 3,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "scalar_stream": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            },
+            "scalar_chunked": {
+              "changed_inputs": 0,
+              "distinct_changed_inputs": 0,
+              "input_count": 1024,
+              "distinct_exact_inputs": 1023,
+              "output_count": 1024
+            }
+          },
+          "native_errors": {},
+          "identity_sha256": "a61d57224763b30256c56121707c6064a9d0938e641adc157d60d28f37d1ca09"
+        }
+      }
+    }
+  },
+  "normalization_intake": {
+    "excluded": [
+      {
+        "id": "scourgify:test_normalize_address_record:144",
+        "reason": "structured input: requires separate input-mode adapter"
+      },
+      {
+        "id": "scourgify:test_normalize_address_record:147",
+        "reason": "structured input: requires separate input-mode adapter"
+      },
+      {
+        "id": "scourgify:test_normalize_address_record:153",
+        "reason": "structured input: requires separate input-mode adapter"
+      },
+      {
+        "id": "scourgify:test_normalize_address_record:158",
+        "reason": "structured input: requires separate input-mode adapter"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:621",
+        "reason": "custom long-hand profile not supported by this native projection"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:626",
+        "reason": "partial supplied-field assertion: not a complete five-field reference"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:631",
+        "reason": "partial supplied-field assertion: not a complete five-field reference"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:636",
+        "reason": "partial supplied-field assertion: not a complete five-field reference"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:641",
+        "reason": "partial supplied-field assertion: not a complete five-field reference"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:646",
+        "reason": "partial supplied-field assertion: not a complete five-field reference"
+      },
+      {
+        "id": "scourgify:test_normalize_highway_addresses:651",
+        "reason": "partial supplied-field assertion: not a complete five-field reference"
+      }
+    ],
+    "included": 4,
+    "total_assertions": 15
+  }
+}

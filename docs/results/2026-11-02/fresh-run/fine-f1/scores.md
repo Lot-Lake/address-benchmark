@@ -1,0 +1,21 @@
+# USA parser comparison / 2026-11-02
+
+Fine token F1
+
+| Dataset / view | Rust learned | Rust default | BoundaryBoys | Doorplate | usaddress | fastaddress | libpostal default | libpostal Senzing | Mailwoman |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| GeoSearch dev | **99.69%** | unmeasured | unmeasured | 96.12% | 95.39% | 95.39% | unmeasured | unmeasured | unmeasured |
+| GeoSearch test (publisher split) | **99.68%** | unmeasured | unmeasured | 95.99% | 94.70% | 94.70% | unmeasured | unmeasured | unmeasured |
+| Doorplate suite | 96.33% | unmeasured | unmeasured | **98.00%** | 96.08% | 96.08% | unmeasured | unmeasured | unmeasured |
+| Doorplate suite / normal | 97.87% | unmeasured | unmeasured | **99.21%** | 98.92% | 98.92% | unmeasured | unmeasured | unmeasured |
+| Doorplate suite / hard | 89.24% | unmeasured | unmeasured | **91.74%** | 80.69% | 80.69% | unmeasured | unmeasured | unmeasured |
+| Doorplate suite / handwritten | 92.96% | unmeasured | unmeasured | **97.33%** | 96.57% | 96.57% | unmeasured | unmeasured | unmeasured |
+| Expanded USA | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured |
+| us-units-adversarial | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured |
+
+- Counts and failures use the recorded scoring denominators. Partial references judge supplied labels; they are not whole-address accuracy.
+- Subset rows overlap the parent dataset. Public/development-exposed fixtures do not establish unseen accuracy.
+- Bold marks rounded row leaders only when measured denominators match. Missing/unsupported scores are unmeasured, never zero.
+- Strict preserves punctuation. Edge-delimiter ignores component-edge comma/semicolon/colon only, plus case and whitespace.
+- Timing appears only when recorded: exploratory process medians, not accuracy-run wall time. † marks sample spread above 10%; ! marks native errors/refusals.
+- The report command checks recorded run identities. Exports do not rescore predictions or rehash every artifact.

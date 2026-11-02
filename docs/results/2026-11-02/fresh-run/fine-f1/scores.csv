@@ -1,0 +1,9 @@
+Dataset / view,rust-learned,rust-default,boundaryboys,doorplate,usaddress,fastaddress,libpostal-default,libpostal-senzing,mailwoman
+GeoSearch dev,"99.69% (395,730/1,250/1,250 TP/FP/FN)",unmeasured,unmeasured,"96.12% (381,590/15,400/15,390 TP/FP/FN)","95.39% (378,689/18,301/18,291 TP/FP/FN)","95.39% (378,689/18,301/18,291 TP/FP/FN)",unmeasured,unmeasured,unmeasured
+GeoSearch test (publisher split),"99.68% (197,717/629/629 TP/FP/FN)",unmeasured,unmeasured,"95.99% (190,396/7,950/7,950 TP/FP/FN)","94.70% (187,833/10,513/10,513 TP/FP/FN)","94.70% (187,833/10,513/10,513 TP/FP/FN)",unmeasured,unmeasured,unmeasured
+Doorplate suite,"96.33% (132,584/5,012/5,101 TP/FP/FN)",unmeasured,unmeasured,"98.00% (134,931/2,754/2,754 TP/FP/FN)","96.08% (132,291/5,394/5,394 TP/FP/FN)","96.08% (132,291/5,394/5,394 TP/FP/FN)",unmeasured,unmeasured,unmeasured
+Doorplate suite / normal,"97.87% (107,463/2,336/2,334 TP/FP/FN)",unmeasured,unmeasured,"99.21% (108,930/867/867 TP/FP/FN)","98.92% (108,607/1,190/1,190 TP/FP/FN)","98.92% (108,607/1,190/1,190 TP/FP/FN)",unmeasured,unmeasured,unmeasured
+Doorplate suite / hard,"89.24% (18,245/2,200/2,202 TP/FP/FN)",unmeasured,unmeasured,"91.74% (18,759/1,688/1,688 TP/FP/FN)","80.69% (16,498/3,949/3,949 TP/FP/FN)","80.69% (16,498/3,949/3,949 TP/FP/FN)",unmeasured,unmeasured,unmeasured
+Doorplate suite / handwritten,"92.96% (6,876/476/565 TP/FP/FN)",unmeasured,unmeasured,"97.33% (7,242/199/199 TP/FP/FN)","96.57% (7,186/255/255 TP/FP/FN)","96.57% (7,186/255/255 TP/FP/FN)",unmeasured,unmeasured,unmeasured
+Expanded USA,unmeasured,unmeasured,unmeasured,unmeasured,unmeasured,unmeasured,unmeasured,unmeasured,unmeasured
+us-units-adversarial,unmeasured,unmeasured,unmeasured,unmeasured,unmeasured,unmeasured,unmeasured,unmeasured,unmeasured

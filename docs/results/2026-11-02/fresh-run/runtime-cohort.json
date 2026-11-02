@@ -1,0 +1,103 @@
+{
+  "boundaryboys": {
+    "identity_sha256": "fab66d19f37d916cfb1d693a60c8902cc8fae23d836f795ef7bb7099338d4de4",
+    "name": "boundaryboys-local-private",
+    "dependency_versions": {},
+    "model": "embedded dictionary in pinned executable",
+    "runtime": "3.12.8",
+    "threading": "one caller; dependency helper threads not controlled",
+    "accuracy_workers": null,
+    "node_version": null
+  },
+  "doorplate": {
+    "identity_sha256": "d8c7ef51c0e2c13e23b158dbad680fc519480f6bea79af70b65ebd0b5ab00ff9",
+    "name": "doorplate",
+    "dependency_versions": {
+      "doorplate": "0.5.0.dev0"
+    },
+    "model": "installed 0.5.0.dev0 public parse + compatibility tokens, null labels retained",
+    "runtime": "3.14.6",
+    "threading": "one caller; dependency helper threads not controlled",
+    "accuracy_workers": null,
+    "node_version": null
+  },
+  "fastaddress": {
+    "identity_sha256": "13c656a96432a80c88cec1fc921e0be773d7b6fc4cedcd72b8ea94aae649ed78",
+    "name": "fastaddress",
+    "dependency_versions": {
+      "fastaddress": "0.1.0"
+    },
+    "model": "upstream usaddress 0.5.16 CRF lineage; runtime/package/model file hashes recorded",
+    "runtime": "3.12.8",
+    "threading": "one caller; dependency helper threads not controlled",
+    "accuracy_workers": null,
+    "node_version": null
+  },
+  "libpostal-default": {
+    "identity_sha256": "1b51265210484f225e858f23a997de28e9e55792a375021e5cfa8485278158cf",
+    "name": "libpostal-default",
+    "dependency_versions": {},
+    "model": "libpostal model=default",
+    "runtime": "3.12.8",
+    "threading": "one caller; dependency helper threads not controlled",
+    "accuracy_workers": null,
+    "node_version": null
+  },
+  "libpostal-senzing": {
+    "identity_sha256": "9661ef9bd93f681766ff80d378c7d4ad1841ef20f024399c9d77cc9c3d0bc180",
+    "name": "libpostal-senzing",
+    "dependency_versions": {},
+    "model": "libpostal model=senzing",
+    "runtime": "3.12.8",
+    "threading": "one caller; dependency helper threads not controlled",
+    "accuracy_workers": null,
+    "node_version": null
+  },
+  "mailwoman": {
+    "identity_sha256": "ea01555eebc686afb05cb7bea1e92d84fa3666bad0ee56f828dd9dc65df4af92",
+    "name": "mailwoman-neural",
+    "dependency_versions": {
+      "@mailwoman/libpostal": "10.7.0",
+      "@mailwoman/neural": "10.7.0",
+      "@mailwoman/neural-weights-en-us": "10.7.0",
+      "mailwoman": "10.7.0"
+    },
+    "model": "@mailwoman/neural-weights-en-us@10.7.0; CPU; one intra-op thread",
+    "runtime": "3.12.8",
+    "threading": "accuracy only: 4 independent Node processes, one ONNX intra-op thread each; ordered contiguous shards; no timing claim",
+    "accuracy_workers": 4,
+    "node_version": "v24.18.0"
+  },
+  "rust-default": {
+    "identity_sha256": "8b27bf082e903ef43d5269589892836c30e3ee5bf188a14d79739d9c302b04ce",
+    "name": "address-normalizer-default",
+    "dependency_versions": {},
+    "model": "installed default embedded deterministic engine",
+    "runtime": "3.12.8",
+    "threading": "one caller; dependency helper threads not controlled",
+    "accuracy_workers": null,
+    "node_version": null
+  },
+  "rust-learned": {
+    "identity_sha256": "dc933f2777076bab8d6c0290a1e4fbebd61b35b07f188a7ae769aeae80d2a7d3",
+    "name": "retained-learned-rust",
+    "dependency_versions": {},
+    "model": "usa-lexical-locality-unit-boundary28:e429c2cf5a1e01abcb6fad02d7f39768d3d8923141dee58b14ce016a889fe965",
+    "runtime": "3.12.8",
+    "threading": "one caller; dependency helper threads not controlled",
+    "accuracy_workers": null,
+    "node_version": null
+  },
+  "usaddress": {
+    "identity_sha256": "bd3ca666dc7326c6a53e9693e336740b0462cd236a339c231b969733197f96eb",
+    "name": "usaddress",
+    "dependency_versions": {
+      "usaddress": "0.5.16"
+    },
+    "model": "upstream usaddress 0.5.16 CRF lineage; runtime/package/model file hashes recorded",
+    "runtime": "3.14.6",
+    "threading": "one caller; dependency helper threads not controlled",
+    "accuracy_workers": null,
+    "node_version": null
+  }
+}

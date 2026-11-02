@@ -1,0 +1,881 @@
+{
+  "schema": "address-benchmark.scorecard/v1",
+  "title": "USA parser comparison / 2026-11-02",
+  "metric": "strict",
+  "engines": [
+    "rust-learned",
+    "rust-default",
+    "boundaryboys",
+    "doorplate",
+    "usaddress",
+    "fastaddress",
+    "libpostal-default",
+    "libpostal-senzing",
+    "mailwoman"
+  ],
+  "rows": [
+    {
+      "id": "geosearch-dev/all",
+      "label": "GeoSearch dev",
+      "panel": "geosearch-dev",
+      "view": "all",
+      "task": "parse",
+      "metric": "strict",
+      "rows": 60522,
+      "cells": {
+        "boundaryboys": {
+          "status": "measured",
+          "score": 0.706371236905588,
+          "correct": 42751,
+          "denominator": 60522,
+          "exit_code": 0,
+          "rows": 60522,
+          "errors": 0,
+          "refusals": 0
+        },
+        "doorplate": {
+          "status": "measured",
+          "score": 0.9431446416179241,
+          "correct": 57081,
+          "denominator": 60522,
+          "exit_code": 0,
+          "rows": 60522,
+          "errors": 0,
+          "refusals": 0
+        },
+        "fastaddress": {
+          "status": "measured",
+          "score": 0.8823898747562869,
+          "correct": 53404,
+          "denominator": 60522,
+          "exit_code": 0,
+          "rows": 60522,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-default": {
+          "status": "measured",
+          "score": 0.8426687816000793,
+          "correct": 51000,
+          "denominator": 60522,
+          "exit_code": 0,
+          "rows": 60522,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-senzing": {
+          "status": "measured",
+          "score": 0.7869865503453289,
+          "correct": 47630,
+          "denominator": 60522,
+          "exit_code": 0,
+          "rows": 60522,
+          "errors": 0,
+          "refusals": 0
+        },
+        "mailwoman": {
+          "status": "measured",
+          "score": 0.8904530583919897,
+          "correct": 53892,
+          "denominator": 60522,
+          "exit_code": 0,
+          "rows": 60522,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-default": {
+          "status": "measured",
+          "score": 0.7687617725785665,
+          "correct": 46527,
+          "denominator": 60522,
+          "exit_code": 0,
+          "rows": 60522,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-learned": {
+          "status": "measured",
+          "score": 0.9888139849971911,
+          "correct": 59845,
+          "denominator": 60522,
+          "exit_code": 0,
+          "rows": 60522,
+          "errors": 0,
+          "refusals": 0
+        },
+        "usaddress": {
+          "status": "measured",
+          "score": 0.8823898747562869,
+          "correct": 53404,
+          "denominator": 60522,
+          "exit_code": 0,
+          "rows": 60522,
+          "errors": 0,
+          "refusals": 0
+        }
+      }
+    },
+    {
+      "id": "geosearch-test/all",
+      "label": "GeoSearch test (publisher split)",
+      "panel": "geosearch-test",
+      "view": "all",
+      "task": "parse",
+      "metric": "strict",
+      "rows": 30622,
+      "cells": {
+        "boundaryboys": {
+          "status": "measured",
+          "score": 0.7279733524916726,
+          "correct": 22292,
+          "denominator": 30622,
+          "exit_code": 0,
+          "rows": 30622,
+          "errors": 0,
+          "refusals": 0
+        },
+        "doorplate": {
+          "status": "measured",
+          "score": 0.9665599895499968,
+          "correct": 29598,
+          "denominator": 30622,
+          "exit_code": 0,
+          "rows": 30622,
+          "errors": 0,
+          "refusals": 0
+        },
+        "fastaddress": {
+          "status": "measured",
+          "score": 0.883939651231141,
+          "correct": 27068,
+          "denominator": 30622,
+          "exit_code": 0,
+          "rows": 30622,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-default": {
+          "status": "measured",
+          "score": 0.8880543400169812,
+          "correct": 27194,
+          "denominator": 30622,
+          "exit_code": 0,
+          "rows": 30622,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-senzing": {
+          "status": "measured",
+          "score": 0.8615048004702501,
+          "correct": 26381,
+          "denominator": 30622,
+          "exit_code": 0,
+          "rows": 30622,
+          "errors": 0,
+          "refusals": 0
+        },
+        "mailwoman": {
+          "status": "measured",
+          "score": 0.9125791914309973,
+          "correct": 27945,
+          "denominator": 30622,
+          "exit_code": 0,
+          "rows": 30622,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-default": {
+          "status": "measured",
+          "score": 0.8004375938867481,
+          "correct": 24511,
+          "denominator": 30622,
+          "exit_code": 0,
+          "rows": 30622,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-learned": {
+          "status": "measured",
+          "score": 0.9902357781986807,
+          "correct": 30323,
+          "denominator": 30622,
+          "exit_code": 0,
+          "rows": 30622,
+          "errors": 0,
+          "refusals": 0
+        },
+        "usaddress": {
+          "status": "measured",
+          "score": 0.883939651231141,
+          "correct": 27068,
+          "denominator": 30622,
+          "exit_code": 0,
+          "rows": 30622,
+          "errors": 0,
+          "refusals": 0
+        }
+      }
+    },
+    {
+      "id": "doorplate-v1/all",
+      "label": "Doorplate suite",
+      "panel": "doorplate-v1",
+      "view": "all",
+      "task": "parse",
+      "metric": "strict",
+      "rows": 19586,
+      "cells": {
+        "boundaryboys": {
+          "status": "measured",
+          "score": 0.24012049423057286,
+          "correct": 4703,
+          "denominator": 19586,
+          "exit_code": 0,
+          "rows": 19586,
+          "errors": 0,
+          "refusals": 0
+        },
+        "doorplate": {
+          "status": "measured",
+          "score": 0.9384764627795364,
+          "correct": 18381,
+          "denominator": 19586,
+          "exit_code": 0,
+          "rows": 19586,
+          "errors": 0,
+          "refusals": 0
+        },
+        "fastaddress": {
+          "status": "measured",
+          "score": 0.8611252935770448,
+          "correct": 16866,
+          "denominator": 19586,
+          "exit_code": 0,
+          "rows": 19586,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-default": {
+          "status": "measured",
+          "score": 0.3073113448381497,
+          "correct": 6019,
+          "denominator": 19586,
+          "exit_code": 0,
+          "rows": 19586,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-senzing": {
+          "status": "measured",
+          "score": 0.33115490656591445,
+          "correct": 6486,
+          "denominator": 19586,
+          "exit_code": 0,
+          "rows": 19586,
+          "errors": 0,
+          "refusals": 0
+        },
+        "mailwoman": {
+          "status": "measured",
+          "score": 0.327070356377004,
+          "correct": 6406,
+          "denominator": 19586,
+          "exit_code": 0,
+          "rows": 19586,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-default": {
+          "status": "measured",
+          "score": 0.2788216072704993,
+          "correct": 5461,
+          "denominator": 19586,
+          "exit_code": 0,
+          "rows": 19586,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-learned": {
+          "status": "measured",
+          "score": 0.8838456040028592,
+          "correct": 17311,
+          "denominator": 19586,
+          "exit_code": 0,
+          "rows": 19586,
+          "errors": 0,
+          "refusals": 0
+        },
+        "usaddress": {
+          "status": "measured",
+          "score": 0.8611252935770448,
+          "correct": 16866,
+          "denominator": 19586,
+          "exit_code": 0,
+          "rows": 19586,
+          "errors": 0,
+          "refusals": 0
+        }
+      }
+    },
+    {
+      "id": "doorplate-v1/natural",
+      "label": "Doorplate suite / normal",
+      "panel": "doorplate-v1",
+      "view": "natural",
+      "task": "parse",
+      "metric": "strict",
+      "rows": 16001,
+      "cells": {
+        "boundaryboys": {
+          "status": "measured",
+          "score": 0.2591713017936379,
+          "correct": 4147,
+          "denominator": 16001,
+          "exit_code": 0,
+          "rows": 16001,
+          "errors": 0,
+          "refusals": 0
+        },
+        "doorplate": {
+          "status": "measured",
+          "score": 0.9691894256608962,
+          "correct": 15508,
+          "denominator": 16001,
+          "exit_code": 0,
+          "rows": 16001,
+          "errors": 0,
+          "refusals": 0
+        },
+        "fastaddress": {
+          "status": "measured",
+          "score": 0.9645647147053309,
+          "correct": 15434,
+          "denominator": 16001,
+          "exit_code": 0,
+          "rows": 16001,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-default": {
+          "status": "measured",
+          "score": 0.31623023561027436,
+          "correct": 5060,
+          "denominator": 16001,
+          "exit_code": 0,
+          "rows": 16001,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-senzing": {
+          "status": "measured",
+          "score": 0.3309168176988938,
+          "correct": 5295,
+          "denominator": 16001,
+          "exit_code": 0,
+          "rows": 16001,
+          "errors": 0,
+          "refusals": 0
+        },
+        "mailwoman": {
+          "status": "measured",
+          "score": 0.3303543528529467,
+          "correct": 5286,
+          "denominator": 16001,
+          "exit_code": 0,
+          "rows": 16001,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-default": {
+          "status": "measured",
+          "score": 0.30073120429973127,
+          "correct": 4812,
+          "denominator": 16001,
+          "exit_code": 0,
+          "rows": 16001,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-learned": {
+          "status": "measured",
+          "score": 0.9435660271233048,
+          "correct": 15098,
+          "denominator": 16001,
+          "exit_code": 0,
+          "rows": 16001,
+          "errors": 0,
+          "refusals": 0
+        },
+        "usaddress": {
+          "status": "measured",
+          "score": 0.9645647147053309,
+          "correct": 15434,
+          "denominator": 16001,
+          "exit_code": 0,
+          "rows": 16001,
+          "errors": 0,
+          "refusals": 0
+        }
+      }
+    },
+    {
+      "id": "doorplate-v1/hard",
+      "label": "Doorplate suite / hard",
+      "panel": "doorplate-v1",
+      "view": "hard",
+      "task": "parse",
+      "metric": "strict",
+      "rows": 2585,
+      "cells": {
+        "boundaryboys": {
+          "status": "measured",
+          "score": 0.17524177949709865,
+          "correct": 453,
+          "denominator": 2585,
+          "exit_code": 0,
+          "rows": 2585,
+          "errors": 0,
+          "refusals": 0
+        },
+        "doorplate": {
+          "status": "measured",
+          "score": 0.7528046421663442,
+          "correct": 1946,
+          "denominator": 2585,
+          "exit_code": 0,
+          "rows": 2585,
+          "errors": 0,
+          "refusals": 0
+        },
+        "fastaddress": {
+          "status": "measured",
+          "score": 0.20696324951644102,
+          "correct": 535,
+          "denominator": 2585,
+          "exit_code": 0,
+          "rows": 2585,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-default": {
+          "status": "measured",
+          "score": 0.30406189555125723,
+          "correct": 786,
+          "denominator": 2585,
+          "exit_code": 0,
+          "rows": 2585,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-senzing": {
+          "status": "measured",
+          "score": 0.3895551257253385,
+          "correct": 1007,
+          "denominator": 2585,
+          "exit_code": 0,
+          "rows": 2585,
+          "errors": 0,
+          "refusals": 0
+        },
+        "mailwoman": {
+          "status": "measured",
+          "score": 0.36363636363636365,
+          "correct": 940,
+          "denominator": 2585,
+          "exit_code": 0,
+          "rows": 2585,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-default": {
+          "status": "measured",
+          "score": 0.18104448742746615,
+          "correct": 468,
+          "denominator": 2585,
+          "exit_code": 0,
+          "rows": 2585,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-learned": {
+          "status": "measured",
+          "score": 0.5423597678916828,
+          "correct": 1402,
+          "denominator": 2585,
+          "exit_code": 0,
+          "rows": 2585,
+          "errors": 0,
+          "refusals": 0
+        },
+        "usaddress": {
+          "status": "measured",
+          "score": 0.20696324951644102,
+          "correct": 535,
+          "denominator": 2585,
+          "exit_code": 0,
+          "rows": 2585,
+          "errors": 0,
+          "refusals": 0
+        }
+      }
+    },
+    {
+      "id": "doorplate-v1/hand",
+      "label": "Doorplate suite / handwritten",
+      "panel": "doorplate-v1",
+      "view": "hand",
+      "task": "parse",
+      "metric": "strict",
+      "rows": 1000,
+      "cells": {
+        "boundaryboys": {
+          "status": "measured",
+          "score": 0.103,
+          "correct": 103,
+          "denominator": 1000,
+          "exit_code": 0,
+          "rows": 1000,
+          "errors": 0,
+          "refusals": 0
+        },
+        "doorplate": {
+          "status": "measured",
+          "score": 0.927,
+          "correct": 927,
+          "denominator": 1000,
+          "exit_code": 0,
+          "rows": 1000,
+          "errors": 0,
+          "refusals": 0
+        },
+        "fastaddress": {
+          "status": "measured",
+          "score": 0.897,
+          "correct": 897,
+          "denominator": 1000,
+          "exit_code": 0,
+          "rows": 1000,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-default": {
+          "status": "measured",
+          "score": 0.173,
+          "correct": 173,
+          "denominator": 1000,
+          "exit_code": 0,
+          "rows": 1000,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-senzing": {
+          "status": "measured",
+          "score": 0.184,
+          "correct": 184,
+          "denominator": 1000,
+          "exit_code": 0,
+          "rows": 1000,
+          "errors": 0,
+          "refusals": 0
+        },
+        "mailwoman": {
+          "status": "measured",
+          "score": 0.18,
+          "correct": 180,
+          "denominator": 1000,
+          "exit_code": 0,
+          "rows": 1000,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-default": {
+          "status": "measured",
+          "score": 0.181,
+          "correct": 181,
+          "denominator": 1000,
+          "exit_code": 0,
+          "rows": 1000,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-learned": {
+          "status": "measured",
+          "score": 0.811,
+          "correct": 811,
+          "denominator": 1000,
+          "exit_code": 0,
+          "rows": 1000,
+          "errors": 0,
+          "refusals": 0
+        },
+        "usaddress": {
+          "status": "measured",
+          "score": 0.897,
+          "correct": 897,
+          "denominator": 1000,
+          "exit_code": 0,
+          "rows": 1000,
+          "errors": 0,
+          "refusals": 0
+        }
+      }
+    },
+    {
+      "id": "expanded-usa/all",
+      "label": "Expanded USA",
+      "panel": "expanded-usa",
+      "view": "all",
+      "task": "parse",
+      "metric": "strict",
+      "rows": 2973,
+      "cells": {
+        "boundaryboys": {
+          "status": "measured",
+          "score": 0.6071308442650521,
+          "correct": 1805,
+          "denominator": 2973,
+          "exit_code": 0,
+          "rows": 2973,
+          "errors": 0,
+          "refusals": 0
+        },
+        "doorplate": {
+          "status": "measured",
+          "score": 0.22267070299360914,
+          "correct": 662,
+          "denominator": 2973,
+          "exit_code": 0,
+          "rows": 2973,
+          "errors": 0,
+          "refusals": 0
+        },
+        "fastaddress": {
+          "status": "measured",
+          "score": 0.23679784729229733,
+          "correct": 704,
+          "denominator": 2973,
+          "exit_code": 0,
+          "rows": 2973,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-default": {
+          "status": "measured",
+          "score": 0.6969391187352842,
+          "correct": 2072,
+          "denominator": 2973,
+          "exit_code": 0,
+          "rows": 2973,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-senzing": {
+          "status": "measured",
+          "score": 0.7373023881601076,
+          "correct": 2192,
+          "denominator": 2973,
+          "exit_code": 0,
+          "rows": 2973,
+          "errors": 0,
+          "refusals": 0
+        },
+        "mailwoman": {
+          "status": "measured",
+          "score": 0.6952573158425832,
+          "correct": 2067,
+          "denominator": 2973,
+          "exit_code": 0,
+          "rows": 2973,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-default": {
+          "status": "measured",
+          "score": 0.7325933400605449,
+          "correct": 2178,
+          "denominator": 2973,
+          "exit_code": 0,
+          "rows": 2973,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-learned": {
+          "status": "measured",
+          "score": 0.21695257315842584,
+          "correct": 645,
+          "denominator": 2973,
+          "exit_code": 0,
+          "rows": 2973,
+          "errors": 0,
+          "refusals": 0
+        },
+        "usaddress": {
+          "status": "measured",
+          "score": 0.23679784729229733,
+          "correct": 704,
+          "denominator": 2973,
+          "exit_code": 0,
+          "rows": 2973,
+          "errors": 0,
+          "refusals": 0
+        }
+      }
+    },
+    {
+      "id": "us-units-adversarial/all",
+      "label": "us-units-adversarial",
+      "panel": "us-units-adversarial",
+      "view": "all",
+      "task": "parse",
+      "metric": "strict",
+      "rows": 104,
+      "cells": {
+        "boundaryboys": {
+          "status": "measured",
+          "score": 0.22115384615384615,
+          "correct": 23,
+          "denominator": 104,
+          "exit_code": 0,
+          "rows": 104,
+          "errors": 0,
+          "refusals": 0
+        },
+        "doorplate": {
+          "status": "measured",
+          "score": 0.875,
+          "correct": 91,
+          "denominator": 104,
+          "exit_code": 0,
+          "rows": 104,
+          "errors": 0,
+          "refusals": 0
+        },
+        "fastaddress": {
+          "status": "measured",
+          "score": 0.7980769230769231,
+          "correct": 83,
+          "denominator": 104,
+          "exit_code": 0,
+          "rows": 104,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-default": {
+          "status": "measured",
+          "score": 0.5288461538461539,
+          "correct": 55,
+          "denominator": 104,
+          "exit_code": 0,
+          "rows": 104,
+          "errors": 0,
+          "refusals": 0
+        },
+        "libpostal-senzing": {
+          "status": "measured",
+          "score": 0.625,
+          "correct": 65,
+          "denominator": 104,
+          "exit_code": 0,
+          "rows": 104,
+          "errors": 0,
+          "refusals": 0
+        },
+        "mailwoman": {
+          "status": "measured",
+          "score": 0.7211538461538461,
+          "correct": 75,
+          "denominator": 104,
+          "exit_code": 0,
+          "rows": 104,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-default": {
+          "status": "measured",
+          "score": 0.7307692307692307,
+          "correct": 76,
+          "denominator": 104,
+          "exit_code": 0,
+          "rows": 104,
+          "errors": 0,
+          "refusals": 0
+        },
+        "rust-learned": {
+          "status": "measured",
+          "score": 0.6923076923076923,
+          "correct": 72,
+          "denominator": 104,
+          "exit_code": 0,
+          "rows": 104,
+          "errors": 0,
+          "refusals": 0
+        },
+        "usaddress": {
+          "status": "measured",
+          "score": 0.7980769230769231,
+          "correct": 83,
+          "denominator": 104,
+          "exit_code": 0,
+          "rows": 104,
+          "errors": 0,
+          "refusals": 0
+        }
+      }
+    }
+  ],
+  "sources": [
+    {
+      "id": "geosearch-dev",
+      "content_id": "0e1adbb60c702f4d016045b5a57cd4f4c12f0c71cf6f2fe0fbc8f20a67ccff26",
+      "status": "complete",
+      "task": "parse",
+      "scorer": "address-benchmark.scorer/v1",
+      "normalization": "casefold-whitespace/v1",
+      "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+    },
+    {
+      "id": "geosearch-test",
+      "content_id": "8e5ac37aaf6a023f408740f60af8dbdb275c5ecdeae9c53031ac254786c04476",
+      "status": "complete",
+      "task": "parse",
+      "scorer": "address-benchmark.scorer/v1",
+      "normalization": "casefold-whitespace/v1",
+      "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+    },
+    {
+      "id": "doorplate-v1",
+      "content_id": "1ccf4ad912ebc1ae2fead09b0b43f6a406590ed4532a85d1332909394d31904f",
+      "status": "complete",
+      "task": "parse",
+      "scorer": "address-benchmark.scorer/v1",
+      "normalization": "casefold-whitespace/v1",
+      "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+    },
+    {
+      "id": "expanded-usa",
+      "content_id": "9e8f21a9f751a454ff4a44e506a116b73f92cc5354356782ee91029985efdb8f",
+      "status": "complete",
+      "task": "parse",
+      "scorer": "address-benchmark.scorer/v1",
+      "normalization": "casefold-whitespace/v1",
+      "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+    },
+    {
+      "id": "us-units-adversarial",
+      "content_id": "af9b8dca3fffc0ce3f90404f0271ec18bee8f6a50105212660a51b6e562ef736",
+      "status": "complete",
+      "task": "parse",
+      "scorer": "address-benchmark.scorer/v1",
+      "normalization": "casefold-whitespace/v1",
+      "secondary_normalization": "casefold-whitespace-edge-delimiters/v1"
+    }
+  ],
+  "notes": [
+    "Counts and failures use the recorded scoring denominators. Partial references judge supplied labels; they are not whole-address accuracy.",
+    "Subset rows overlap the parent dataset. Public/development-exposed fixtures do not establish unseen accuracy.",
+    "Bold marks rounded row leaders only when measured denominators match. Missing/unsupported scores are unmeasured, never zero.",
+    "Strict preserves punctuation. Edge-delimiter ignores component-edge comma/semicolon/colon only, plus case and whitespace.",
+    "Timing appears only when recorded: exploratory process medians, not accuracy-run wall time. † marks sample spread above 10%; ! marks native errors/refusals.",
+    "The report command checks recorded run identities. Exports do not rescore predictions or rehash every artifact."
+  ]
+}
