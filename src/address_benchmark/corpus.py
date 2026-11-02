@@ -26,6 +26,8 @@ def check_manifest(manifest):
     require(isinstance(manifest["construction"], list) and manifest["construction"], "construction history required")
     require(manifest["exposure"].get("status") and isinstance(manifest["exposure"].get("history"), list), "exposure history required")
     require(isinstance(manifest["resources"], list) and manifest["resources"], "resources required")
+    from .profiles import check_profiles
+    check_profiles(manifest)
     if "row_limit" in manifest:
         require(type(manifest["row_limit"]) is int and manifest["row_limit"] > 0, "positive explicit integration row limit required")
     for resource in manifest["resources"]:

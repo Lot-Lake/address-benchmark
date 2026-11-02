@@ -66,7 +66,7 @@ def fine_score(reference, prediction, metadata, kind):
                 missing_span_items=sum(not x.get("spans") for x in parts))
 
 
-def score_case(row, prediction, metadata):
+def score_case(row, prediction, metadata, profiles=()):
     if metadata["tasks"] != ["parse"]:
         from .tasks import score_task
         return score_task(row, prediction, metadata)
@@ -81,6 +81,10 @@ def score_case(row, prediction, metadata):
     delimiter_mismatch = sorted(r for r in scope if [v.strip(",;:").strip() for v in gold_values.get(r, [])] != [v.strip(",;:").strip() for v in predicted_values.get(r, [])])
     eligible = reference["coverage"] != "none"
     passed = prediction["status"] == "ok" and not mismatch
+    extra = {}
+    if profiles:
+        from .profiles import score_profile
+        extra["profiles"] = {name: score_profile(name, row, prediction, metadata) for name in profiles}
     return dict(task="parse", id=row["id"], family=row["family"], split=row["split"], origin=row["origin"], subsets=row["subsets"],
                 coverage=reference["coverage"], status=prediction["status"],
                 primary_agrees=passed if eligible else None,
@@ -93,7 +97,7 @@ def score_case(row, prediction, metadata):
                 unsupported_reference_roles=sorted(r for r in expected if r not in {FINE_TO_COARSE[v] for v in metadata.get("active_roles", metadata["supported_roles"])}),
                 unsupported_fine_reference_roles=sorted({x["role"] for x in reference["tokens"]} - set(metadata.get("active_roles", metadata["supported_roles"]))),
                 spans=fine_score(reference, prediction, metadata, "spans"),
-                tokens=fine_score(reference, prediction, metadata, "tokens"))
+                tokens=fine_score(reference, prediction, metadata, "tokens"), **extra)
 
 
 def summarize(cases):
@@ -118,6 +122,10 @@ def summarize(cases):
         result["unsupported_rows"] = sum(c[kind]["status"] == "unsupported" for c in cases)
         result["unannotated_rows"] = sum(c[kind]["status"] == "unannotated" for c in cases)
         return result
+    extra = {}
+    if cases and "profiles" in cases[0]:
+        from .profiles import summarize_profile
+        extra["profiles"] = {name: summarize_profile([c["profiles"][name] for c in cases]) for name in cases[0]["profiles"]}
     return dict(rows=len(cases), source_families=len({c["family"] for c in cases}),
                 statuses=dict(Counter(c["status"] for c in cases)),
                 supplied_fields=rate([c["supplied_fields_agree"] for c in cases]),
@@ -125,7 +133,7 @@ def summarize(cases):
                 delimiter_fields=rate([c["delimiter_fields_agree"] for c in cases]),
                 delimiter_complete_address=rate([c["delimiter_complete_address_agrees"] for c in cases]),
                 spans=fine("spans"), tokens=fine("tokens"),
-                unadjudicated_rows=sum(bool(c["unadjudicated_roles"]) for c in cases))
+                unadjudicated_rows=sum(bool(c["unadjudicated_roles"]) for c in cases), **extra)
 
 
 def summarize_views(cases):
