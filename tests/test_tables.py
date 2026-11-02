@@ -36,11 +36,14 @@ def recorded():
 class ScoreTableTests(unittest.TestCase):
     def saved_sources(self, root):
         paths=[]
-        for name,view in [('deepparse-hf-us','full'),('nad-rendered','clean')]:
+        for name,views in [('deepparse-hf-us',['full','partial']),('nad-rendered',['clean','nocomma','expanded','noisy'])]:
             report=recorded();report['corpus']['id']=name
             for entry in report['accuracy'].values():
                 if 'populations' in entry:
-                    entry['populations']={key.replace('subset:hard','subset:'+view):value for key,value in entry['populations'].items()}
+                    original=entry['populations']
+                    entry['populations']={key:value for key,value in original.items() if '/subset:' not in key}
+                    entry['populations'].update({key.replace('subset:hard','subset:'+view):value
+                                                for key,value in original.items() if '/subset:' in key for view in views})
             report['content_id']=identity(report)
             path=root/(name+'.json');path.write_text(json.dumps(report));paths.append(path)
         return paths
@@ -59,11 +62,12 @@ class ScoreTableTests(unittest.TestCase):
             paths=self.saved_sources(Path(tmp))
             with redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(main(['report',*map(str,paths),'--all-views','--format','json']),0)
-            self.assertEqual({r['view'] for r in json.loads(output.getvalue())['rows']},{'all','full','clean'})
+            self.assertEqual({r['view'] for r in json.loads(output.getvalue())['rows']},
+                             {'all','full','partial','clean','nocomma','expanded','noisy'})
             with self.assertRaisesRegex(ValueError,'duplicate dataset'):
                 load_scorecard([paths[0],paths[0]])
             with self.assertRaisesRegex(ValueError,'requested subset'):
-                load_scorecard(paths,subsets=['noisy'])
+                load_scorecard(paths,subsets=['missing-view'])
 
     def test_multiple_sources_cannot_mix_scoring_policies(self):
         with tempfile.TemporaryDirectory() as tmp:
