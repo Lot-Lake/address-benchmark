@@ -133,8 +133,12 @@ class Libpostal:
         class Response(c.Structure):
             _fields_ = [("num_components", c.c_size_t), ("components", c.POINTER(c.c_char_p)), ("labels", c.POINTER(c.c_char_p))]
         library, data = Path(config["library"]), Path(config["data_dir"])
-        if not library.is_file() or not all((data / name).is_dir() for name in ("address_parser", "transliteration", "address_expansions", "numex")):
-            raise Unavailable("libpostal shared library/model directories unavailable")
+        # A parser-only model (e.g. Senzing) can live apart from the base data.
+        parser_dir = Path(config.get("parser_dir", data))
+        required = [data / name for name in ("transliteration", "address_expansions", "numex")] + [parser_dir / "address_parser"]
+        missing = ([] if library.is_file() else [library]) + [path for path in required if not path.is_dir()]
+        if missing:
+            raise Unavailable("libpostal shared library/model paths missing: " + ", ".join(map(str, missing)))
         self.c, self.library = c, c.CDLL(str(library))
         signatures = {
             "libpostal_setup_datadir": ([c.c_char_p], c.c_bool), "libpostal_setup_parser_datadir": ([c.c_char_p], c.c_bool),
@@ -150,13 +154,17 @@ class Libpostal:
         try:
             self.base = bool(self.library.libpostal_setup_datadir(os.fsencode(data)))
             require(self.base, "libpostal base setup failed")
-            self.parser = bool(self.library.libpostal_setup_parser_datadir(os.fsencode(data)))
+            self.parser = bool(self.library.libpostal_setup_parser_datadir(os.fsencode(parser_dir)))
             require(self.parser, "libpostal model setup failed")
             self.options = self.library.libpostal_get_address_parser_default_options()
         except BaseException:
             self.close()
             raise
         self.metadata = adapter_metadata(config.get("name", "libpostal"), "neutral", config)
+        # A separate parser directory may not occur in an existing caller's
+        # base-data inventory. Pin the assets actually selected by this adapter.
+        selected = [library] + [p for directory in required for p in sorted(directory.rglob('*')) if p.is_file()]
+        self.metadata['artifact_files'] = sorted(set(self.metadata['artifact_files'] + list(map(str, selected))))
         self.metadata["native_options"] = dict(language=None, country=None)
 
     def parse(self, request):
