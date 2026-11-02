@@ -57,6 +57,8 @@ def summarize_task(cases):
                   agreement=dict(correct=sum(c["primary_agrees"] for c in known), denominator=n,
                                  rate=sum(c["primary_agrees"] for c in known) / n if n else None))
     if task == "match":
+        require(len({c.get('entity_level', 'delivery-unit') for c in cases}) == 1,
+                'identity levels cannot be pooled')
         tp = sum(c["expected_same"] is True and c["predicted_same"] is True for c in known)
         fp = sum(c["expected_same"] is False and c["predicted_same"] is True for c in known)
         fn = sum(c["expected_same"] is True and c["predicted_same"] is not True for c in known)
@@ -67,7 +69,7 @@ def summarize_task(cases):
                       scope="authored pair decisions at delivery-unit level; no clustering/ranked-search or real-world prevalence claim")
         if any(c.get("entity_level") == "property" for c in cases):
             result["scope"] = "pair decisions at property level; no clustering/ranked-search or real-world prevalence claim"
-            result["property_keys"] = property_key_report([c for c in cases if c.get("entity_level") == "property"])
+            result["property_keys"] = property_key_report([c for c in known if c.get("entity_level") == "property"])
     elif task == "stability":
         result["checks"] = {key: dict(passed=sum(c["checks"].get(key, False) for c in known if key in c["checks"]), denominator=sum(key in c["checks"] for c in known))
                             for key in sorted({k for c in known for k in c["checks"]})}
@@ -86,6 +88,8 @@ def property_key_report(cases):
     """
     keys, missing = {}, 0
     for case in cases:
+        for entity in case['entities']:
+            keys.setdefault(entity, set())
         if case["keys"] is None:
             missing += 2
             continue
@@ -98,6 +102,9 @@ def property_key_report(cases):
             owners.setdefault(key, set()).add(entity)
     distinct = [c for c in cases if c["expected_same"] is False]
     return dict(properties=len(keys), keys_per_property=dict(sorted(per_property.items())),
+                properties_with_keys=sum(bool(values) for values in keys.values()),
+                properties_without_keys=sum(not values for values in keys.values()),
+                property_key_coverage=sum(bool(values) for values in keys.values()) / len(keys) if keys else None,
                 fragmented_properties=sum(n > 1 for n in (len(v) for v in keys.values())),
                 same_property_pairs=sum(c["expected_same"] is True for c in cases), distinct_property_pairs=len(distinct),
                 false_merge_pairs=sum(c["keys"] is not None and c["keys"][0] == c["keys"][1] for c in distinct),

@@ -129,6 +129,10 @@ def load_corpus(path):
             if manifest["task"] == "stability":
                 require(isinstance(row.get("payload", {}).get("texts"), list) and row["payload"]["texts"] and all(isinstance(x, str) for x in row["payload"]["texts"]), "stability requires input text list")
             check_reference(row["reference"], row["text"], manifest["task"])
+            if manifest['task'] == 'match':
+                property_profile = manifest['profile'] == 'address-benchmark.property-key-equality/v1'
+                require((row['reference']['entity_level'] == 'property') == property_profile,
+                        'identity level differs from the manifest profile')
             rows.append(row)
     require(rows, "corpus has no inputs")
     audit = audit_corpora([(manifest["id"], rows)])

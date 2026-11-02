@@ -64,6 +64,11 @@ distinct keys per property (1 is ideal; `fragmented_properties` counts the rest)
 `false_merge_pairs` (distinct-property pairs with equal keys), `colliding_keys`
 (keys any two different properties received anywhere in the population) and
 missing key sides. It describes the labeled pairs, not deployment prevalence.
+Properties with only failed keys remain in the population and zero-key bucket;
+`properties_with_keys`, `properties_without_keys` and `property_key_coverage`
+make the missing coverage explicit. Unlabeled rows do not contribute property
+assertions. Property references require the property profile; identity levels
+cannot be mixed in one corpus or summary.
 Delivery-unit corpora and their results are unchanged. Example:
 `examples/corpora/us-identity-property`.
 

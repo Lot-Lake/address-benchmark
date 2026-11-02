@@ -1,4 +1,6 @@
 from pathlib import Path
+import json
+import tempfile
 import unittest
 
 from address_benchmark.corpus import check_reference, load_corpus
@@ -43,8 +45,10 @@ class PropertyKeyReportTests(unittest.TestCase):
                  score_task(pair("p4", "p5"), keyed("K4X", "K1B"), META),     # p5 collides with p1 across pairs
                  score_task(pair("p6", "p6"), keyed(None, None, "error"), META)]
         report = summarize_task(cases)["property_keys"]
-        self.assertEqual(report["properties"], 5)
-        self.assertEqual(report["keys_per_property"], {1: 3, 2: 2})
+        self.assertEqual(report["properties"], 6)
+        self.assertEqual(report["keys_per_property"], {0: 1, 1: 3, 2: 2})
+        self.assertEqual(report['properties_without_keys'], 1)
+        self.assertEqual(report['property_key_coverage'], 5 / 6)
         self.assertEqual(report["fragmented_properties"], 2)
         self.assertEqual((report["same_property_pairs"], report["distinct_property_pairs"]), (3, 3))
         self.assertEqual(report["false_merge_pairs"], 1)
@@ -65,6 +69,32 @@ class PropertyKeyReportTests(unittest.TestCase):
         self.assertEqual(manifest["profile"], "address-benchmark.property-key-equality/v1")
         self.assertEqual({r["reference"]["entity_level"] for r in rows}, {"property"})
         self.assertEqual(sum(r["reference"]["same_entity"] for r in rows), 4)
+
+    def test_all_failed_properties_remain_in_the_population(self):
+        cases = [score_task(pair('p1', 'p2'), keyed(None, None, 'error'), META)]
+        report = summarize_task(cases)['property_keys']
+        self.assertEqual(report['properties'], 2)
+        self.assertEqual(report['keys_per_property'], {0: 2})
+        self.assertEqual(report['property_key_coverage'], 0)
+        self.assertEqual(report['missing_key_sides'], 2)
+
+    def test_identity_levels_cannot_be_pooled(self):
+        cases = [score_task(pair('p1', 'p1'), keyed('K', 'K'), META),
+                 score_task(pair('u1', 'u1', level='delivery-unit'), keyed('U', 'U'), META)]
+        with self.assertRaisesRegex(ValueError, 'cannot be pooled'):
+            summarize_task(cases)
+
+    def test_reference_level_must_match_the_manifest_profile(self):
+        manifest = json.loads(CORPUS.read_text())
+        resource = manifest['resources'][0]
+        resource['external_path'] = str(CORPUS.parent / resource.pop('path'))
+        manifest['license']['redistribution'] = 'local-only'
+        manifest['profile'] = 'address-benchmark.delivery-unit-key-equality/v1'
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'manifest.json'
+            path.write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(ValueError, 'identity level differs'):
+                load_corpus(path)
 
 
 if __name__ == "__main__":
