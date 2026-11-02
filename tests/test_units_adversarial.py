@@ -1,5 +1,6 @@
 from collections import Counter
 from pathlib import Path
+import re
 import unittest
 
 from address_benchmark.corpus import audit_corpora, load_corpus
@@ -22,7 +23,11 @@ class UnitsAdversarialCorpusTests(unittest.TestCase):
         for row in self.rows:
             for values in row["reference"]["fields"].values():
                 for value in values:
-                    self.assertIn(value, row["text"], row["id"])
+                    self.assertRegex(row['text'], r'(?<!\w)' + re.escape(value) + r'(?!\w)', row['id'])
+
+    def test_full_square_token_is_preserved(self):
+        row = next(r for r in self.rows if r['id'] == 'units-090')
+        self.assertEqual(row['reference']['fields']['road'], ['BRASS LANTERN SQUARE'])
 
     def test_every_group_is_a_subset_and_only_the_route_bare_value_case_is_partial(self):
         groups = Counter(s for r in self.rows for s in r["subsets"])

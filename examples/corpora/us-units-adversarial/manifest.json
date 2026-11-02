@@ -24,14 +24,14 @@
   "ontology": "address-benchmark.us-roles/v2",
   "provenance": {
     "source": "Original contributor-authored fictional fixtures (USPS Publication 28 sections cited per group)",
-    "source_sha256": "409df025debc99690de2ea4c04a4dfd7ba13c3f4799051d07d596d2c6ca83cf4",
+    "source_sha256": "4b33614332956bec005deab58355a2841c203ec485c83df3ae89e88596c98fe3",
     "upstream_revision": "authored-v1"
   },
   "resources": [
     {
-      "bytes": 35078,
+      "bytes": 35082,
       "path": "cases.jsonl",
-      "sha256": "409df025debc99690de2ea4c04a4dfd7ba13c3f4799051d07d596d2c6ca83cf4"
+      "sha256": "4b33614332956bec005deab58355a2841c203ec485c83df3ae89e88596c98fe3"
     }
   ],
   "schema": "address-benchmark.corpus/v1",
