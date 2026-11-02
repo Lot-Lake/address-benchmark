@@ -1,0 +1,35 @@
+# Complete USA parser comparison / 2026-11-02
+
+strict-streetline/v1 profile agreement
+
+| Dataset / view | Rust learned | Rust default | BoundaryBoys | Doorplate | usaddress | fastaddress | libpostal default | libpostal Senzing | Mailwoman |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| GeoSearch dev | **98.87%** | 76.88% | 70.64% | 94.34% | 88.14% | 88.14% | 84.28% | 78.71% | 89.05% |
+| GeoSearch test (publisher split) | **99.01%** | 80.04% | 72.80% | 96.66% | 88.28% | 88.28% | 88.82% | 86.15% | 91.26% |
+| Doorplate suite | 89.01% | 84.07% | 74.83% | **95.93%** | 87.34% | 87.34% | 82.71% | 89.17% | 92.84% |
+| Doorplate suite / normal | 94.59% | 91.04% | 82.77% | **98.76%** | 97.09% | 97.09% | 88.71% | 93.15% | 96.74% |
+| Doorplate suite / hard | 54.31% | 40.12% | 35.86% | **78.68%** | 24.45% | 24.45% | 48.12% | 67.12% | 70.52% |
+| Doorplate suite / handwritten | 89.50% | 86.10% | 48.50% | **95.10%** | 94.00% | 94.00% | 76.10% | 82.40% | 88.10% |
+| Expanded USA | 91.59% | **98.62%** | 82.56% | 96.87% | 92.02% | 92.02% | 91.82% | 97.68% | 94.08% |
+| Expanded USA / partial | 92.22% | **98.59%** | 83.52% | 97.43% | 92.36% | 92.36% | 91.67% | 97.70% | 94.59% |
+| us-units-adversarial | 77.88% | 80.77% | 25.96% | **93.27%** | 87.50% | 87.50% | 58.65% | 68.27% | 73.08% |
+| deepparse-hf-us | 87.19% | 80.62% | 74.25% | 90.27% | 89.14% | 89.14% | **99.68%** | 98.21% | 88.98% |
+| deepparse-hf-us / full | 86.13% | 78.81% | 74.51% | 90.88% | 90.07% | 90.07% | **99.68%** | 98.63% | 89.94% |
+| deepparse-hf-us / partial | 88.80% | 83.39% | 73.86% | 89.33% | 87.73% | 87.73% | **99.69%** | 97.57% | 87.50% |
+| nad-rendered | 96.59% | 97.77% | 96.97% | **99.61%** | 99.32% | 99.32% | 94.95% | 98.50% | 98.65% |
+| nad-rendered / clean | 98.44% | **99.96%** | 99.93% | **99.96%** | 99.83% | 99.83% | 94.47% | 98.32% | 99.83% |
+| nad-rendered / nocomma | 97.67% | 93.76% | 90.95% | **99.88%** | 99.52% | 99.52% | 94.51% | 98.56% | 96.39% |
+| nad-rendered / expanded | 92.22% | **99.96%** | 99.93% | **99.96%** | 99.29% | 99.29% | 96.57% | 99.47% | 99.85% |
+| nad-rendered / noisy | 98.04% | 97.38% | 97.08% | 98.63% | **98.67%** | **98.67%** | 94.23% | 97.64% | 98.52% |
+
+- Counts and failures use the recorded scoring denominators. Partial references judge supplied labels; they are not whole-address accuracy.
+- Subset rows overlap the parent dataset. Public/development-exposed fixtures do not establish unseen accuracy.
+- Bold marks rounded row leaders only when measured denominators match. Missing/unsupported scores are unmeasured, never zero.
+- Strict preserves punctuation. Edge-delimiter ignores component-edge comma/semicolon/colon only, plus case and whitespace.
+- Timing appears only when recorded: exploratory process medians, not accuracy-run wall time. † marks sample spread above 10%; ! marks native errors/refusals.
+- The report command checks recorded run identities. Exports do not rescore predictions or rehash every artifact.
+- Combined from multiple recorded experiment sources; source run identities remain separate. This is not a new simultaneous run or a pooled overall score.
+- Deepparse full means all five tagged core fields are present; both full and partial views still have partial reference coverage. This source has libpostal training lineage.
+- NAD rows are generated from an explicit frozen sample of the official public API. Fifty indexed 1,000-record OBJECTID windows were acquired; eligible states were sampled/rendered by the merged generator. This is not the r24 TXT archive or an exact reproduction of an unshared screenshot.
+- The first five panels come from the earlier verified run; Deepparse/NAD were executed afterward with the same frozen framework and configured engines. Separate source run identities and timestamps are retained.
+- Doorplate publisher references contain trailing field delimiters in 12,331/19,586 rows. Strict measures literal punctuation fidelity here; use delimiter or versioned streetline scores for canonical component comparison. Reference values/spans were not rewritten.

@@ -1,0 +1,14 @@
+{
+  "rows": 19586,
+  "rows_with_trailing_field_delimiter": 12331,
+  "affected_rows_by_role": {
+    "city": 12302,
+    "road": 10545,
+    "unit": 1946,
+    "po_box": 562,
+    "postcode": 20,
+    "recipient": 247
+  },
+  "references_sha256": "7213dd62ae317776c78921b2ad78bd191f62a56f11813daecf9ee9f689d629c8",
+  "policy": "Literal publisher references retained. Strict measures source punctuation fidelity; prefer delimiter/streetline for component comparison. No gold rewrite."
+}

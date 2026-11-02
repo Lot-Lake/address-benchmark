@@ -1,5 +1,7 @@
 # Fresh benchmark — 2026-11-02
 
+Historical five-panel run. The [complete seven-population report](../complete-view-run/README.md) adds the executed Deepparse/NAD panels and their views.
+
 9 parsing configurations; 113,807 source rows across five panels; 1,024,263 fresh predictions. All 45 engine/panel cells completed and all five panels were verified. Framework source and bridges were frozen from merged main before execution.
 
 Our learned column uses `usa-lexical-locality-unit-boundary28` (`e429c2cf5a1e01abcb6fad02d7f39768d3d8923141dee58b14ce016a889fe965`). It is an optional experimental model; the default public parser remains a separate column. Competitors use the actual installed cohort versions, not claims about latest upstream releases.

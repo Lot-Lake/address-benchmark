@@ -1,0 +1,196 @@
+{
+  "schema": "address-benchmark.complete-populations/v1",
+  "source_rows": 168067,
+  "configurations": 9,
+  "total_recorded_predictions": 1512603,
+  "new_source_rows": 54260,
+  "new_predictions": 488340,
+  "parsing_cells": 63,
+  "required_new_views": [
+    [
+      "deepparse-hf-us",
+      "all"
+    ],
+    [
+      "deepparse-hf-us",
+      "full"
+    ],
+    [
+      "deepparse-hf-us",
+      "partial"
+    ],
+    [
+      "nad-rendered",
+      "all"
+    ],
+    [
+      "nad-rendered",
+      "clean"
+    ],
+    [
+      "nad-rendered",
+      "expanded"
+    ],
+    [
+      "nad-rendered",
+      "nocomma"
+    ],
+    [
+      "nad-rendered",
+      "noisy"
+    ]
+  ],
+  "runtime_identity_comparison": {
+    "boundaryboys": {
+      "previous_identity_sha256": "fab66d19f37d916cfb1d693a60c8902cc8fae23d836f795ef7bb7099338d4de4",
+      "added_identity_sha256": "fab66d19f37d916cfb1d693a60c8902cc8fae23d836f795ef7bb7099338d4de4",
+      "identical": true
+    },
+    "doorplate": {
+      "previous_identity_sha256": "d8c7ef51c0e2c13e23b158dbad680fc519480f6bea79af70b65ebd0b5ab00ff9",
+      "added_identity_sha256": "d8c7ef51c0e2c13e23b158dbad680fc519480f6bea79af70b65ebd0b5ab00ff9",
+      "identical": true
+    },
+    "fastaddress": {
+      "previous_identity_sha256": "13c656a96432a80c88cec1fc921e0be773d7b6fc4cedcd72b8ea94aae649ed78",
+      "added_identity_sha256": "13c656a96432a80c88cec1fc921e0be773d7b6fc4cedcd72b8ea94aae649ed78",
+      "identical": true
+    },
+    "libpostal-default": {
+      "previous_identity_sha256": "1b51265210484f225e858f23a997de28e9e55792a375021e5cfa8485278158cf",
+      "added_identity_sha256": "1b51265210484f225e858f23a997de28e9e55792a375021e5cfa8485278158cf",
+      "identical": true
+    },
+    "libpostal-senzing": {
+      "previous_identity_sha256": "9661ef9bd93f681766ff80d378c7d4ad1841ef20f024399c9d77cc9c3d0bc180",
+      "added_identity_sha256": "9661ef9bd93f681766ff80d378c7d4ad1841ef20f024399c9d77cc9c3d0bc180",
+      "identical": true
+    },
+    "mailwoman": {
+      "previous_identity_sha256": "ea01555eebc686afb05cb7bea1e92d84fa3666bad0ee56f828dd9dc65df4af92",
+      "added_identity_sha256": "ea01555eebc686afb05cb7bea1e92d84fa3666bad0ee56f828dd9dc65df4af92",
+      "identical": true
+    },
+    "rust-default": {
+      "previous_identity_sha256": "8b27bf082e903ef43d5269589892836c30e3ee5bf188a14d79739d9c302b04ce",
+      "added_identity_sha256": "8b27bf082e903ef43d5269589892836c30e3ee5bf188a14d79739d9c302b04ce",
+      "identical": true
+    },
+    "rust-learned": {
+      "previous_identity_sha256": "dc933f2777076bab8d6c0290a1e4fbebd61b35b07f188a7ae769aeae80d2a7d3",
+      "added_identity_sha256": "dc933f2777076bab8d6c0290a1e4fbebd61b35b07f188a7ae769aeae80d2a7d3",
+      "identical": true
+    },
+    "usaddress": {
+      "previous_identity_sha256": "bd3ca666dc7326c6a53e9693e336740b0462cd236a339c231b969733197f96eb",
+      "added_identity_sha256": "bd3ca666dc7326c6a53e9693e336740b0462cd236a339c231b969733197f96eb",
+      "identical": true
+    }
+  },
+  "batches": [
+    {
+      "name": "earlier-five-panels",
+      "plan_sha256": "2efac5db6d58508d8879528c9c5bb2c3eecc3b2a2ba6c40446b364e79f6f0339",
+      "receipt": {
+        "name": "Fresh merged-main comparison 2026-11-02",
+        "plan_sha256": "2efac5db6d58508d8879528c9c5bb2c3eecc3b2a2ba6c40446b364e79f6f0339",
+        "schema": "address-benchmark.plan-results/v1",
+        "status": "complete",
+        "tracks": [
+          {
+            "content_id": "0e1adbb60c702f4d016045b5a57cd4f4c12f0c71cf6f2fe0fbc8f20a67ccff26",
+            "id": "geosearch-dev",
+            "output": "results/geosearch-dev",
+            "status": "complete",
+            "verification": "verified"
+          },
+          {
+            "content_id": "8e5ac37aaf6a023f408740f60af8dbdb275c5ecdeae9c53031ac254786c04476",
+            "id": "geosearch-test",
+            "output": "results/geosearch-test",
+            "status": "complete",
+            "verification": "verified"
+          },
+          {
+            "content_id": "1ccf4ad912ebc1ae2fead09b0b43f6a406590ed4532a85d1332909394d31904f",
+            "id": "doorplate-v1",
+            "output": "results/doorplate-v1",
+            "status": "complete",
+            "verification": "verified"
+          },
+          {
+            "content_id": "9e8f21a9f751a454ff4a44e506a116b73f92cc5354356782ee91029985efdb8f",
+            "id": "expanded-usa",
+            "output": "results/expanded-usa",
+            "status": "complete",
+            "verification": "verified"
+          },
+          {
+            "content_id": "af9b8dca3fffc0ce3f90404f0271ec18bee8f6a50105212660a51b6e562ef736",
+            "id": "us-units-adversarial",
+            "output": "results/us-units-adversarial",
+            "status": "complete",
+            "verification": "verified"
+          }
+        ]
+      }
+    },
+    {
+      "name": "new-deepparse-nad",
+      "plan_sha256": "f4fee9133358449710acfd9cc12f8d8f1a60c77b176daa3225eb7778025635df",
+      "receipt": {
+        "name": "Missing Deepparse and NAD populations / 2026-11-02",
+        "plan_sha256": "f4fee9133358449710acfd9cc12f8d8f1a60c77b176daa3225eb7778025635df",
+        "schema": "address-benchmark.plan-results/v1",
+        "status": "complete",
+        "tracks": [
+          {
+            "content_id": "cb152df968806027241b2154cada5e98bccfef15238056a2de09743e131b66e3",
+            "id": "deepparse-hf-us",
+            "output": "results/deepparse-hf-us",
+            "status": "complete",
+            "verification": "verified"
+          },
+          {
+            "content_id": "e2f76149913594affb1a5addd382f91f3cad4565c9df80499bd7a53f2af3da62",
+            "id": "nad-rendered",
+            "output": "results/nad-rendered",
+            "status": "complete",
+            "verification": "verified"
+          }
+        ]
+      }
+    }
+  ],
+  "source_acquisition": {
+    "deepparse": {
+      "file_hashes": "unverified (remote row-group reads)",
+      "files": [
+        {
+          "bytes": 1342845235,
+          "path": "us/chunk-0.parquet",
+          "sha256": "251f9a91685ec91b0a389d0a5ddcadd8ef48831b37cb221fdbb2ec56fa34e265"
+        },
+        {
+          "bytes": 1493755695,
+          "path": "us/chunk-1.parquet",
+          "sha256": "ec90464a08e009ebbff1a89f38bb7d8bb53b21281a126a3254d0ed59fd1f92e8"
+        },
+        {
+          "bytes": 1493613524,
+          "path": "us/chunk-2.parquet",
+          "sha256": "81c9cdbb2fc0fe4d2912c3bf3ed262703d509ffbaf84d8a3b4bc102c39005ee0"
+        },
+        {
+          "bytes": 1426070045,
+          "path": "us/chunk-3.parquet",
+          "sha256": "c5ca77c73d3f78b0149a199dc8eb6113b2bec1db95171223028dd1f882890ca6"
+        }
+      ],
+      "source": "https://huggingface.co/datasets/deepparse/worldwide-addresses",
+      "upstream_revision": "cb61e5e49db87f8c3586b5494149f612460f8992"
+    },
+    "nad_sampling": "50 indexed 1000-record OBJECTID windows starting at 1000001 with stride 2000000; deterministic source-window sample, not representative national sampling",
+    "nad_csv_sha256": "ba614963dc1dbfec3b0b8e78cc3cb9b7ac44817f53559650faaf77aba2b480de"
+  }
+}

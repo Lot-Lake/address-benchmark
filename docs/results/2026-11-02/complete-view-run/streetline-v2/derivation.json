@@ -1,0 +1,1075 @@
+{
+  "schema": "address-benchmark.saved-prediction-rescore/v1",
+  "profile": "strict-streetline/v2",
+  "created_at": "2026-11-02T21:19:59.503640+00:00",
+  "source_pins": {
+    "profiles.py": "1e878dba80f5c27a389436521fe05057c5cf765f60d48c99264e604f240077a7",
+    "pub28.py": "dd5c8994a05318e9f056d57591bda659a9364d94d3ea3dde3b0c5fd0831f7a2e",
+    "ontologies.py": "d2a1031b9565e244e9b64f0239fccd7200ae29f170726ad1c6e6aab532151707",
+    "protocol.py": "5c05a2754dafd1ee4a04ca6c7a42e59d901cb6a4dfad77ff2f10a0ad20b1e4de",
+    "tables.py": "23fd673f7095156752ac55aab989bc73599e96b22a2272a630f1774010569010"
+  },
+  "predictions": 1512603,
+  "sources": [
+    {
+      "dataset": "geosearch-dev",
+      "native_run_content_id": "0e1adbb60c702f4d016045b5a57cd4f4c12f0c71cf6f2fe0fbc8f20a67ccff26",
+      "references_sha256": "0931e4bfe2388578e2262afa55af4552975d1346b7e27887008a2c6a4a2e5d0b",
+      "engines": {
+        "boundaryboys": {
+          "artifact_hashes": {
+            "predictions": "1b46bbe78d767c067ff663d2cc66a62a6e09bb0aca4593816ce624c544d0cfe7",
+            "cases": "d004abc76509ad7223045d0d0d6296bb938cb8fae7e09f79f1c441a0a8fda9b4",
+            "identity": "302096940962d8d67db3183071f268d32e37694a88870431331977fb57b72cf7"
+          },
+          "predictions": 60522,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 42751,
+            "v2_correct": 42751,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "fab66d19f37d916cfb1d693a60c8902cc8fae23d836f795ef7bb7099338d4de4"
+        },
+        "doorplate": {
+          "artifact_hashes": {
+            "predictions": "6121780e9f0d3d5a7678a38470a44b5ab245644db7ea7a697bafb95357ec5e85",
+            "cases": "465c867aa8564a072e5bd0019f00b4d27e276e2ca6fecca0e2ab79cb325c5498",
+            "identity": "fe91347ac643d9d609a086d767dfeb956794c1fea6a4fe8e378ceb8d144fb8b3"
+          },
+          "predictions": 60522,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 57095,
+            "v2_correct": 57095,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "d8c7ef51c0e2c13e23b158dbad680fc519480f6bea79af70b65ebd0b5ab00ff9"
+        },
+        "fastaddress": {
+          "artifact_hashes": {
+            "predictions": "84a2d9c24d3fc5e61818c5b46ef5d32228bb8a543416743b805d01dafa51e637",
+            "cases": "449fd48202cffcc39bd6bc7cf75c803748c045af990a0af0342c600ba701c22e",
+            "identity": "f0435ed0c640b41998435fafc5ac053aca9df2d331575a6306c444d647d3d59b"
+          },
+          "predictions": 60522,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 53343,
+            "v2_correct": 53411,
+            "gained": 68,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "13c656a96432a80c88cec1fc921e0be773d7b6fc4cedcd72b8ea94aae649ed78"
+        },
+        "libpostal-default": {
+          "artifact_hashes": {
+            "predictions": "9e29cea0c179f4bf69684da4cd6e6c4a5c79cc8e5b434b75794a9aa2d2e5c1e6",
+            "cases": "398d6611cf9b293b51e0fba64d1f04db46925e2668ddeaf65ca723c5682eb626",
+            "identity": "f79f7a8f23735068444b4f6b88782262cdca73ce44ef0075cc5f14bdf9ff6ccc"
+          },
+          "predictions": 60522,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 51006,
+            "v2_correct": 51006,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "1b51265210484f225e858f23a997de28e9e55792a375021e5cfa8485278158cf"
+        },
+        "libpostal-senzing": {
+          "artifact_hashes": {
+            "predictions": "79b12695ec24645c45f242a165214fe1b51f35b07e48f67af9cf9ea32b36d241",
+            "cases": "bc122de0002b33877be56da8ff574885a2d7ffb8fbfe6fa29a6700a2dea724b4",
+            "identity": "f228a644e72d256ca734b5a8084f2d6d5239b4ec11dbb1da96bead7a09b5a5d4"
+          },
+          "predictions": 60522,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 47636,
+            "v2_correct": 47636,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "9661ef9bd93f681766ff80d378c7d4ad1841ef20f024399c9d77cc9c3d0bc180"
+        },
+        "mailwoman": {
+          "artifact_hashes": {
+            "predictions": "45004d7801d09be036f11f92e1a69ef3694ea1eed969443b80cfe6577d3b873f",
+            "cases": "58b849b724c6d9b3794729ac24dc4dc12b67686bce979a2eddd3b5f81b86e706",
+            "identity": "3674a25a1fdc4709b726c5c1c237177aa68154b75c068b8f8637e0cf43bb5a85"
+          },
+          "predictions": 60522,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 53892,
+            "v2_correct": 53892,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "ea01555eebc686afb05cb7bea1e92d84fa3666bad0ee56f828dd9dc65df4af92"
+        },
+        "rust-default": {
+          "artifact_hashes": {
+            "predictions": "7bb120fb698fc939f1d7e2ba8e3fd1f16ffc37e6b387b8b1876e68600f87f624",
+            "cases": "9d7dd82fad3d1db13c1174b690398a723fbff8793936f9ae5136a4a88f9d023d",
+            "identity": "d7bced36a38c9e2e1ea76187e18614cfac6fcf45a5f1822a4d6cf690e463778c"
+          },
+          "predictions": 60522,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 46532,
+            "v2_correct": 46532,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "8b27bf082e903ef43d5269589892836c30e3ee5bf188a14d79739d9c302b04ce"
+        },
+        "rust-learned": {
+          "artifact_hashes": {
+            "predictions": "980115fe6e41f1095340df9a0aeee8a34a409a6e58c8fc2fe141154bd0db56c5",
+            "cases": "50c4f7eec7250d4303686fbd4aa69b99eed91c67eaf322494a45ddc51ff0477c",
+            "identity": "06d90f48881b7f5760e279e2dc80f60b6a77f680c95cfe864d2bce359751e1ca"
+          },
+          "predictions": 60522,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 59841,
+            "v2_correct": 59845,
+            "gained": 4,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "dc933f2777076bab8d6c0290a1e4fbebd61b35b07f188a7ae769aeae80d2a7d3"
+        },
+        "usaddress": {
+          "artifact_hashes": {
+            "predictions": "84a2d9c24d3fc5e61818c5b46ef5d32228bb8a543416743b805d01dafa51e637",
+            "cases": "449fd48202cffcc39bd6bc7cf75c803748c045af990a0af0342c600ba701c22e",
+            "identity": "f805e5a7ee631b1c8e6035de1abda46988dea46ef07f16ffe1e6ab1961b3791d"
+          },
+          "predictions": 60522,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 53343,
+            "v2_correct": 53411,
+            "gained": 68,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "bd3ca666dc7326c6a53e9693e336740b0462cd236a339c231b969733197f96eb"
+        }
+      }
+    },
+    {
+      "dataset": "geosearch-test",
+      "native_run_content_id": "8e5ac37aaf6a023f408740f60af8dbdb275c5ecdeae9c53031ac254786c04476",
+      "references_sha256": "d91004112bbfb14fc0f8b7bcca3f4bca08b3304f3720ac6e6353c53362777f16",
+      "engines": {
+        "boundaryboys": {
+          "artifact_hashes": {
+            "predictions": "a467118be480d7d5bbca2597b9344e61f991940622e3fe66d93fd290c6cce1b0",
+            "cases": "6b5f39ca99311fa8c24d799cad117fb79ecbad6a9289d6938564d5842f44f814",
+            "identity": "302096940962d8d67db3183071f268d32e37694a88870431331977fb57b72cf7"
+          },
+          "predictions": 30622,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 22292,
+            "v2_correct": 22292,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "fab66d19f37d916cfb1d693a60c8902cc8fae23d836f795ef7bb7099338d4de4"
+        },
+        "doorplate": {
+          "artifact_hashes": {
+            "predictions": "a68071fb3e4ffe111a2727406564c824daf0a493c455bb9b96be09023ede6bb6",
+            "cases": "e0d04e3f9562bb34736557a72807ac18f61d14e27f85bf8f768358aac3d45276",
+            "identity": "fe91347ac643d9d609a086d767dfeb956794c1fea6a4fe8e378ceb8d144fb8b3"
+          },
+          "predictions": 30622,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 29599,
+            "v2_correct": 29599,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "d8c7ef51c0e2c13e23b158dbad680fc519480f6bea79af70b65ebd0b5ab00ff9"
+        },
+        "fastaddress": {
+          "artifact_hashes": {
+            "predictions": "d71b5681d45f7f3f5c32b19f37d24105c72ac99d8feb45227d56a7b64696e251",
+            "cases": "c4a822612e7a0c275222549a142294d7c8625692cb599e0c7b66b09ac5c689ff",
+            "identity": "f0435ed0c640b41998435fafc5ac053aca9df2d331575a6306c444d647d3d59b"
+          },
+          "predictions": 30622,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 27033,
+            "v2_correct": 27068,
+            "gained": 35,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "13c656a96432a80c88cec1fc921e0be773d7b6fc4cedcd72b8ea94aae649ed78"
+        },
+        "libpostal-default": {
+          "artifact_hashes": {
+            "predictions": "60b79a5cb05c0161a56fccbd1e7f1e2bdd5fa64314de6b8ade31751661a49887",
+            "cases": "98fde976f98bd7f181b408fa990354e860b8f1341cedeef008af264e01c0714f",
+            "identity": "f79f7a8f23735068444b4f6b88782262cdca73ce44ef0075cc5f14bdf9ff6ccc"
+          },
+          "predictions": 30622,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 27198,
+            "v2_correct": 27198,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "1b51265210484f225e858f23a997de28e9e55792a375021e5cfa8485278158cf"
+        },
+        "libpostal-senzing": {
+          "artifact_hashes": {
+            "predictions": "42fe2df5d26f2deda93582b0181747eea2da7b44647184aa0a52e0993f7d1255",
+            "cases": "fc5c28d28b47a025765ff34894ae684bed972745caf051fd520d10dee6257382",
+            "identity": "f228a644e72d256ca734b5a8084f2d6d5239b4ec11dbb1da96bead7a09b5a5d4"
+          },
+          "predictions": 30622,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 26382,
+            "v2_correct": 26382,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "9661ef9bd93f681766ff80d378c7d4ad1841ef20f024399c9d77cc9c3d0bc180"
+        },
+        "mailwoman": {
+          "artifact_hashes": {
+            "predictions": "14ce92fd252b433d30cee8808a30b565fa68ac6c18860f81536d937e029a4c3c",
+            "cases": "96e443dbea6e68d5cf2888aa160f044a6159803e963cd86d5b010d12a2e1ea5e",
+            "identity": "3674a25a1fdc4709b726c5c1c237177aa68154b75c068b8f8637e0cf43bb5a85"
+          },
+          "predictions": 30622,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 27947,
+            "v2_correct": 27947,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "ea01555eebc686afb05cb7bea1e92d84fa3666bad0ee56f828dd9dc65df4af92"
+        },
+        "rust-default": {
+          "artifact_hashes": {
+            "predictions": "679a38d0c1d7e6b291249e11e1ddd6d0e468a674bb4f1225fc16e32f70d6b7bf",
+            "cases": "8f0959ae1e94da8238970a60a9a8b1ea2888106028ea0570aa6aec6b90ebd50a",
+            "identity": "d7bced36a38c9e2e1ea76187e18614cfac6fcf45a5f1822a4d6cf690e463778c"
+          },
+          "predictions": 30622,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 24511,
+            "v2_correct": 24511,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "8b27bf082e903ef43d5269589892836c30e3ee5bf188a14d79739d9c302b04ce"
+        },
+        "rust-learned": {
+          "artifact_hashes": {
+            "predictions": "32784811121683c1519d91d7727688cd745a01a9ce984a719918e0ff79c6e0c0",
+            "cases": "3970fb1eecc93122a61ba578ca71cf3af3cb2076f62223b58da133fb8e524549",
+            "identity": "06d90f48881b7f5760e279e2dc80f60b6a77f680c95cfe864d2bce359751e1ca"
+          },
+          "predictions": 30622,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 30320,
+            "v2_correct": 30323,
+            "gained": 3,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "dc933f2777076bab8d6c0290a1e4fbebd61b35b07f188a7ae769aeae80d2a7d3"
+        },
+        "usaddress": {
+          "artifact_hashes": {
+            "predictions": "d71b5681d45f7f3f5c32b19f37d24105c72ac99d8feb45227d56a7b64696e251",
+            "cases": "c4a822612e7a0c275222549a142294d7c8625692cb599e0c7b66b09ac5c689ff",
+            "identity": "f805e5a7ee631b1c8e6035de1abda46988dea46ef07f16ffe1e6ab1961b3791d"
+          },
+          "predictions": 30622,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 27033,
+            "v2_correct": 27068,
+            "gained": 35,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "bd3ca666dc7326c6a53e9693e336740b0462cd236a339c231b969733197f96eb"
+        }
+      }
+    },
+    {
+      "dataset": "doorplate-v1",
+      "native_run_content_id": "1ccf4ad912ebc1ae2fead09b0b43f6a406590ed4532a85d1332909394d31904f",
+      "references_sha256": "7213dd62ae317776c78921b2ad78bd191f62a56f11813daecf9ee9f689d629c8",
+      "engines": {
+        "boundaryboys": {
+          "artifact_hashes": {
+            "predictions": "ea9daa67ccefd041feb770c35702e64cd4dbd2c1a26a30bf417b331283c79059",
+            "cases": "341ee9b9fdb519f44d10f0a2783c84e9b50a79d706f3050d1acc301aedf21259",
+            "identity": "302096940962d8d67db3183071f268d32e37694a88870431331977fb57b72cf7"
+          },
+          "predictions": 19586,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 14656,
+            "v2_correct": 14658,
+            "gained": 2,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "fab66d19f37d916cfb1d693a60c8902cc8fae23d836f795ef7bb7099338d4de4"
+        },
+        "doorplate": {
+          "artifact_hashes": {
+            "predictions": "8df8abd77dba360151df5e2b9204d3c9acb37354a74ad4862bd92394c7385ba0",
+            "cases": "5ab02c3de3ad7f7bd62e5350cebf4823a00cb571af49e50b355d42fddf61c875",
+            "identity": "fe91347ac643d9d609a086d767dfeb956794c1fea6a4fe8e378ceb8d144fb8b3"
+          },
+          "predictions": 19586,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 18788,
+            "v2_correct": 18790,
+            "gained": 2,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "d8c7ef51c0e2c13e23b158dbad680fc519480f6bea79af70b65ebd0b5ab00ff9"
+        },
+        "fastaddress": {
+          "artifact_hashes": {
+            "predictions": "a4b55041a855a82d9cfea4558f5762c8f6932baa50bc79e0611fc54df927f4fa",
+            "cases": "3f8bf83380facc79045355632bfbeed32aa6620278fa08a04dc4993c03cdfdde",
+            "identity": "f0435ed0c640b41998435fafc5ac053aca9df2d331575a6306c444d647d3d59b"
+          },
+          "predictions": 19586,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 17107,
+            "v2_correct": 17109,
+            "gained": 3,
+            "lost": 1
+          },
+          "runtime_identity_sha256": "13c656a96432a80c88cec1fc921e0be773d7b6fc4cedcd72b8ea94aae649ed78"
+        },
+        "libpostal-default": {
+          "artifact_hashes": {
+            "predictions": "94ac93f914c23a8b48e7337f55294bd2b9d23d2038d09e7990e5cf355cd63503",
+            "cases": "aeeacd3365492c75f8c09bb318734b5a821312fcc9cf2cc2c9f3869bbb3a07e5",
+            "identity": "f79f7a8f23735068444b4f6b88782262cdca73ce44ef0075cc5f14bdf9ff6ccc"
+          },
+          "predictions": 19586,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 16199,
+            "v2_correct": 16201,
+            "gained": 2,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "1b51265210484f225e858f23a997de28e9e55792a375021e5cfa8485278158cf"
+        },
+        "libpostal-senzing": {
+          "artifact_hashes": {
+            "predictions": "e36b804a9945b3f81b1fe1af1468ff130db96196bcc8adec00509aee7deb478c",
+            "cases": "a990863a9123e3c2b087a100b32bb89b63fe81e9258b70be875bf3b83326e676",
+            "identity": "f228a644e72d256ca734b5a8084f2d6d5239b4ec11dbb1da96bead7a09b5a5d4"
+          },
+          "predictions": 19586,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 17464,
+            "v2_correct": 17466,
+            "gained": 2,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "9661ef9bd93f681766ff80d378c7d4ad1841ef20f024399c9d77cc9c3d0bc180"
+        },
+        "mailwoman": {
+          "artifact_hashes": {
+            "predictions": "3384f86b440acb08a08633a0940894d3097a62011919d4d186acab5385ce0886",
+            "cases": "59f804368790ade0d77ff8e308c658815fcb228e6ee148a0bd4653bb669b5fce",
+            "identity": "3674a25a1fdc4709b726c5c1c237177aa68154b75c068b8f8637e0cf43bb5a85"
+          },
+          "predictions": 19586,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 18184,
+            "v2_correct": 18195,
+            "gained": 11,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "ea01555eebc686afb05cb7bea1e92d84fa3666bad0ee56f828dd9dc65df4af92"
+        },
+        "rust-default": {
+          "artifact_hashes": {
+            "predictions": "fd38a338acd55c4ef8474b58c3f3637310712c33d13e7fa6b2a17e6ea40c099b",
+            "cases": "c15e5ab28be2e8e6dc69afc5719de1c5691f7b4d1502d8070f964a5f82334241",
+            "identity": "d7bced36a38c9e2e1ea76187e18614cfac6fcf45a5f1822a4d6cf690e463778c"
+          },
+          "predictions": 19586,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 16466,
+            "v2_correct": 16468,
+            "gained": 2,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "8b27bf082e903ef43d5269589892836c30e3ee5bf188a14d79739d9c302b04ce"
+        },
+        "rust-learned": {
+          "artifact_hashes": {
+            "predictions": "3b44fce0bf64b8e30c8215a6efd31d0cfc0d57edab6bc2dc8171d3a673467d9b",
+            "cases": "34b6a064cf1c67d60093ae0117c418c47679be5fe27d031d77e987b170b0ce0c",
+            "identity": "06d90f48881b7f5760e279e2dc80f60b6a77f680c95cfe864d2bce359751e1ca"
+          },
+          "predictions": 19586,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 17434,
+            "v2_correct": 17437,
+            "gained": 3,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "dc933f2777076bab8d6c0290a1e4fbebd61b35b07f188a7ae769aeae80d2a7d3"
+        },
+        "usaddress": {
+          "artifact_hashes": {
+            "predictions": "a4b55041a855a82d9cfea4558f5762c8f6932baa50bc79e0611fc54df927f4fa",
+            "cases": "3f8bf83380facc79045355632bfbeed32aa6620278fa08a04dc4993c03cdfdde",
+            "identity": "f805e5a7ee631b1c8e6035de1abda46988dea46ef07f16ffe1e6ab1961b3791d"
+          },
+          "predictions": 19586,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 17107,
+            "v2_correct": 17109,
+            "gained": 3,
+            "lost": 1
+          },
+          "runtime_identity_sha256": "bd3ca666dc7326c6a53e9693e336740b0462cd236a339c231b969733197f96eb"
+        }
+      }
+    },
+    {
+      "dataset": "expanded-usa",
+      "native_run_content_id": "9e8f21a9f751a454ff4a44e506a116b73f92cc5354356782ee91029985efdb8f",
+      "references_sha256": "b11942da3af4b48f0e9fa913c48ec7f4b11a0855197e8a39008cd88c67ec0401",
+      "engines": {
+        "boundaryboys": {
+          "artifact_hashes": {
+            "predictions": "18b6b1dc66ce3c47c8a6549af781c878b7cc861dc3b2e85e271c0076d8bb55b2",
+            "cases": "683d9b77a29ed89dbe6e314d78afbeb2351f5dd1ce40af208c9120f9a1fe2b11",
+            "identity": "302096940962d8d67db3183071f268d32e37694a88870431331977fb57b72cf7"
+          },
+          "predictions": 2973,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 2453,
+            "v2_correct": 2453,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "fab66d19f37d916cfb1d693a60c8902cc8fae23d836f795ef7bb7099338d4de4"
+        },
+        "doorplate": {
+          "artifact_hashes": {
+            "predictions": "9c20688c624b2816a221369a344f4387cea8b8a46a8c9ac3c18efac9d1bcbdc0",
+            "cases": "6cc9352f0c0477bcd921d2dd9560654c5fb2400e61f48a948bc43cb51fd1af41",
+            "identity": "fe91347ac643d9d609a086d767dfeb956794c1fea6a4fe8e378ceb8d144fb8b3"
+          },
+          "predictions": 2973,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 2878,
+            "v2_correct": 2878,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "d8c7ef51c0e2c13e23b158dbad680fc519480f6bea79af70b65ebd0b5ab00ff9"
+        },
+        "fastaddress": {
+          "artifact_hashes": {
+            "predictions": "b37c73867ce2ab7726bd8677c8a688b89cd291f2e54a38d9cb32c51a3608cb6d",
+            "cases": "41e2aec889a5360ef37367169d6de8b754c90304e3f3eab6bac8c442288a8768",
+            "identity": "f0435ed0c640b41998435fafc5ac053aca9df2d331575a6306c444d647d3d59b"
+          },
+          "predictions": 2973,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 2734,
+            "v2_correct": 2736,
+            "gained": 2,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "13c656a96432a80c88cec1fc921e0be773d7b6fc4cedcd72b8ea94aae649ed78"
+        },
+        "libpostal-default": {
+          "artifact_hashes": {
+            "predictions": "5faffd00950008abace0db1196f9c00e0f98ea3d634d8230d836ba0abe438b97",
+            "cases": "5e1bc8da9c8c003bbcabc0c5f711018236daa7ed7ccb912c24adee40af0cd215",
+            "identity": "f79f7a8f23735068444b4f6b88782262cdca73ce44ef0075cc5f14bdf9ff6ccc"
+          },
+          "predictions": 2973,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 2728,
+            "v2_correct": 2728,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "1b51265210484f225e858f23a997de28e9e55792a375021e5cfa8485278158cf"
+        },
+        "libpostal-senzing": {
+          "artifact_hashes": {
+            "predictions": "0a1420eff04f6a6c7e5da87ce47d90642087f3aa3c8eeb3e6805229e1abe1c6c",
+            "cases": "921bc2039aafa2df4d45ef4cbe8367d837ce21c03f33ba9b94b31c737bec371b",
+            "identity": "f228a644e72d256ca734b5a8084f2d6d5239b4ec11dbb1da96bead7a09b5a5d4"
+          },
+          "predictions": 2973,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 2902,
+            "v2_correct": 2902,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "9661ef9bd93f681766ff80d378c7d4ad1841ef20f024399c9d77cc9c3d0bc180"
+        },
+        "mailwoman": {
+          "artifact_hashes": {
+            "predictions": "896e40b86928bb1ee6cf5d48167e6a5ce454e4c4798e0adeca8451fd1b4e08fd",
+            "cases": "18010ce3407f4195d2fd63e581acdb440e8439023c080a3d56d86babbc1af915",
+            "identity": "3674a25a1fdc4709b726c5c1c237177aa68154b75c068b8f8637e0cf43bb5a85"
+          },
+          "predictions": 2973,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 2795,
+            "v2_correct": 2795,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "ea01555eebc686afb05cb7bea1e92d84fa3666bad0ee56f828dd9dc65df4af92"
+        },
+        "rust-default": {
+          "artifact_hashes": {
+            "predictions": "9d82a9a87945f0346ec0c16913f7b5b8a36dfcb8a716751b47869f30a0751dbf",
+            "cases": "1c5d88933b50ee2eb5c2ac5e12d8f8af3121dc1d419b4ff3d19d754ccea80c46",
+            "identity": "d7bced36a38c9e2e1ea76187e18614cfac6fcf45a5f1822a4d6cf690e463778c"
+          },
+          "predictions": 2973,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 2930,
+            "v2_correct": 2930,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "8b27bf082e903ef43d5269589892836c30e3ee5bf188a14d79739d9c302b04ce"
+        },
+        "rust-learned": {
+          "artifact_hashes": {
+            "predictions": "7960edb09555682d1158038031ff0f56d92e702adfa7e6580ded7e6e34ae43b4",
+            "cases": "8ae1fdfb16e91fae79fc05161ef73855bd1cb4d65b3f201c37e9d8769f5845bc",
+            "identity": "06d90f48881b7f5760e279e2dc80f60b6a77f680c95cfe864d2bce359751e1ca"
+          },
+          "predictions": 2973,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 2721,
+            "v2_correct": 2721,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "dc933f2777076bab8d6c0290a1e4fbebd61b35b07f188a7ae769aeae80d2a7d3"
+        },
+        "usaddress": {
+          "artifact_hashes": {
+            "predictions": "b37c73867ce2ab7726bd8677c8a688b89cd291f2e54a38d9cb32c51a3608cb6d",
+            "cases": "41e2aec889a5360ef37367169d6de8b754c90304e3f3eab6bac8c442288a8768",
+            "identity": "f805e5a7ee631b1c8e6035de1abda46988dea46ef07f16ffe1e6ab1961b3791d"
+          },
+          "predictions": 2973,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 2734,
+            "v2_correct": 2736,
+            "gained": 2,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "bd3ca666dc7326c6a53e9693e336740b0462cd236a339c231b969733197f96eb"
+        }
+      }
+    },
+    {
+      "dataset": "us-units-adversarial",
+      "native_run_content_id": "af9b8dca3fffc0ce3f90404f0271ec18bee8f6a50105212660a51b6e562ef736",
+      "references_sha256": "4b33614332956bec005deab58355a2841c203ec485c83df3ae89e88596c98fe3",
+      "engines": {
+        "boundaryboys": {
+          "artifact_hashes": {
+            "predictions": "d9886398d935fa806dd280d54a6e54323058e3eccf5c1d2eb5154caa6103461d",
+            "cases": "eb8e83232d791103ef59f5b9ba7a838153a236197b2e851d76ee7c4ed510dba5",
+            "identity": "302096940962d8d67db3183071f268d32e37694a88870431331977fb57b72cf7"
+          },
+          "predictions": 104,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 27,
+            "v2_correct": 27,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "fab66d19f37d916cfb1d693a60c8902cc8fae23d836f795ef7bb7099338d4de4"
+        },
+        "doorplate": {
+          "artifact_hashes": {
+            "predictions": "e6f65628d5806f14aef04589266af61e1abd3257058e24123c21c73f3af93d7f",
+            "cases": "37e987c55c4583454da09492043ec8fc20ee61b321bbf55c2c6117f8908ae346",
+            "identity": "fe91347ac643d9d609a086d767dfeb956794c1fea6a4fe8e378ceb8d144fb8b3"
+          },
+          "predictions": 104,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 97,
+            "v2_correct": 97,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "d8c7ef51c0e2c13e23b158dbad680fc519480f6bea79af70b65ebd0b5ab00ff9"
+        },
+        "fastaddress": {
+          "artifact_hashes": {
+            "predictions": "2d7559b1357c5d28d1682ed9e75c1961d228983dfc142252eae37d4aa7e6ecbe",
+            "cases": "4768f9fe53863a6adf64e1ea19f63dccd93d948ec6881565026c419e6cb67c8f",
+            "identity": "f0435ed0c640b41998435fafc5ac053aca9df2d331575a6306c444d647d3d59b"
+          },
+          "predictions": 104,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 91,
+            "v2_correct": 93,
+            "gained": 2,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "13c656a96432a80c88cec1fc921e0be773d7b6fc4cedcd72b8ea94aae649ed78"
+        },
+        "libpostal-default": {
+          "artifact_hashes": {
+            "predictions": "e69cd6749d3598ce56c5711cd5198706e6d494d48b739e9e074f12cc4d9197e1",
+            "cases": "601859776889746f9bda67ecd35b9e80d1b2bfcb84b7f547b8de42a38ad23137",
+            "identity": "f79f7a8f23735068444b4f6b88782262cdca73ce44ef0075cc5f14bdf9ff6ccc"
+          },
+          "predictions": 104,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 61,
+            "v2_correct": 61,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "1b51265210484f225e858f23a997de28e9e55792a375021e5cfa8485278158cf"
+        },
+        "libpostal-senzing": {
+          "artifact_hashes": {
+            "predictions": "c83ffc6c35190d20f82bc295cf55c174ca555e306d8213a08e64bbeac112f83b",
+            "cases": "7f8a3529975ec214e9b0b250a845aaa93eb0e8c039048cc8cf6af73e8d7d461b",
+            "identity": "f228a644e72d256ca734b5a8084f2d6d5239b4ec11dbb1da96bead7a09b5a5d4"
+          },
+          "predictions": 104,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 71,
+            "v2_correct": 71,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "9661ef9bd93f681766ff80d378c7d4ad1841ef20f024399c9d77cc9c3d0bc180"
+        },
+        "mailwoman": {
+          "artifact_hashes": {
+            "predictions": "91f3705039763cfca94ed99a3f0ab3ef74881607df4eea784abf134a7d460b1a",
+            "cases": "0b760559ea111b8a42e7171c103fdc9154318fb9521fa41223a67db72574554d",
+            "identity": "3674a25a1fdc4709b726c5c1c237177aa68154b75c068b8f8637e0cf43bb5a85"
+          },
+          "predictions": 104,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 76,
+            "v2_correct": 76,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "ea01555eebc686afb05cb7bea1e92d84fa3666bad0ee56f828dd9dc65df4af92"
+        },
+        "rust-default": {
+          "artifact_hashes": {
+            "predictions": "2b52b161dd59bbcf9163eaeafd5df1911b2ba16bf8ce920dd741b1564a063dba",
+            "cases": "9a7c687e070ab248ce6d8f77ee9c9a40a2595361265df1a4c3ca58aec319fb60",
+            "identity": "d7bced36a38c9e2e1ea76187e18614cfac6fcf45a5f1822a4d6cf690e463778c"
+          },
+          "predictions": 104,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 84,
+            "v2_correct": 84,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "8b27bf082e903ef43d5269589892836c30e3ee5bf188a14d79739d9c302b04ce"
+        },
+        "rust-learned": {
+          "artifact_hashes": {
+            "predictions": "cfce7a6b9b115353a00d469fc9cd67fd4f400cb771bdf16fb6477d8146af8410",
+            "cases": "934eff179a5e776e0bfb8c6cfe758db807976e969dc1527dab51202d698276fd",
+            "identity": "06d90f48881b7f5760e279e2dc80f60b6a77f680c95cfe864d2bce359751e1ca"
+          },
+          "predictions": 104,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 81,
+            "v2_correct": 81,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "dc933f2777076bab8d6c0290a1e4fbebd61b35b07f188a7ae769aeae80d2a7d3"
+        },
+        "usaddress": {
+          "artifact_hashes": {
+            "predictions": "2d7559b1357c5d28d1682ed9e75c1961d228983dfc142252eae37d4aa7e6ecbe",
+            "cases": "4768f9fe53863a6adf64e1ea19f63dccd93d948ec6881565026c419e6cb67c8f",
+            "identity": "f805e5a7ee631b1c8e6035de1abda46988dea46ef07f16ffe1e6ab1961b3791d"
+          },
+          "predictions": 104,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 91,
+            "v2_correct": 93,
+            "gained": 2,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "bd3ca666dc7326c6a53e9693e336740b0462cd236a339c231b969733197f96eb"
+        }
+      }
+    },
+    {
+      "dataset": "deepparse-hf-us",
+      "native_run_content_id": "cb152df968806027241b2154cada5e98bccfef15238056a2de09743e131b66e3",
+      "references_sha256": "9772a11c6da41be0ba6705d608d49b84f4094b93bdedbf02c57bc3e97bca442a",
+      "engines": {
+        "boundaryboys": {
+          "artifact_hashes": {
+            "predictions": "06e8876dea988a2521e9cad902b2ef5a9057f3cd71da9bae5623852a111ddcf9",
+            "cases": "3de14ce3dbbc20e9ea4b601975cc6a99ea88aa6b8685faef2d33ca53c8d09094",
+            "identity": "302096940962d8d67db3183071f268d32e37694a88870431331977fb57b72cf7"
+          },
+          "predictions": 21234,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 15767,
+            "v2_correct": 15767,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "fab66d19f37d916cfb1d693a60c8902cc8fae23d836f795ef7bb7099338d4de4"
+        },
+        "doorplate": {
+          "artifact_hashes": {
+            "predictions": "a1d8cfc5222f6ec8ad640cc93778614e8510fe587f32bb22e18b6a0aa374b1dd",
+            "cases": "06f3b4deac1f4c45b1a3bba0b18fdba7912f5c544db8254d1aa56966c510c76e",
+            "identity": "fe91347ac643d9d609a086d767dfeb956794c1fea6a4fe8e378ceb8d144fb8b3"
+          },
+          "predictions": 21234,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 19167,
+            "v2_correct": 19167,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "d8c7ef51c0e2c13e23b158dbad680fc519480f6bea79af70b65ebd0b5ab00ff9"
+        },
+        "fastaddress": {
+          "artifact_hashes": {
+            "predictions": "440a1888d01251026443c386c4e7c3dfd60705226653dc2d59cdb3dc66d2b2da",
+            "cases": "4ee74c58fb640915f50d3b18d993e19df55d113d40b08cd95f3e27db95d10e06",
+            "identity": "f0435ed0c640b41998435fafc5ac053aca9df2d331575a6306c444d647d3d59b"
+          },
+          "predictions": 21234,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 18929,
+            "v2_correct": 18944,
+            "gained": 15,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "13c656a96432a80c88cec1fc921e0be773d7b6fc4cedcd72b8ea94aae649ed78"
+        },
+        "libpostal-default": {
+          "artifact_hashes": {
+            "predictions": "f2a91469e37d5a49fef105d6cd9f87f7dd532cb6adf67a1a08d0c85ed4b4e767",
+            "cases": "6e45093ece5310245e4a85f9d4b09a13deee590481f3a4d792c31c861b40a4f0",
+            "identity": "f79f7a8f23735068444b4f6b88782262cdca73ce44ef0075cc5f14bdf9ff6ccc"
+          },
+          "predictions": 21234,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 21167,
+            "v2_correct": 21167,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "1b51265210484f225e858f23a997de28e9e55792a375021e5cfa8485278158cf"
+        },
+        "libpostal-senzing": {
+          "artifact_hashes": {
+            "predictions": "97560a5bc29daf8333dcc81cac45c0a5bbb5bf34f7b098c80afdc8169e665e86",
+            "cases": "91060e5d8728564406e379db4d7c4e32492ee436ff6709fca03b5216ee23c480",
+            "identity": "f228a644e72d256ca734b5a8084f2d6d5239b4ec11dbb1da96bead7a09b5a5d4"
+          },
+          "predictions": 21234,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 20854,
+            "v2_correct": 20854,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "9661ef9bd93f681766ff80d378c7d4ad1841ef20f024399c9d77cc9c3d0bc180"
+        },
+        "mailwoman": {
+          "artifact_hashes": {
+            "predictions": "84d4ad96cfc007c536f0efda7e40ed4db59d28d85019def65ae4304d4f9c186f",
+            "cases": "16d01e9121b4840a0acc60c1c3db1e902125806704a23485cef5f725fcc76474",
+            "identity": "3674a25a1fdc4709b726c5c1c237177aa68154b75c068b8f8637e0cf43bb5a85"
+          },
+          "predictions": 21234,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 18893,
+            "v2_correct": 18893,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "ea01555eebc686afb05cb7bea1e92d84fa3666bad0ee56f828dd9dc65df4af92"
+        },
+        "rust-default": {
+          "artifact_hashes": {
+            "predictions": "2a33c1a1340ee84efab44f45879598c2c1709136c068342e2ec23deb2a5954b8",
+            "cases": "6c1e90c25e70cb9dad69e2d8635ff988c290453bc7b5c5d3eea2befbc640af76",
+            "identity": "d7bced36a38c9e2e1ea76187e18614cfac6fcf45a5f1822a4d6cf690e463778c"
+          },
+          "predictions": 21234,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 17119,
+            "v2_correct": 17119,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "8b27bf082e903ef43d5269589892836c30e3ee5bf188a14d79739d9c302b04ce"
+        },
+        "rust-learned": {
+          "artifact_hashes": {
+            "predictions": "cfd5b38463f62c5b7dbf8932015a264483d0e0332e7494aeeaa976a7752dc24d",
+            "cases": "b405095adc091fd386986e697119da499cbcb9055c1d7bf0b243774573d43e7e",
+            "identity": "06d90f48881b7f5760e279e2dc80f60b6a77f680c95cfe864d2bce359751e1ca"
+          },
+          "predictions": 21234,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 18514,
+            "v2_correct": 18521,
+            "gained": 7,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "dc933f2777076bab8d6c0290a1e4fbebd61b35b07f188a7ae769aeae80d2a7d3"
+        },
+        "usaddress": {
+          "artifact_hashes": {
+            "predictions": "440a1888d01251026443c386c4e7c3dfd60705226653dc2d59cdb3dc66d2b2da",
+            "cases": "4ee74c58fb640915f50d3b18d993e19df55d113d40b08cd95f3e27db95d10e06",
+            "identity": "f805e5a7ee631b1c8e6035de1abda46988dea46ef07f16ffe1e6ab1961b3791d"
+          },
+          "predictions": 21234,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 18929,
+            "v2_correct": 18944,
+            "gained": 15,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "bd3ca666dc7326c6a53e9693e336740b0462cd236a339c231b969733197f96eb"
+        }
+      }
+    },
+    {
+      "dataset": "nad-rendered",
+      "native_run_content_id": "e2f76149913594affb1a5addd382f91f3cad4565c9df80499bd7a53f2af3da62",
+      "references_sha256": "528e20c846d383d280033aa2b56679f36e5b4f308627783c84999dd4e73e0236",
+      "engines": {
+        "boundaryboys": {
+          "artifact_hashes": {
+            "predictions": "b9cce8322074776b69b4b1db3cbd55d0a78a07a12bde992013fbc1f41231e6c1",
+            "cases": "495ad9f4a0ff1e0637c4e306f1d4973e5cd437da2b24ce6f08d9f291f35cabd6",
+            "identity": "302096940962d8d67db3183071f268d32e37694a88870431331977fb57b72cf7"
+          },
+          "predictions": 33026,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 32026,
+            "v2_correct": 32026,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "fab66d19f37d916cfb1d693a60c8902cc8fae23d836f795ef7bb7099338d4de4"
+        },
+        "doorplate": {
+          "artifact_hashes": {
+            "predictions": "cb4cac800107759a54642d40754d3e1116459d0ad8a889d0972097d74d55d500",
+            "cases": "a19fb0250a22f3d7c44749ff4f9c1c15d1dced5bc2fd494319eac5da005620cb",
+            "identity": "fe91347ac643d9d609a086d767dfeb956794c1fea6a4fe8e378ceb8d144fb8b3"
+          },
+          "predictions": 33026,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 32897,
+            "v2_correct": 32897,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "d8c7ef51c0e2c13e23b158dbad680fc519480f6bea79af70b65ebd0b5ab00ff9"
+        },
+        "fastaddress": {
+          "artifact_hashes": {
+            "predictions": "f8987f4e2fdb487ea9f7786d3af40e5c789d2996004c6029fb341bebc3a7554e",
+            "cases": "765301a2cbef4090ce66df21255000befaf144058e0e4d31ddaecf5aa5bb6df4",
+            "identity": "f0435ed0c640b41998435fafc5ac053aca9df2d331575a6306c444d647d3d59b"
+          },
+          "predictions": 33026,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 32803,
+            "v2_correct": 32810,
+            "gained": 7,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "13c656a96432a80c88cec1fc921e0be773d7b6fc4cedcd72b8ea94aae649ed78"
+        },
+        "libpostal-default": {
+          "artifact_hashes": {
+            "predictions": "f7b6886de4eb84cac1c0c9b94ec2fec40982c24f202fced4fb497bcdf03c3e68",
+            "cases": "fe9b16c2c2decde5dcfe6259c170283870055b30fc901c34cfc3b53153ffe827",
+            "identity": "f79f7a8f23735068444b4f6b88782262cdca73ce44ef0075cc5f14bdf9ff6ccc"
+          },
+          "predictions": 33026,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 31357,
+            "v2_correct": 31357,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "1b51265210484f225e858f23a997de28e9e55792a375021e5cfa8485278158cf"
+        },
+        "libpostal-senzing": {
+          "artifact_hashes": {
+            "predictions": "87a62dceac0307ba40ed8e1e04d9f01304c0825de843cf33ba6cb5a41be9dc0a",
+            "cases": "83b44e03fefe77c234c7b0aee33f6bd90417346fe6ce843a3e9e7fd007622bc6",
+            "identity": "f228a644e72d256ca734b5a8084f2d6d5239b4ec11dbb1da96bead7a09b5a5d4"
+          },
+          "predictions": 33026,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 32529,
+            "v2_correct": 32529,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "9661ef9bd93f681766ff80d378c7d4ad1841ef20f024399c9d77cc9c3d0bc180"
+        },
+        "mailwoman": {
+          "artifact_hashes": {
+            "predictions": "73bfaed55656e6641ace111d423f752085dc8367b10a29c39a45c651c04fe5f0",
+            "cases": "95598619f43292644dc9367771981f4b90f17681f53a8e55fcba6ed7c4ae91f7",
+            "identity": "3674a25a1fdc4709b726c5c1c237177aa68154b75c068b8f8637e0cf43bb5a85"
+          },
+          "predictions": 33026,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 32580,
+            "v2_correct": 32580,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "ea01555eebc686afb05cb7bea1e92d84fa3666bad0ee56f828dd9dc65df4af92"
+        },
+        "rust-default": {
+          "artifact_hashes": {
+            "predictions": "7d1c60415f1b557e251819751ac0ef3ad1d2fa872da17f8b74ad13bc2549379e",
+            "cases": "40d73165c144e682cee5159e8ca07f202c2c530c6c3d11b8a9ada230a750f577",
+            "identity": "d7bced36a38c9e2e1ea76187e18614cfac6fcf45a5f1822a4d6cf690e463778c"
+          },
+          "predictions": 33026,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 32289,
+            "v2_correct": 32289,
+            "gained": 0,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "8b27bf082e903ef43d5269589892836c30e3ee5bf188a14d79739d9c302b04ce"
+        },
+        "rust-learned": {
+          "artifact_hashes": {
+            "predictions": "a26e744b9748915eb298e1bab77e447a247264a87ec87ce784c1f6c8785b863e",
+            "cases": "03a33f32ce68f9db03be0f8b5048cc19fb38c7005d34f744a88963eead00b1f2",
+            "identity": "06d90f48881b7f5760e279e2dc80f60b6a77f680c95cfe864d2bce359751e1ca"
+          },
+          "predictions": 33026,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 31901,
+            "v2_correct": 31902,
+            "gained": 1,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "dc933f2777076bab8d6c0290a1e4fbebd61b35b07f188a7ae769aeae80d2a7d3"
+        },
+        "usaddress": {
+          "artifact_hashes": {
+            "predictions": "f8987f4e2fdb487ea9f7786d3af40e5c789d2996004c6029fb341bebc3a7554e",
+            "cases": "765301a2cbef4090ce66df21255000befaf144058e0e4d31ddaecf5aa5bb6df4",
+            "identity": "f805e5a7ee631b1c8e6035de1abda46988dea46ef07f16ffe1e6ab1961b3791d"
+          },
+          "predictions": 33026,
+          "v1_exactly_reproduced": true,
+          "comparison": {
+            "v1_correct": 32803,
+            "v2_correct": 32810,
+            "gained": 7,
+            "lost": 0
+          },
+          "runtime_identity_sha256": "bd3ca666dc7326c6a53e9693e336740b0462cd236a339c231b969733197f96eb"
+        }
+      }
+    }
+  ],
+  "native_execution": false,
+  "scope": "Saved native predictions rescored only. Original run records and v1 scores remain unchanged.",
+  "content_id": "1cfeef4e6d2f0b083efc27e3ddac8e169e82458dd0b339536bafc776958d046c"
+}

@@ -99,7 +99,7 @@ The [scorecard contract](docs/spec/scorecards.md) documents the export semantics
 
 ## Production parsing cohort
 
-Latest: [fresh benchmark on 2026-11-02](docs/results/2026-11-02/fresh-run/README.md) — nine configurations, five panels, the current retained model, separate scoring policies and paired changes from the earlier run.
+Latest: [complete corpus/view comparison on 2026-11-02](docs/results/2026-11-02/complete-view-run/README.md) — nine configurations, seven populations including Deepparse full/partial and all four NAD views; 1,512,603 recorded predictions across two verified batches. Includes separate strict/delimiter/v1 exports and an explicitly derived v2 rescore.
 
 The first complete run is available in the [findings and improvement priorities](docs/results/2026-11-01/findings.md),
 [nine-configuration parsing comparison](docs/results/2026-11-01/comparison.md),

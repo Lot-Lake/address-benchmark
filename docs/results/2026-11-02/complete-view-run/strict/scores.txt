@@ -1,0 +1,36 @@
+Complete USA parser comparison / 2026-11-02
+Strict supplied-field agreement
+
+Dataset / view                   │ Rust learned │ Rust default │ BoundaryBoys │ Doorplate │ usaddress │ fastaddress │ libpostal default │ libpostal Senzing │ Mailwoman
+─────────────────────────────────┼──────────────┼──────────────┼──────────────┼───────────┼───────────┼─────────────┼───────────────────┼───────────────────┼──────────
+GeoSearch dev                    │       98.88% │       76.88% │       70.64% │    94.31% │    88.24% │      88.24% │            84.27% │            78.70% │    89.05%
+GeoSearch test (publisher split) │       99.02% │       80.04% │       72.80% │    96.66% │    88.39% │      88.39% │            88.81% │            86.15% │    91.26%
+Doorplate suite                  │       88.38% │       27.88% │       24.01% │    93.85% │    86.11% │      86.11% │            30.73% │            33.12% │    32.71%
+Doorplate suite / normal         │       94.36% │       30.07% │       25.92% │    96.92% │    96.46% │      96.46% │            31.62% │            33.09% │    33.04%
+Doorplate suite / hard           │       54.24% │       18.10% │       17.52% │    75.28% │    20.70% │      20.70% │            30.41% │            38.96% │    36.36%
+Doorplate suite / handwritten    │       81.10% │       18.10% │       10.30% │    92.70% │    89.70% │      89.70% │            17.30% │            18.40% │    18.00%
+Expanded USA                     │       21.70% │       73.26% │       60.71% │    22.27% │    23.68% │      23.68% │            69.69% │            73.73% │    69.53%
+Expanded USA / partial           │       21.75% │       73.05% │       61.44% │    22.40% │    23.80% │      23.80% │            69.14% │            73.32% │    69.73%
+us-units-adversarial             │       69.23% │       73.08% │       22.12% │    87.50% │    79.81% │      79.81% │            52.88% │            62.50% │    72.12%
+deepparse-hf-us                  │       87.10% │       80.55% │       68.30% │    90.15% │    88.49% │      88.49% │            99.65% │            98.20% │    88.24%
+deepparse-hf-us / full           │       86.05% │       78.74% │       67.84% │    90.76% │    89.58% │      89.58% │            99.65% │            98.62% │    89.74%
+deepparse-hf-us / partial        │       88.71% │       83.30% │       69.01% │    89.22% │    86.83% │      86.83% │            99.64% │            97.56% │    85.94%
+nad-rendered                     │       31.87% │       97.76% │       86.43% │    31.69% │    31.51% │      31.51% │            94.94% │            98.48% │    88.62%
+nad-rendered / clean             │        0.00% │       99.96% │       87.58% │     0.00% │     0.00% │       0.00% │            94.47% │            98.31% │    87.53%
+nad-rendered / nocomma           │       97.67% │       93.76% │       80.09% │    88.08% │    87.81% │      87.81% │            94.51% │            98.56% │    85.63%
+nad-rendered / expanded          │        0.00% │       99.92% │       86.38% │     0.00% │     0.00% │       0.00% │            96.55% │            99.42% │    88.18%
+nad-rendered / noisy             │       29.81% │       97.38% │       91.69% │    38.70% │    38.25% │      38.25% │            94.23% │            97.64% │    93.16%
+
+Counts and failures use the recorded scoring denominators. Partial references judge supplied labels; they are not whole-address accuracy.
+Subset rows overlap the parent dataset. Public/development-exposed fixtures do not establish unseen accuracy.
+Bold marks rounded row leaders only when measured denominators match. Missing/unsupported scores are unmeasured, never zero.
+Strict preserves punctuation. Edge-delimiter ignores component-edge comma/semicolon/colon only, plus case and whitespace.
+Timing appears only when recorded: exploratory process medians, not accuracy-run wall time. † marks sample spread above 10%; ! marks native errors/refusals.
+The report command checks recorded run identities. Exports do not rescore predictions or rehash every artifact.
+Combined from multiple recorded experiment sources; source run identities remain separate. This is not a new simultaneous run or a pooled overall score.
+Deepparse full means all five tagged core fields are present; both full and partial views still have partial reference coverage. This source has libpostal training lineage.
+NAD rows are generated from an explicit frozen sample of the official public API. Fifty indexed 1,000-record OBJECTID windows were acquired; eligible states were sampled/rendered by the merged generator. This
+  is not the r24 TXT archive or an exact reproduction of an unshared screenshot.
+The first five panels come from the earlier verified run; Deepparse/NAD were executed afterward with the same frozen framework and configured engines. Separate source run identities and timestamps are retained.
+Doorplate publisher references contain trailing field delimiters in 12,331/19,586 rows. Strict measures literal punctuation fidelity here; use delimiter or versioned streetline scores for canonical component
+  comparison. Reference values/spans were not rewritten.

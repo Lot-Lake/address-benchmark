@@ -1,0 +1,7 @@
+{
+  "rows": 168067,
+  "distinct_exact_inputs": 167993,
+  "exact_duplicate_groups": 74,
+  "cross_split_exact_groups": 3,
+  "scope": "Exact-input proxy only; not an independent-family or training-overlap clearance"
+}
