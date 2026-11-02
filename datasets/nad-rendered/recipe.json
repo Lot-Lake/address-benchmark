@@ -1,0 +1,29 @@
+{
+  "schema": "address-benchmark.corpus-recipe/v1",
+  "id": "nad-rendered",
+  "version": "1.0.0",
+  "source": {
+    "dataset": "USDOT National Address Database (NAD), release r24",
+    "catalog": "https://data.transportation.gov/d/fc2s-wawr",
+    "file": "https://data.transportation.gov/api/views/fc2s-wawr/files/596a301b-d548-4589-8c63-6b6a8dc34f30?download=true&filename=TXT.zip",
+    "member": "TXT/NAD_r24.txt",
+    "rights": "USDOT public data (catalog metadata: public access); individual input providers are listed per state in the output manifest"
+  },
+  "license": {
+    "spdx": "LicenseRef-USDOT-NAD-Public",
+    "notice": "Generated from USDOT National Address Database public data; rendered strings are synthetic and are not naturally entered addresses."
+  },
+  "generator": {
+    "sampler": "per-state-reservoir/v1",
+    "seed": "20261101",
+    "per_state": 2000,
+    "min_state": 500,
+    "strata": [
+      "clean",
+      "nocomma",
+      "expanded",
+      "noisy"
+    ]
+  },
+  "origin": "generated"
+}
