@@ -80,6 +80,9 @@ def _collect(items):
         if field is None:
             continue
         slot = (field, STREET_PART.get(fine, "street")) if field == "streetline" else (field, None)
+        # A predirectional after a name word is inside the name (Pub 28), e.g. OLD SOUTH PLANK ROAD.
+        if slot == ("streetline", "predir") and ("streetline", "street") in parts:
+            slot = ("streetline", "street")
         parts.setdefault(slot, []).append(value)
     out = {}
     for (field, part), values in parts.items():

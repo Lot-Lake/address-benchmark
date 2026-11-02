@@ -97,6 +97,21 @@ class StreetLineProfileTests(unittest.TestCase):
         unlabeled = row("12 Main St", {}, coverage="none")
         self.assertIsNone(agrees(unlabeled, pred())["agrees"])
 
+    def test_directional_after_a_name_word_stays_inside_the_name(self):
+        # Pub 28: a directional inside the name is not a predirectional ("OLD SOUTH PLANK ROAD").
+        text = "293 OLD SOUTH PLANK ROAD WALDEN NY 12586"
+        spans = [dict(role="us:AddressNumber", span=[0, 3]), dict(role="us:StreetNamePreModifier", span=[4, 7]),
+                 dict(role="us:StreetNamePreDirectional", span=[8, 13]), dict(role="us:StreetName", span=[14, 19]),
+                 dict(role="us:StreetNamePostType", span=[20, 24]), dict(role="us:PlaceName", span=[25, 31]),
+                 dict(role="us:StateName", span=[32, 34]), dict(role="us:ZipCode", span=[35, 40])]
+        r = row(text, dict(house_number=["293"], road=["OLD SOUTH PLANK ROAD"], city=["WALDEN"], state=["NY"], postcode=["12586"]), spans=spans)
+        p = pred(("AddressNumber", "293"), ("StreetName", "OLD SOUTH PLANK"), ("StreetNamePostType", "ROAD"),
+                 ("PlaceName", "WALDEN"), ("StateName", "NY"), ("ZipCode", "12586"))
+        self.assertTrue(agrees(r, p)["agrees"])
+        reordered = pred(("AddressNumber", "293"), ("StreetName", "SOUTH OLD PLANK"), ("StreetNamePostType", "ROAD"),
+                         ("PlaceName", "WALDEN"), ("StateName", "NY"), ("ZipCode", "12586"))
+        self.assertEqual(agrees(r, reordered)["mismatched_fields"], ["streetline"])
+
     def test_reference_spans_give_the_original_token_order(self):
         text = "PO Box 9 Apt 2"
         spans = [dict(role="us:USPSBoxType", span=[0, 6]), dict(role="us:USPSBoxID", span=[7, 8]),
