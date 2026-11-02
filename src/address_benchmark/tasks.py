@@ -101,7 +101,7 @@ def property_key_report(cases):
         for key in values:
             owners.setdefault(key, set()).add(entity)
     distinct = [c for c in cases if c["expected_same"] is False]
-    return dict(properties=len(keys), keys_per_property=dict(sorted(per_property.items())),
+    return dict(properties=len(keys), keys_per_property={str(n): count for n, count in sorted(per_property.items())},
                 properties_with_keys=sum(bool(values) for values in keys.values()),
                 properties_without_keys=sum(not values for values in keys.values()),
                 property_key_coverage=sum(bool(values) for values in keys.values()) / len(keys) if keys else None,

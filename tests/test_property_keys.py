@@ -5,6 +5,8 @@ import unittest
 
 from address_benchmark.corpus import check_reference, load_corpus
 from address_benchmark.tasks import score_task, summarize_task
+from address_benchmark.io import write_json
+from address_benchmark.runner import run, verify
 
 ROOT = Path(__file__).resolve().parents[1]
 CORPUS = ROOT / "examples/corpora/us-identity-property/manifest.json"
@@ -46,7 +48,7 @@ class PropertyKeyReportTests(unittest.TestCase):
                  score_task(pair("p6", "p6"), keyed(None, None, "error"), META)]
         report = summarize_task(cases)["property_keys"]
         self.assertEqual(report["properties"], 6)
-        self.assertEqual(report["keys_per_property"], {0: 1, 1: 3, 2: 2})
+        self.assertEqual(report["keys_per_property"], {'0': 1, '1': 3, '2': 2})
         self.assertEqual(report['properties_without_keys'], 1)
         self.assertEqual(report['property_key_coverage'], 5 / 6)
         self.assertEqual(report["fragmented_properties"], 2)
@@ -74,7 +76,7 @@ class PropertyKeyReportTests(unittest.TestCase):
         cases = [score_task(pair('p1', 'p2'), keyed(None, None, 'error'), META)]
         report = summarize_task(cases)['property_keys']
         self.assertEqual(report['properties'], 2)
-        self.assertEqual(report['keys_per_property'], {0: 2})
+        self.assertEqual(report['keys_per_property'], {'0': 2})
         self.assertEqual(report['property_key_coverage'], 0)
         self.assertEqual(report['missing_key_sides'], 2)
 
@@ -95,6 +97,15 @@ class PropertyKeyReportTests(unittest.TestCase):
             path.write_text(json.dumps(manifest))
             with self.assertRaisesRegex(ValueError, 'identity level differs'):
                 load_corpus(path)
+
+    def test_property_report_verifies_after_json_round_trip(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_json(root / 'engines.json', [dict(name='uppercase-control', adapter='python-callable', config=dict(
+                callable='tests.support:canonical_text', task='match', profile='address-benchmark.property-key-equality/v1'))])
+            report = run(CORPUS, root / 'engines.json', root / 'run')
+            self.assertEqual(report['status'], 'complete')
+            self.assertEqual(verify(root / 'run')['status'], 'verified')
 
 
 if __name__ == "__main__":
