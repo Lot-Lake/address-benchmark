@@ -14,6 +14,7 @@
     "notice": "Generated from USDOT National Address Database public data; rendered strings are synthetic and are not naturally entered addresses."
   },
   "generator": {
+    "sampler": "per-state-reservoir/v1",
     "seed": "20261101",
     "per_state": 2000,
     "min_state": 500,

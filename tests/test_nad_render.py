@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import random
 import unittest
+import tracemalloc
 
 from address_benchmark.corpus import check_manifest, check_reference
 from address_benchmark.scoring import normalize
@@ -30,6 +31,34 @@ def csv_text(records):
 
 
 class NadRenderTests(unittest.TestCase):
+    def test_hyphenated_unit_identifier_is_preserved(self):
+        self.assertEqual(tool.split_unit('Apt B-2'), ('APT', 'B-2'))
+        rec = tool.admit(nad(Unit='APT B-2'))
+        line, fields = tool.render(rec, 'expanded', random.Random(1))
+        self.assertIn('APARTMENT B-2', line)
+        self.assertEqual(fields['unit'], ['APARTMENT B-2'])
+
+    def test_sampling_memory_does_not_grow_with_all_admitted_rows(self):
+        def lines():
+            yield ','.join(COLUMNS) + '\n'
+            for i in range(20000):
+                row = nad(Add_Number=str(100 + i))
+                yield ','.join(row[c] for c in COLUMNS) + '\n'
+        tracemalloc.start()
+        try:
+            rows, meta = tool.generate(lines(), per_state=8, seed='bounded', min_state=500)
+            _, peak = tracemalloc.get_traced_memory()
+        finally:
+            tracemalloc.stop()
+        self.assertEqual(len(rows), 8)
+        self.assertEqual(meta['UT']['usable'], 20000)
+        self.assertLess(peak, 8 * 1024 * 1024)
+        self.assertEqual(tool.generate(lines(), per_state=8, seed='bounded', min_state=500)[0], rows)
+
+    def test_sampling_rejects_nonpositive_limits(self):
+        with self.assertRaisesRegex(ValueError, 'positive'):
+            tool.generate(csv_text([nad()]), per_state=-1, seed='x', min_state=1)
+
     def test_admission_folds_pub28_and_rejects_unusable_records(self):
         rec = tool.admit(nad(Unit="Apartment 5"))
         self.assertEqual((rec["predir"], rec["street"], rec["suffix"], rec["unit"]), ("N", "ALDER", "ST", ("APT", "5")))

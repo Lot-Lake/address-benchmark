@@ -13,7 +13,8 @@ five-digit ZIP; a usable city (Post_City, else Inc_Muni); a street name of plain
 St_PreSep and St_Name joined); a street type, if present, that Publication 28 knows; Pub 28 directionals; a unit
 that is empty, one short id, or a Pub 28 designator plus one id. A name whose last token is itself a street type
 with no St_PosTyp is skipped (the "MAIN ST stored as the name" pattern). States with fewer than min_state usable
-records are skipped; at most per_state records per state are kept (seeded shuffle per state).
+records are skipped; at most per_state records per state are kept with a seeded
+reservoir, then shuffled per state. Memory is bounded by the retained sample.
 
 Rendering, round-robin over a seeded shuffle (equal strata per state):
   clean     "123 N Main St Apt 5, Salt Lake City, UT 84101"   title case, commas, Pub 28 abbreviations
@@ -31,7 +32,6 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
-import io
 import json
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -67,7 +67,9 @@ def fold(kind, value):
 
 def split_unit(raw):
     """-> (designator abbreviation or "", id), or None when unusable."""
-    tokens = clean(raw).replace("#", " ").split()
+    # Keep identifier hyphens; the general street cleaner treats them as spaces.
+    text = str(raw or '').upper().replace('.', '').replace('#', ' ')
+    tokens = text.split()
     if not tokens:
         return ("", "")
     if len(tokens) == 1 and UNIT_ID.match(tokens[0]):
@@ -148,26 +150,40 @@ def render(rec, stratum, rng):
 
 
 def generate(handle, per_state, seed, min_state):
+    if type(per_state) is not int or per_state <= 0 or type(min_state) is not int or min_state <= 0:
+        raise ValueError('positive per-state and minimum-state counts required')
     reader = csv.reader(handle)
     columns = next(reader)
     records, providers = defaultdict(list), defaultdict(Counter)
+    usable, sampling_rng = Counter(), {}
     for row in reader:
         if len(row) != len(columns):
             continue
         r = dict(zip(columns, row))
         rec = admit(r)
         if rec:
-            records[rec["state"]].append(rec)
-            providers[rec["state"]][r.get("NAD_Source") or "(none)"] += 1
+            state = rec['state']
+            usable[state] += 1
+            if state not in sampling_rng:
+                sampling_rng[state] = random.Random(f'{seed}-{state}-reservoir-v1')
+            rng = sampling_rng[state]
+            retained = records[state]
+            if len(retained) < per_state:
+                retained.append(rec)
+            else:
+                index = rng.randrange(usable[state])
+                if index < per_state:
+                    retained[index] = rec
+            providers[state][r.get("NAD_Source") or "(none)"] += 1
     rows, meta = [], {}
     for state in sorted(records):
         rng = random.Random(f"{seed}-{state}")
         recs = records[state]
-        if len(recs) < min_state:
+        if usable[state] < min_state:
             continue
         rng.shuffle(recs)
         recs = recs[:per_state]
-        meta[state] = {"usable": len(records[state]), "kept": len(recs), "providers": dict(providers[state].most_common(8))}
+        meta[state] = {"usable": usable[state], "kept": len(recs), "providers": dict(providers[state].most_common(8))}
         for i, rec in enumerate(recs):
             stratum = STRATA[i % len(STRATA)]
             line, fields = render(rec, stratum, rng)
@@ -204,14 +220,27 @@ def main():
     parser.add_argument("--per-state", type=int, default=g["per_state"])
     parser.add_argument("--seed", default=g["seed"])
     args = parser.parse_args()
-    raw = args.nad.read_bytes()
-    rows, meta = generate(io.StringIO(raw.decode("utf-8-sig", "replace")), args.per_state, args.seed, g["min_state"])
+    input_hash = hash_file(args.nad)
+    with args.nad.open('r', encoding='utf-8-sig', errors='strict', newline='') as handle:
+        rows, meta = generate(handle, args.per_state, args.seed, g['min_state'])
+    if hash_file(args.nad) != input_hash:
+        raise ValueError('NAD input changed during generation')
+    if not rows:
+        raise ValueError('NAD input produced no admissible sampled rows')
     args.out.mkdir(parents=True)
     data = "".join(json.dumps(r, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n" for r in rows).encode()
     (args.out / "cases.jsonl").write_bytes(data)
-    settings = {"seed": args.seed, "per_state": args.per_state, "min_state": g["min_state"]}
-    (args.out / "manifest.json").write_text(json.dumps(manifest(data, hashlib.sha256(raw).hexdigest(), meta, settings), indent=2, sort_keys=True) + "\n")
+    settings = {"seed": args.seed, "per_state": args.per_state, "min_state": g["min_state"], 'sampler': 'per-state-reservoir/v1'}
+    (args.out / "manifest.json").write_text(json.dumps(manifest(data, input_hash, meta, settings), indent=2, sort_keys=True) + "\n")
     print(json.dumps({"rows": len(rows), "states": sorted(meta)}))
+
+
+def hash_file(path):
+    digest = hashlib.sha256()
+    with path.open('rb') as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b''):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 if __name__ == "__main__":
