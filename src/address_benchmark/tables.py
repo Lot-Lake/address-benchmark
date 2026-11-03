@@ -86,21 +86,33 @@ def _sum(populations, metric):
 
 
 
-def reference_warning(report, view, metric):
+def reference_warning(report, view, metric, *, source=None, population=None):
     if report["task"] != "parse" or metric not in ("strict", "complete"):
         return None
     audit = report.get("reference_comparability")
+    def warning(rows):
+        return dict(comparable=False, reference_edge_rows=rows, recommended_metric="delimiter",
+                    noncomparable_reasons=["reference-edge-delimiters"])
     if not audit:
         # Old envelopes can still identify a publisher format when their full
         # private reference artifact was not supplied to this reporting process.
         if any(r.get("format") == "doorplate-compare" for r in report.get("corpus", {}).get("resources", [])):
-            return dict(comparable=False, reference_edge_rows=None, recommended_metric="delimiter")
+            return warning(None)
         return None
-    suffix = "/all" if view == "all" else "/subset:" + view
-    affected = sum(value["complete_rows" if metric == "complete" else "rows"]
-                   for key, value in audit["populations"].items() if key.endswith(suffix))
+    count = "complete_rows" if metric == "complete" else "rows"
+    if source is not None:
+        if "sources" not in audit:
+            # A legacy panel audit cannot establish which individual source was
+            # affected. Keep its strict rates diagnostic until gold is supplied.
+            return warning(None) if any(v[count] for v in audit["populations"].values()) else None
+        affected = audit["sources"].get(source, {}).get(count, 0)
+    elif population is not None:
+        affected = audit["populations"].get(population, {}).get(count, 0)
+    else:
+        suffix = "/all" if view == "all" else "/subset:" + view
+        affected = sum(value[count] for key, value in audit["populations"].items() if key.endswith(suffix))
     if affected:
-        return dict(comparable=False, reference_edge_rows=affected, recommended_metric="delimiter")
+        return warning(affected)
     return None
 
 
@@ -157,13 +169,17 @@ def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', e
             matched = len({c.get('_eligibility') for c in measured}) <= 1
             for cell in cells.values():
                 cell['comparable'] = matched
+                if not matched and cell.get('score') is not None:
+                    cell['noncomparable_reasons'] = ['eligibility-mismatch']
                 cell.pop('_eligibility', None)
             display_label = PANEL_LABELS.get(label, label)
             warning = reference_warning(report, view, effective)
             if warning:
                 for cell in cells.values():
                     if cell.get("score") is not None:
+                        reasons = cell.get('noncomparable_reasons', []) + warning['noncomparable_reasons']
                         cell.update(warning)
+                        cell['noncomparable_reasons'] = reasons
             rows.append(dict(id=f'{label}/{view}', label=display_label if view == 'all' else f'{display_label} / {VIEW_LABELS.get(view, view)}',
                              panel=label, view=view, task=report['task'], metric=effective,
                              rows=next((c['rows'] for c in cells.values() if c.get('rows') is not None), None), cells=cells))
@@ -231,7 +247,8 @@ def _recorded_runs(source):
             engines = [e['name'] for e in read_json(path.parent / 'engines.json')]
     for _, report in runs:
         require(report['content_id'] == identity({k: v for k, v in report.items() if k != 'content_id'}), 'run content identity differs')
-        if report['task'] == 'parse' and not report.get('reference_comparability') and 'references.jsonl' in report.get('artifacts', {}):
+        audit = report.get('reference_comparability') or {}
+        if report['task'] == 'parse' and 'sources' not in audit and 'references.jsonl' in report.get('artifacts', {}):
             # Derive presentation metadata from hash-verified historical gold;
             # do not rewrite/rescore its envelope or its immutable exports.
             from .corpus import reference_comparability
@@ -282,7 +299,7 @@ def cell_text(cell, metric, counts=False):
     if cell is None:
         return 'unmeasured'
     if cell.get('score') is None:
-        return clean(cell['status']) + (' [non-comparable]' if cell.get('comparable') is False else '') + (' [reused]' if cell.get('reused') else '')
+        return clean(cell['status']) + (' [non-comparable]' if 'reference-edge-delimiters' in cell.get('noncomparable_reasons', []) else '') + (' [reused]' if cell.get('reused') else '')
     if metric == 'throughput':
         return f"{cell['score']:,.0f}" + ('†' if cell.get('noisy') else '')
     text = f"{100 * cell['score']:.2f}%"
@@ -293,18 +310,21 @@ def cell_text(cell, metric, counts=False):
         text += ' !'
     if cell.get("reused"):
         text += " [reused]"
-    if cell.get('comparable') is False:
+    if 'reference-edge-delimiters' in cell.get('noncomparable_reasons', []):
         text += ' [non-comparable]'
     return text
 
 
 
-def display_notes(card):
-    notes = [*card.get('gate_notes', []), *card['notes']]
-    if card['metric'] in ('strict', 'complete') and any(cell.get('comparable') is False
+def reference_notes(card):
+    if card['metric'] in ('strict', 'complete') and any('reference-edge-delimiters' in cell.get('noncomparable_reasons', [])
             for row in card['rows'] for cell in row['cells'].values()):
-        notes.append('Non-comparable cells are diagnostic counts, not ranked parser accuracy. For publisher reference edge delimiters, use --metric delimiter; original references and counts are unchanged.')
-    return notes
+        return ['Cells marked non-comparable have publisher reference edge delimiters or an unavailable publisher reference audit. Use --metric delimiter; original references and diagnostic counts are unchanged.']
+    return []
+
+
+def display_notes(card):
+    return [*card.get('gate_notes', []), *card['notes'], *reference_notes(card)]
 
 def render_console(card, *, counts=False, terminal_width=120, color=False, ascii=False):
     require(terminal_width >= 40, 'console width must be at least 40')
@@ -364,7 +384,8 @@ def render_markdown(card, *, counts=False):
             text = _markdown(cell_text(row['cells'].get(n), row['metric'], counts))
             values.append('**' + text + '**' if n in best else text)
         lines.append('| ' + _markdown(row['label']) + ' | ' + ' | '.join(values) + ' |')
-    return '\n'.join(lines + ['', *('- ' + _markdown(note) for note in display_notes(card))]) + '\n'
+    return '\n'.join(lines + ['', *(_markdown(note) for note in card.get('gate_notes', [])), '',
+                             *('- ' + _markdown(note) for note in [*card['notes'], *reference_notes(card)])]) + '\n'
 
 
 def render_csv(card):
@@ -376,7 +397,7 @@ def render_csv(card):
     writer.writerow(['Dataset / view', *(safe(n) for n in card['engines'])])
     for row in card['rows']:
         writer.writerow([safe(row['label']), *(cell_text(row['cells'].get(n), row['metric'], True) for n in card['engines'])])
-    for note in card.get('gate_notes', []):
+    for note in [*card.get('gate_notes', []), *reference_notes(card)]:
         writer.writerow([safe(note)])
     return output.getvalue()
 
@@ -421,7 +442,7 @@ def render(card, format='console', **options):
         return render_csv(card)
     if format == 'html':
         return render_html(card)
-    return json.dumps({**card, 'notes': display_notes(card)}, ensure_ascii=False, indent=2, allow_nan=False) + '\n'
+    return json.dumps({**card, 'notes': [*card['notes'], *reference_notes(card)]}, ensure_ascii=False, indent=2, allow_nan=False) + '\n'
 
 
 def export_scorecard(card, directory, *, counts=False, overwrite=False):

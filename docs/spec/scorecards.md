@@ -61,8 +61,12 @@ Reporting policy `address-benchmark.reference-comparability/v1` preserves exact
 publisher values, source spans and the original scorer. References whose supplied
 fields carry leading/trailing comma, semicolon or colon delimiters make the
 corresponding strict cell **non-comparable**. Counts remain visible as diagnostics,
-with `comparable: false`, the affected reference-row count and
-`recommended_metric: delimiter`. Such cells never receive leader highlighting.
+with `comparable: false`, `noncomparable_reasons: ["reference-edge-delimiters"]`,
+the affected reference-row count and `recommended_metric: delimiter`. Any single
+affected reference is sufficient; there is no prevalence threshold. Such cells
+never receive leader highlighting. A separate `eligibility-mismatch` reason
+prevents highlighting when judged memberships differ; that reason does not add
+the delimiter marker or recommend a delimiter remedy.
 Console, Markdown, CSV and HTML mark them explicitly; rendered reports point to
 `--metric delimiter` for the existing delimiter-insensitive comparison. A clean
 subset remains independently comparable. Complete-address reporting counts only
@@ -80,7 +84,11 @@ For older envelopes, `report` derives the presentation audit only after validati
 the recorded `references.jsonl` artifact hash. It never rewrites the historical
 envelope or existing export files. If a Doorplate envelope lacks its reference
 audit/artifact, strict comparability remains unestablished and is marked false
-with a null affected-row count. Re-export to a fresh file for the new presentation
+with a null affected-row count. That fallback recognizes the `doorplate-compare`
+resource format only. Other historical formats without an audit or accessible,
+hash-verified references cannot be inspected for this property and receive no
+automatic warning; absence of a warning is not proof of clean references.
+Re-export to a fresh file for the new presentation
 policy; use the original frozen framework to rescore historical predictions.
 
 ## Aggregate-only publication boundary
@@ -93,6 +101,18 @@ paired speed uncertainty and explicit unexecuted statuses. Equal-sized v2
 judgment sets with different membership are marked noncomparable and cannot
 produce a highlighted row leader; private membership pins are not exported. Other formats render
 the corresponding safe scorecard; JSON carries the detailed aggregates.
+
+Publishable cells retain the fixed comparability reasons and recommended metric,
+but omit affected-reference counts (`reference_edge_rows`) to avoid revealing
+small stratum sizes. The `aggregates[].engines[].sources[]` strict
+`supplied_fields` and `complete_address` summaries also carry `comparable: false`
+and `recommended_metric: delimiter` for affected sources. Complete-address flags
+use affected complete rows only; delimiter rates stay unchanged. A legacy audit
+without per-source counts conservatively flags source strict rates if the panel
+is affected, unless hash-verified references can reconstruct the source audit.
+Suppressed summaries expose no rates or counts. JSON keeps gate notes in
+`gate_notes`, separately from explanatory `notes`; CSV includes the delimiter
+explanation whenever its cells carry that marker.
 
 The projection reconstructs numeric metrics, fixed status/policy enums and
 positional aliases. It does not copy free-text engine, corpus, source, subset,

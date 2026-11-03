@@ -90,6 +90,18 @@ def public_interval(value):
 DEFAULT_MIN_DENOMINATOR = 20
 
 
+def public_comparability(value):
+    result = public_numbers(value, ('comparable',))
+    reasons = [reason for reason in ('eligibility-mismatch', 'reference-edge-delimiters')
+               if reason in value.get('noncomparable_reasons', [])]
+    if reasons:
+        result['noncomparable_reasons'] = reasons
+    if value.get('recommended_metric') == 'delimiter':
+        result['recommended_metric'] = 'delimiter'
+    # Affected-reference counts are private, even on a large measured panel.
+    return result
+
+
 def publication_aliases(card, runs):
     panels = {label: f"panel-{i + 1}" for i, (label, _) in enumerate(runs)}
     views, sources, cohorts = {}, {}, {}
@@ -131,6 +143,7 @@ def public_scorecard(card, *, aliases, min_denominator=DEFAULT_MIN_DENOMINATOR):
                 cells[names[name]] = dict(status=public_status(cell['status']), **public_numbers(cell,
                     ('score', 'correct', 'denominator', 'rows', 'errors', 'refusals', 'tp', 'fp', 'fn',
                      'trials', 'noisy', 'exit_code', 'comparable', 'reused', 'source_exit_code')))
+            cells[names[name]].update(public_comparability(cell))
         rows.append(dict(id=view_id, label=panel if row['view'] == 'all' else view_id,
                          panel=panel, view='all' if row['view'] == 'all' else view_id.rsplit('/', 1)[1],
                          task=row['task'], metric=row['metric'], cells=cells,
@@ -154,7 +167,7 @@ def public_rate(value, keys, denominator, minimum):
     return dict(status='measured', **public_numbers(value, keys))
 
 
-def public_summary(value, minimum=DEFAULT_MIN_DENOMINATOR):
+def public_summary(value, minimum=DEFAULT_MIN_DENOMINATOR, *, comparability=None):
     from .protocol import FINE_TO_COARSE
     if value.get('rows', 0) < minimum:
         return dict(status='suppressed')
@@ -169,6 +182,8 @@ def public_summary(value, minimum=DEFAULT_MIN_DENOMINATOR):
     for key in ('supplied_fields', 'complete_address', 'delimiter_fields', 'delimiter_complete_address', 'agreement'):
         if key in value:
             result[key] = public_rate(value[key], rate_keys, value[key]['denominator'], minimum)
+            if comparability and comparability.get(key):
+                result[key].update(public_comparability(comparability[key]))
     result['roles'] = {role: public_rate(counts, rate_keys, counts['denominator'], minimum)
         for role, counts in value.get('roles', {}).items() if role in set(FINE_TO_COARSE.values())}
     result['effects'] = {key: public_rate(counts, rate_keys, counts['denominator'], minimum)
@@ -210,14 +225,20 @@ def public_gate(gate, minimum):
 
 def publishable_aggregates(runs, *, engines, aliases, min_denominator=DEFAULT_MIN_DENOMINATOR):
     from .protocol import FINE_TO_COARSE
+    from .tables import reference_warning
     exports = []
     names = {name: f"engine-{i + 1}" for i, name in enumerate(engines)}
     for label, report in runs:
         engine_results = {}
         for name, entry in report['accuracy'].items():
             sources = entry.get('sources', {k: v for k, v in entry.get('populations', {}).items() if k.endswith('/all')})
+            def source_summary(key):
+                selector = dict(source=key) if 'sources' in entry else dict(population=key)
+                warnings = {field: reference_warning(report, 'all', metric, **selector)
+                            for field, metric in [('supplied_fields', 'strict'), ('complete_address', 'complete')]}
+                return public_summary(sources[key], min_denominator, comparability=warnings)
             engine_results[names[name]] = dict(reused=entry.get('origin', {}).get('kind') == 'reused', status=public_status(entry['status']),
-                sources=[dict(id=alias, **public_summary(sources[key], min_denominator))
+                sources=[dict(id=alias, **source_summary(key))
                     for key, alias in aliases['sources'][label].items() if key in sources])
         deltas = []
         for pair, value in report.get('deltas', {}).items():

@@ -313,12 +313,19 @@ class ReuseTests(unittest.TestCase):
         cell = card['rows'][0]['cells']['engine-1']
         self.assertTrue(cell['reused'])
         self.assertFalse(cell['comparable'])
+        self.assertEqual(cell['status'], 'suppressed')
+        self.assertEqual(cell['noncomparable_reasons'], ['reference-edge-delimiters'])
         for fmt in FORMATS:
             text = render(card, fmt, counts=True)
             self.assertNotIn('PRIVATE_REUSED_PUBLISHER_671', text)
             self.assertNotIn(str(fixture.root), text)
-            self.assertIn('reused', text)
+            self.assertIn('"reused": true' if fmt == 'json' else '[reused]', text)
             self.assertIn('non-comparable' if fmt != 'json' else '"comparable": false', text)
+        detailed = load_scorecard(fixture.root / 'expanded', publishable=True, min_denominator=1)
+        source = detailed['aggregates'][0]['engines']['engine-1']['sources'][0]
+        for metric in ('supplied_fields', 'complete_address'):
+            self.assertFalse(source[metric]['comparable'])
+            self.assertEqual(source[metric]['recommended_metric'], 'delimiter')
 
     def test_inconsistent_runtime_envelope_cannot_reuse_another_models_predictions(self):
         prior, receipt, report = self.prior()
