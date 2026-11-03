@@ -132,7 +132,7 @@ add `--engines /absolute/local/engines.json` to preparation, supplying the exist
 `native-batch` usaddress configuration and locally installed pinned assets. The
 recipe uses the fixed v2 ontology crosswalk. It never trains, downloads data,
 selects a checkpoint or tunes a score. The default synthetic controls are not
-production or blind accuracy evidence. All comparisons execute fresh.
+production or blind accuracy evidence. Comparisons execute fresh unless verified accuracy reuse is explicitly selected.
 
 Local-only plans require freezing before execution. Full native audit records
 stay private; publish only aggregate exports. Names in safe exports are fixed
@@ -259,3 +259,9 @@ Run directories contain inputs and references, including private addresses when 
 MIT for this new implementation, specification and original examples. Optional dependencies, models and external datasets retain their own licenses; see [NOTICE](NOTICE). Python source/JSONL are chosen for transparent review, low setup cost and cross-language interoperability; native compute remains in each library. A standards proposal needs independent annotation review, multiple implementers, larger licensed natural populations, and governance. [Roadmap and coverage](docs/COVERAGE.md) distinguish runnable contracts from production evidence. Geocoding, ranked search, clustering, postal verification, latency/memory/startup backends and cross-binding parity are future separate modules.
 
 Contributions should bring a capability declaration, primary-source provenance/license evidence and contract tests. No library gets special reference repairs, private scoring exceptions or a gold-selected ensemble. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Publisher reference fields with edge delimiters (including Doorplate v1) are
+marked **non-comparable** in newly rendered strict reports. Exact counts stay
+visible, but no leader is highlighted. Use `report ... --metric delimiter` for
+the existing delimiter-insensitive comparison. References and old artifacts keep
+their original values and spans; see the [reporting policy](docs/spec/scorecards.md#publisher-edge-delimiters-and-strict-comparability).

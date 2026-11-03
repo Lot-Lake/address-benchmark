@@ -292,6 +292,31 @@ class ReuseTests(unittest.TestCase):
         self.assertEqual(report['reuse']['normalize']['status'], 'reused')
         self.assertEqual(verify(plan.parent / 'run')['status'], 'verified')
 
+    def test_reused_publisher_cells_preserve_noncomparability_and_both_public_markers(self):
+        from tests.test_reference_comparability import ReferenceComparabilityTests
+        fixture = ReferenceComparabilityTests()
+        fixture.setUp(); self.addCleanup(fixture.doCleanups)
+        manifest_path = fixture.root / 'manifest.json'
+        manifest = read_json(manifest_path)
+        manifest['license']['redistribution'] = 'local-only'
+        manifest['id'] = 'PRIVATE_REUSED_PUBLISHER_671'
+        manifest_path.write_text(json.dumps(manifest))
+        prior = fixture.execute()
+        result = run(manifest_path, fixture.root / 'engines.json', fixture.root / 'expanded',
+                     reuse=dict(directory=fixture.root / 'run', content_id=prior['content_id']))
+        self.assertEqual(result['reuse']['clean-components']['status'], 'reused')
+        self.assertEqual(verify(fixture.root / 'expanded')['status'], 'verified')
+        card = load_scorecard(fixture.root / 'expanded', publishable=True)
+        cell = card['rows'][0]['cells']['engine-1']
+        self.assertTrue(cell['reused'])
+        self.assertFalse(cell['comparable'])
+        for fmt in FORMATS:
+            text = render(card, fmt, counts=True)
+            self.assertNotIn('PRIVATE_REUSED_PUBLISHER_671', text)
+            self.assertNotIn(str(fixture.root), text)
+            self.assertIn('reused', text)
+            self.assertIn('non-comparable' if fmt != 'json' else '"comparable": false', text)
+
     def test_cli_reuse_and_publishable_private_exports_exclude_source_paths_and_ids(self):
         from address_benchmark.plan import freeze_plan
         secret = 'PRIVATE_REUSE_76191'

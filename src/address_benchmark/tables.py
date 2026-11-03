@@ -85,6 +85,25 @@ def _sum(populations, metric):
     return result
 
 
+
+def reference_warning(report, view, metric):
+    if report["task"] != "parse" or metric not in ("strict", "complete"):
+        return None
+    audit = report.get("reference_comparability")
+    if not audit:
+        # Old envelopes can still identify a publisher format when their full
+        # private reference artifact was not supplied to this reporting process.
+        if any(r.get("format") == "doorplate-compare" for r in report.get("corpus", {}).get("resources", [])):
+            return dict(comparable=False, reference_edge_rows=None, recommended_metric="delimiter")
+        return None
+    suffix = "/all" if view == "all" else "/subset:" + view
+    affected = sum(value["complete_rows" if metric == "complete" else "rows"]
+                   for key, value in audit["populations"].items() if key.endswith(suffix))
+    if affected:
+        return dict(comparable=False, reference_edge_rows=affected, recommended_metric="delimiter")
+    return None
+
+
 def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', engines=None, publishable=False):
     """Build from recorded aggregates, never raw addresses or native output."""
     require(metric in METRICS, 'unknown report metric')
@@ -135,6 +154,11 @@ def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', e
                 cell['comparable'] = matched
                 cell.pop('_eligibility', None)
             display_label = PANEL_LABELS.get(label, label)
+            warning = reference_warning(report, view, effective)
+            if warning:
+                for cell in cells.values():
+                    if cell.get("score") is not None:
+                        cell.update(warning)
             rows.append(dict(id=f'{label}/{view}', label=display_label if view == 'all' else f'{display_label} / {VIEW_LABELS.get(view, view)}',
                              panel=label, view=view, task=report['task'], metric=effective,
                              rows=next((c['rows'] for c in cells.values() if c.get('rows') is not None), None), cells=cells))
@@ -163,7 +187,7 @@ def _recorded_runs(source):
     if path.is_dir():
         path = path / ('plan-results.json' if (path / 'plan-results.json').exists() else 'run.json')
     value = read_json(path)
-    runs, engines = [], []
+    runs, engines, run_directories = [], [], {}
     if value.get('schema') == 'address-benchmark.plan/v1':
         receipt = read_json(path.parent / 'plan-results.json')
         require(receipt['plan_sha256'] == sha256(path), 'plan changed since execution')
@@ -179,17 +203,28 @@ def _recorded_runs(source):
             report = read_json(run_path)
             require(report.get('content_id') == track['content_id'], 'plan/run identity differs')
             runs.append((track['id'], report))
+            run_directories[report['content_id']] = run_path.parent
             if not engines and (run_path.parent / 'engines.json').exists():
                 require(sha256(run_path.parent / 'engines.json') == report['artifacts']['engines.json'], 'engine manifest changed')
                 engines = [e['name'] for e in read_json(run_path.parent / 'engines.json')]
     else:
         require(value.get('schema') == 'address-benchmark.run/v1', 'report requires a run or executed plan')
         runs.append((value['corpus']['id'], value))
+        run_directories[value['content_id']] = path.parent
         if (path.parent / 'engines.json').exists():
             require(sha256(path.parent / 'engines.json') == value['artifacts']['engines.json'], 'engine manifest changed')
             engines = [e['name'] for e in read_json(path.parent / 'engines.json')]
     for _, report in runs:
         require(report['content_id'] == identity({k: v for k, v in report.items() if k != 'content_id'}), 'run content identity differs')
+        if report['task'] == 'parse' and not report.get('reference_comparability') and 'references.jsonl' in report.get('artifacts', {}):
+            # Derive presentation metadata from hash-verified historical gold;
+            # do not rewrite/rescore its envelope or its immutable exports.
+            from .corpus import reference_comparability
+            refs = run_directories[report['content_id']] / 'references.jsonl'
+            if refs.exists():
+                require(sha256(refs) == report['artifacts']['references.jsonl'], 'reference audit artifact changed')
+                from .io import read_jsonl
+                report['reference_comparability'] = reference_comparability(list(read_jsonl(refs)))
     return runs, engines
 
 
@@ -243,8 +278,18 @@ def cell_text(cell, metric, counts=False):
         text += ' !'
     if cell.get("reused"):
         text += " [reused]"
+    if cell.get('comparable') is False:
+        text += ' [non-comparable]'
     return text
 
+
+
+def display_notes(card):
+    notes = list(card['notes'])
+    if card['metric'] in ('strict', 'complete') and any(cell.get('comparable') is False
+            for row in card['rows'] for cell in row['cells'].values()):
+        notes.append('Non-comparable cells are diagnostic counts, not ranked parser accuracy. For publisher reference edge delimiters, use --metric delimiter; original references and counts are unchanged.')
+    return notes
 
 def render_console(card, *, counts=False, terminal_width=120, color=False, ascii=False):
     require(terminal_width >= 40, 'console width must be at least 40')
@@ -281,7 +326,7 @@ def render_console(card, *, counts=False, terminal_width=120, color=False, ascii
             lines.append((' ' + bar + ' ').join(values))
         lines.append('')
     import textwrap
-    for note in card['notes']:
+    for note in display_notes(card):
         if ascii:
             note = note.replace('†', '*')
         lines.extend(textwrap.wrap(clean(note), terminal_width, subsequent_indent='  '))
@@ -304,7 +349,7 @@ def render_markdown(card, *, counts=False):
             text = _markdown(cell_text(row['cells'].get(n), row['metric'], counts))
             values.append('**' + text + '**' if n in best else text)
         lines.append('| ' + _markdown(row['label']) + ' | ' + ' | '.join(values) + ' |')
-    return '\n'.join(lines + ['', *('- ' + _markdown(note) for note in card['notes'])]) + '\n'
+    return '\n'.join(lines + ['', *('- ' + _markdown(note) for note in display_notes(card))]) + '\n'
 
 
 def render_csv(card):
@@ -340,7 +385,7 @@ def render_html(card):
             cells.append('<td' + (' class="best"' if name in best else '') + '><span>' + esc(score) + '</span><small>' + esc(detail) + '</small></td>')
         body.append('<tr><th scope="row">' + esc(row['label']) + '</th>' + ''.join(cells) + '</tr>')
     sources = ''.join('<li>' + esc(s['id']) + ' · ' + esc(s['status']) + ' · <code>' + esc(s['content_id'] or 'see containing run.json') + '</code></li>' for s in card['sources'])
-    notes = ''.join('<p>' + esc(note) + '</p>' for note in card['notes'])
+    notes = ''.join('<p>' + esc(note) + '</p>' for note in display_notes(card))
     return '''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>''' + esc(card['title']) + '''</title><style>
@@ -359,7 +404,7 @@ def render(card, format='console', **options):
         return render_csv(card)
     if format == 'html':
         return render_html(card)
-    return json.dumps(card, ensure_ascii=False, indent=2, allow_nan=False) + '\n'
+    return json.dumps({**card, 'notes': display_notes(card)}, ensure_ascii=False, indent=2, allow_nan=False) + '\n'
 
 
 def export_scorecard(card, directory, *, counts=False, overwrite=False):

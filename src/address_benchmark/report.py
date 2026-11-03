@@ -21,7 +21,10 @@ def render(report):
         if entry["status"] != "ok":
             lines.append(f"| {display_name} | {entry['status']} (exit {entry['exit_code']}) | — | unmeasured | unmeasured |")
         for population, m in entry.get("populations", {}).items():
-            lines.append(f"| {display_name} | {population} | {m['rows']} / {m['source_families']} | {agreement(m['supplied_fields'])} | {agreement(m['complete_address'])} |")
+            audit = report.get("reference_comparability") or {}
+            affected = audit.get("populations", {}).get(population, {}).get("rows", 0)
+            marker = " [non-comparable; use edge-delimiter]" if affected else ""
+            lines.append(f"| {display_name} | {population} | {m['rows']} / {m['source_families']} | {agreement(m['supplied_fields'])}{marker} | {agreement(m['complete_address'])}{marker if audit.get('populations', {}).get(population, {}).get('complete_rows', 0) else ''} |")
     lines += ["", "Fine token/span precision, recall, F1, role counts, errors/refusals, unsupported roles and per-case deltas are in `run.json` and the hashed case artifacts.",
               "Partial fine annotations support positive-label recall only: precision and F1 remain unmeasured.", ""]
     if report["trials"]:
