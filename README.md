@@ -245,6 +245,12 @@ MIT for this new implementation, specification and original examples. Optional d
 
 Contributions should bring a capability declaration, primary-source provenance/license evidence and contract tests. No library gets special reference repairs, private scoring exceptions or a gold-selected ensemble. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+Publisher reference fields with edge delimiters (including Doorplate v1) are
+marked **non-comparable** in newly rendered strict reports. Exact counts stay
+visible, but no leader is highlighted. Use `report ... --metric delimiter` for
+the existing delimiter-insensitive comparison. References and old artifacts keep
+their original values and spans; see the [reporting policy](docs/spec/scorecards.md#publisher-edge-delimiters-and-strict-comparability).
+
 
 Aggregate-only publication now suppresses measured cells below 20 reference rows
 by default; its threshold and policy version are recorded in the export. The

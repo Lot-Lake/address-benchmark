@@ -290,3 +290,24 @@ def fetch(path, *, max_bytes=256 * 1024 * 1024):
             if owned:
                 temporary.unlink(missing_ok=True)
     return installed
+
+
+def reference_comparability(rows):
+    """Report-only annotation audit; never repair publisher values or spans."""
+    from .scoring import normalize, normalize_delimiters
+    counts = defaultdict(lambda: dict(rows=0, complete_rows=0))
+    sources = defaultdict(lambda: dict(rows=0, complete_rows=0))
+    for row in rows:
+        ref = row["reference"]
+        if ref["coverage"] == "none" or not any(normalize(value) != normalize_delimiters(value)
+                for values in ref["fields"].values() for value in values):
+            continue
+        keys = [f"{row['origin']}/{row['split']}/all"]
+        keys.extend(f"{row['origin']}/{row['split']}/subset:{subset}" for subset in row["subsets"])
+        for key in keys:
+            counts[key]["rows"] += 1
+            counts[key]["complete_rows"] += ref["coverage"] == "complete"
+        source = row.get("source", f"{row['origin']}/{row['split']}/all")
+        sources[source]["rows"] += 1
+        sources[source]["complete_rows"] += ref["coverage"] == "complete"
+    return dict(schema="address-benchmark.reference-comparability/v1", status="audited", populations=dict(counts), sources=dict(sources))

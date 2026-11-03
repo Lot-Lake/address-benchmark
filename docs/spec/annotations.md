@@ -67,6 +67,15 @@ Unknown rights mean no bundled/downloadable raw asset. A local-only manifest is
 useful without granting public redistribution. Do not publish private run inputs
 or labels merely because the benchmark's code has an MIT license.
 
+## Publisher delimiter fidelity
+
+The `doorplate-compare` reader retains publisher token values and exact source
+spans, including component-edge delimiters. This is an annotation property, not
+an instruction to make parsers copy a comma. The versioned [reporting audit](scorecards.md#publisher-edge-delimiters-and-strict-comparability)
+marks affected strict cells non-comparable and points to the existing edge-
+delimiter view. Original corpus revisions, scorer policies and historical
+artifacts remain intact; no corrected corpus or silent reference repair is added.
+
 ## Source-scoped evaluation (scorer v2)
 
 Opt in with `"scorer": "address-benchmark.scorer/v2"`. Omission retains v1;
