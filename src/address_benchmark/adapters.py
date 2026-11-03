@@ -258,6 +258,16 @@ class UsaddressParser:
         return prediction(request, [dict(native_role=role, value=value, spans=None) for value, role in native], native=native)
 
 
+def command_artifacts(command, declared=()):
+    """One file inventory for freezing and the persistent command runtime."""
+    require(isinstance(command, list) and command and all(isinstance(x, str) for x in command), "argv list required; no shell")
+    executable = shutil.which(command[0])
+    require(executable is not None, "command executable unavailable")
+    require(isinstance(declared, (list, tuple)) and all(isinstance(x, str) for x in declared), "declared command artifact list required")
+    return sorted({str(Path(executable).resolve()), *(str(Path(x).resolve()) for x in command[1:] if Path(x).is_file()),
+                   *(str(Path(x).resolve()) for x in declared)})
+
+
 class CommandAdapter:
     """Persistent JSONL bridge for user-installed Rust/Go/C/Node/etc. engines."""
 
@@ -271,8 +281,7 @@ class CommandAdapter:
         self.metadata = dict(config["metadata"])
         check_metadata(self.metadata)
         self.metadata["bridge"] = "persistent JSONL; request/response serialization and pipe I/O included in API timing"
-        pins = [str(Path(executable).resolve())] + [str(Path(x).resolve()) for x in command[1:] if Path(x).is_file()]
-        self.metadata["artifact_files"] = sorted(set(pins + self.metadata.get("artifact_files", [])))
+        self.metadata["artifact_files"] = command_artifacts(command, self.metadata.get("artifact_files", []))
         self.process = subprocess.Popen([executable, *command[1:]], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
     def parse(self, request):

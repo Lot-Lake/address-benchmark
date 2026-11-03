@@ -109,7 +109,7 @@ PYTHONPATH=src python3 -m address_benchmark freeze-plan work/scoped-example/plan
 PYTHONPATH=src python3 -m address_benchmark run-plan work/scoped-example/plan.json
 PYTHONPATH=src python3 -m address_benchmark verify work/scoped-example/execution
 PYTHONPATH=src python3 -m address_benchmark report work/scoped-example/plan.json \
-  --publishable --format json --out work/scoped-example-public.json
+  --publishable --min-denominator 1 --format json --out work/scoped-example-public.json
 ```
 
 An already completed external candidate can use the same synthetic plan recipe:
@@ -244,3 +244,12 @@ Run directories contain inputs and references, including private addresses when 
 MIT for this new implementation, specification and original examples. Optional dependencies, models and external datasets retain their own licenses; see [NOTICE](NOTICE). Python source/JSONL are chosen for transparent review, low setup cost and cross-language interoperability; native compute remains in each library. A standards proposal needs independent annotation review, multiple implementers, larger licensed natural populations, and governance. [Roadmap and coverage](docs/COVERAGE.md) distinguish runnable contracts from production evidence. Geocoding, ranked search, clustering, postal verification, latency/memory/startup backends and cross-binding parity are future separate modules.
 
 Contributions should bring a capability declaration, primary-source provenance/license evidence and contract tests. No library gets special reference repairs, private scoring exceptions or a gold-selected ensemble. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+
+Aggregate-only publication now suppresses measured cells below 20 reference rows
+by default; its threshold and policy version are recorded in the export. The
+synthetic walkthrough explicitly selects 1 to make its authored toy counts
+visible. Real private audits keep their complete records. Gates can select
+strict/delimiter/named streetline judgments, split filters and per-track/view/
+cohort count or rate limits. See the [review additions](docs/spec/plans.md#review-additions-gate-policy-v2-and-command-inventory)
+and [publication policy](docs/spec/scorecards.md#publication-policy-v2).

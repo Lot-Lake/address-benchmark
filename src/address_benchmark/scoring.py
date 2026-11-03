@@ -169,7 +169,8 @@ def summarize(cases):
             def total(items):
                 return prf(sum(x["tp"] for x in items), sum(x["fp"] or 0 for x in items),
                            sum(x["fn"] for x in items), partial=coverage == "partial")
-            result[coverage] = dict(rows=len(chosen), metrics=total(metrics) if chosen else None,
+            result[coverage] = dict(rows=len(chosen), eligible_rows=sum(bool(m["tp"] + (m["fp"] or 0) + m["fn"]) for m in metrics), metrics=total(metrics) if chosen else None,
+                                    per_role_rows={role: sum(role in item["per_role"] for item in chosen) for role in roles},
                                     per_role={role: total([x["per_role"][role] for x in chosen if role in x["per_role"]]) for role in roles})
         result["unsupported_rows"] = sum(c[kind]["status"] == "unsupported" for c in cases)
         result["unannotated_rows"] = sum(c[kind]["status"] == "unannotated" for c in cases)
@@ -213,7 +214,20 @@ def summarize_views(cases):
     return result
 
 
-def comparison(left, right, cohorts=()):
+
+GATE_METRICS = ("strict", "delimiter", "strict-streetline/v1", "strict-streetline/v2")
+
+
+def case_agreement(case, metric="strict"):
+    if metric == "strict":
+        return case["primary_agrees"]
+    if metric == "delimiter":
+        return case.get("delimiter_fields_agree")
+    if metric in GATE_METRICS:
+        return case.get("profiles", {}).get(metric, {}).get("agrees")
+    raise ValueError("unsupported gate metric")
+
+def comparison(left, right, cohorts=(), *, metric="strict"):
     """Paired private identities and aggregate effects on identical judgments."""
     if len(left) != len(right) or any(a["id"] != b["id"] for a, b in zip(left, right)):
         raise ValueError("comparative case streams differ")
@@ -221,7 +235,7 @@ def comparison(left, right, cohorts=()):
     roles = defaultdict(lambda: dict(left_only=0, right_only=0, judged_pairs=0))
     effects = {key: dict(left_only=0, right_only=0, judged_pairs=0) for key in EFFECT_ROLES}
     for a, b in zip(left, right):
-        av, bv = a["primary_agrees"], b["primary_agrees"]
+        av, bv = case_agreement(a, metric), case_agreement(b, metric)
         counts["unmatched_judgments"] += (av is None) != (bv is None)
         counts["judged_pairs"] += av is not None and bv is not None
         counts["left_only"] += av is True and bv is False
@@ -244,9 +258,9 @@ def comparison(left, right, cohorts=()):
         members = set(cohort["row_ids"])
         chosen = [(a, b) for a, b in zip(left, right) if a["id"] in members]
         retention[cohort["id"]] = dict(denominator=len(members),
-            left_correct=sum(a["primary_agrees"] is True for a, _ in chosen),
-            right_correct=sum(b["primary_agrees"] is True for _, b in chosen),
-            retained=sum(a["primary_agrees"] is True and b["primary_agrees"] is True for a, b in chosen),
-            left_unjudged=sum(a["primary_agrees"] is None for a, _ in chosen),
-            right_unjudged=sum(b["primary_agrees"] is None for _, b in chosen))
+            left_correct=sum(case_agreement(a, metric) is True for a, _ in chosen),
+            right_correct=sum(case_agreement(b, metric) is True for _, b in chosen),
+            retained=sum(case_agreement(a, metric) is True and case_agreement(b, metric) is True for a, b in chosen),
+            left_unjudged=sum(case_agreement(a, metric) is None for a, _ in chosen),
+            right_unjudged=sum(case_agreement(b, metric) is None for _, b in chosen))
     return records, dict(**counts, roles=dict(roles), effects=effects, preservation=retention)

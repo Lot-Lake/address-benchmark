@@ -210,14 +210,14 @@ class ProfileWiringTests(unittest.TestCase):
         population = result["accuracy"]["demo"]["populations"]["authored/conformance/all"]
         self.assertEqual(population["profiles"][STREETLINE]["denominator"], population["supplied_fields"]["denominator"])
         self.assertEqual(verify(output)["status"], "verified")
-        card = scorecard([("core", result)], metric="streetline")
+        card = scorecard([("core", result)], metric="streetline", min_denominator=1)
         cell = card["rows"][0]["cells"]["engine-1"]
         self.assertEqual((cell["status"], cell["correct"]), ("measured", population["profiles"][STREETLINE]["correct"]))
 
     def test_streetline_metric_is_unmeasured_without_the_profile(self):
         result, _ = self.run_corpus(self.manifest())
         self.assertNotIn("profiles", result["accuracy"]["demo"]["populations"]["authored/conformance/all"])
-        cell = scorecard([("core", result)], metric="streetline")["rows"][0]["cells"]["engine-1"]
+        cell = scorecard([("core", result)], metric="streetline", min_denominator=1)["rows"][0]["cells"]["engine-1"]
         self.assertEqual(cell["status"], "unmeasured")
 
     def test_both_profile_versions_run_verify_and_report_independently(self):
@@ -226,13 +226,13 @@ class ProfileWiringTests(unittest.TestCase):
         self.assertEqual(set(population['profiles']), {STREETLINE, STREETLINE_V2})
         self.assertEqual(verify(output)['status'], 'verified')
         for metric, profile in [('streetline', STREETLINE), ('streetline-v2', STREETLINE_V2)]:
-            cell = scorecard([('core', result)], metric=metric)['rows'][0]['cells']['engine-1']
+            cell = scorecard([('core', result)], metric=metric, min_denominator=1)['rows'][0]['cells']['engine-1']
             self.assertEqual(cell['correct'], population['profiles'][profile]['correct'])
             self.assertEqual(cell['denominator'], population['profiles'][profile]['denominator'])
 
     def test_v2_is_unmeasured_in_a_v1_only_run(self):
         result, _ = self.run_corpus(self.manifest(scoring_profiles=[STREETLINE]))
-        cell = scorecard([('core', result)], metric='streetline-v2')['rows'][0]['cells']['engine-1']
+        cell = scorecard([('core', result)], metric='streetline-v2', min_denominator=1)['rows'][0]['cells']['engine-1']
         self.assertEqual(cell['status'], 'unmeasured')
 
 
