@@ -104,3 +104,7 @@ class DemoV2(DemoParser):
     def __init__(self, config):
         super().__init__(config)
         self.metadata['ontology'] = 'address-benchmark.us-roles/v2'
+
+class PrivateEcho(DemoParser):
+    def parse(self, request):
+        raise RuntimeError("private native exception: " + request.text)

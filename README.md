@@ -97,6 +97,37 @@ identities and does not rescore or replace the original scoring policy. Use the
 original frozen framework version for full `verify` rescoring of older runs.
 The [scorecard contract](docs/spec/scorecards.md) documents the export semantics.
 
+## Private local evaluation
+
+Use the existing plan/runner with source-declared annotation scopes and explicit
+scorer v2. From the checkout root, this prepares **fictional synthetic controls**
+with full/partial references, a refusal, paired gains/losses and supplied cohorts:
+
+```sh
+PYTHONPATH=src python3 tools/prepare_scoped_example.py work/scoped-example
+PYTHONPATH=src python3 -m address_benchmark freeze-plan work/scoped-example/plan.json
+PYTHONPATH=src python3 -m address_benchmark run-plan work/scoped-example/plan.json
+PYTHONPATH=src python3 -m address_benchmark verify work/scoped-example/execution
+PYTHONPATH=src python3 -m address_benchmark report work/scoped-example/plan.json \
+  --publishable --format json --out work/scoped-example-public.json
+```
+
+An already completed external candidate can use the same synthetic plan recipe:
+add `--engines /absolute/local/engines.json` to preparation, supplying the existing
+`native-batch` usaddress configuration and locally installed pinned assets. The
+recipe uses the fixed v2 ontology crosswalk. It never trains, downloads data,
+selects a checkpoint or tunes a score. The default synthetic controls are not
+production or blind accuracy evidence. All comparisons execute fresh.
+
+Local-only plans require freezing before execution. Full native audit records
+stay private; publish only aggregate exports. Names in safe exports are fixed
+aliases, including console labels. JSON carries separate source metrics, matching
+denominators, scoped fine recall/F1, paired effects and preservation counts.
+Optional accuracy gates can stop timing and later tracks. See the
+[scope policy](docs/spec/annotations.md#source-scoped-evaluation-scorer-v2),
+[frozen plan contract](docs/spec/plans.md#frozen-local-plans-and-accuracy-gates) and
+[publication boundary](docs/spec/scorecards.md#aggregate-only-publication-boundary).
+
 ## Production parsing cohort
 
 Latest: [active eight-configuration comparison](docs/results/2026-11-02/active-cohort/README.md) — seven populations including Deepparse full/partial and all four NAD views. This is a presentation of the eight retained configurations from two verified execution batches, with separate strict/delimiter/v1 exports and an explicitly derived v2 rescore.

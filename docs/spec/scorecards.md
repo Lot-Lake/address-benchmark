@@ -82,3 +82,33 @@ envelope or existing export files. If a Doorplate envelope lacks its reference
 audit/artifact, strict comparability remains unestablished and is marked false
 with a null affected-row count. Re-export to a fresh file for the new presentation
 policy; use the original frozen framework to rescore historical predictions.
+
+## Aggregate-only publication boundary
+
+`report SOURCE --publishable --format json --out PUBLIC.json` explicitly selects
+the publication allowlist. It retains the normal scorecard plus `aggregates`:
+per-source whole/field/fine/token counts and denominators, unit/building/recipient/
+road-city effects, paired gains/losses, supplied-cohort preservation counts,
+paired speed uncertainty and explicit unexecuted statuses. Equal-sized v2
+judgment sets with different membership are marked noncomparable and cannot
+produce a highlighted row leader; private membership pins are not exported. Other formats render
+the corresponding safe scorecard; JSON carries the detailed aggregates.
+
+The projection reconstructs numeric metrics, fixed status/policy enums and
+positional aliases. It does not copy free-text engine, corpus, source, subset,
+cohort or plan names, user titles, provenance, runtime inventories, error messages,
+raw inputs/references/native output, private row/family identifiers, input hashes,
+local paths, or token-level examples. This also applies to publication console
+output and its failure diagnostics. Aliases are positional within each export;
+only the private audit provides their mapping. This is aggregate publication,
+not differential privacy or a statistical disclosure guarantee for tiny groups.
+
+Local-only runs/plans automatically apply this boundary to all `scores.*` files,
+`report` formats and default console output. Their `--json` completion output
+contains status only; progress uses fixed track aliases. Full `run.json`,
+`report.md`, references, inputs, native outputs/errors/refusals, model/runtime
+identities, logs and paired identities remain private. Do not publish that
+execution directory. Local-only execution directories are created with mode
+0700. `verify` independently rescores cases, source metrics, paired gains/losses,
+cohort counts and gate decisions with the pinned framework, besides checking
+artifact hashes. Integrity is not a cryptographic author signature.

@@ -77,6 +77,9 @@ def _sum(populations, metric):
         result.update(correct=sum(p['correct'] for p in parts), denominator=sum(p['denominator'] for p in parts))
         if result['denominator']:
             result['score'] = result['correct'] / result['denominator']
+    eligibility_key = 'tokens' if metric == 'fine-f1' else {'strict': 'supplied_fields', 'delimiter': 'delimiter_fields', 'complete': 'complete_address'}.get(metric)
+    if eligibility_key and all('eligibility' in p for p in populations):
+        result['_eligibility'] = tuple(p['eligibility'][eligibility_key] for p in populations)
     if result['score'] is not None:
         result['status'] = 'measured'
     return result
@@ -100,7 +103,8 @@ def reference_warning(report, view, metric):
         return dict(comparable=False, reference_edge_rows=affected, recommended_metric="delimiter")
     return None
 
-def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', engines=None):
+
+def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', engines=None, publishable=False):
     """Build from recorded aggregates, never raw addresses or native output."""
     require(metric in METRICS, 'unknown report metric')
     require(runs, 'at least one recorded run is required')
@@ -142,6 +146,11 @@ def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', e
                 cells[name] = cell
             if view != 'all' and not any(c.get('rows') for c in cells.values()):
                 continue
+            measured = [c for c in cells.values() if c.get('score') is not None]
+            matched = len({c.get('_eligibility') for c in measured}) <= 1
+            for cell in cells.values():
+                cell['comparable'] = matched
+                cell.pop('_eligibility', None)
             display_label = PANEL_LABELS.get(label, label)
             warning = reference_warning(report, view, effective)
             if warning:
@@ -155,7 +164,7 @@ def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', e
     require(all(any(r['view'] == name for r in rows) for name in subsets), 'requested subset is not present in these runs')
     if all(r['metric'] == 'exact' for r in rows):
         metric = 'exact'
-    return dict(schema='address-benchmark.scorecard/v1', title=title, metric=metric, engines=names, rows=rows, sources=sources,
+    card = dict(schema='address-benchmark.scorecard/v1', title=title, metric=metric, engines=names, rows=rows, sources=sources,
                 notes=[
                     'Counts and failures use the recorded scoring denominators. Partial references judge supplied labels; they are not whole-address accuracy.',
                     'Subset rows overlap the parent dataset. Public/development-exposed fixtures do not establish unseen accuracy.',
@@ -164,6 +173,11 @@ def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', e
                     'Timing appears only when recorded: exploratory process medians, not accuracy-run wall time. † marks sample spread above 10%; ! marks native errors/refusals.',
                     'The report command checks recorded run identities. Exports do not rescore predictions or rehash every artifact.'
                 ])
+    if publishable or any(report.get('privacy') == 'local-only' for _, report in runs):
+        from .report import public_scorecard, publishable_aggregates
+        card = public_scorecard(card)
+        card['aggregates'] = publishable_aggregates(runs, engines=names)
+    return card
 
 
 def _recorded_runs(source):
@@ -178,6 +192,11 @@ def _recorded_runs(source):
         path, value = path.parent / 'plan-results.json', receipt
     if value.get('schema') == 'address-benchmark.plan-results/v1':
         for track in value['tracks']:
+            if track.get('status') == 'not-executed':
+                report = track['summary']
+                require(report['content_id'] == track['content_id'], 'unexecuted track identity differs')
+                runs.append((track['id'], report))
+                continue
             run_path = within(path.parent, track['output']) / 'run.json'
             report = read_json(run_path)
             require(report.get('content_id') == track['content_id'], 'plan/run identity differs')

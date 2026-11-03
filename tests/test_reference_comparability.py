@@ -56,7 +56,7 @@ class ReferenceComparabilityTests(unittest.TestCase):
         self.assertFalse(all_cell['comparable'])
         self.assertEqual(all_cell['reference_edge_rows'], 1)
         self.assertEqual(all_cell['recommended_metric'], 'delimiter')
-        self.assertNotIn('comparable', clean_cell)
+        self.assertTrue(clean_cell.get('comparable', True))
         for fmt in FORMATS:
             text = render(card, fmt, counts=True)
             self.assertIn('non-comparable' if fmt != 'json' else '"comparable": false', text, fmt)
@@ -67,9 +67,9 @@ class ReferenceComparabilityTests(unittest.TestCase):
         result = self.execute()
         cell = scorecard([('example', result)], metric='delimiter')['rows'][0]['cells']['clean-components']
         self.assertEqual((cell['correct'], cell['denominator']), (2, 2))
-        self.assertNotIn('comparable', cell)
+        self.assertTrue(cell.get('comparable', True))
         fine = scorecard([('example', result)], metric='fine-f1')['rows'][0]['cells']['clean-components']
-        self.assertNotIn('comparable', fine)
+        self.assertTrue(fine.get('comparable', True))
         complete = scorecard([('example', result)], metric='complete')['rows'][0]['cells']['clean-components']
         self.assertFalse(complete['comparable'])
 
@@ -111,8 +111,23 @@ class ReferenceComparabilityTests(unittest.TestCase):
         result = self.execute()
         result['reference_comparability'] = reference_comparability(rows)
         complete = scorecard([('example', result)], metric='complete')['rows'][0]['cells']['clean-components']
-        self.assertNotIn('comparable', complete)
+        self.assertTrue(complete.get('comparable', True))
         self.assertFalse(scorecard([('example', result)])['rows'][0]['cells']['clean-components']['comparable'])
+
+    def test_private_aggregate_exports_keep_comparability_warning_without_identifiers(self):
+        manifest_path = self.root / 'manifest.json'
+        value = read_json(manifest_path)
+        value['license']['redistribution'] = 'local-only'
+        value['id'] = 'PRIVATE_PUBLISHER_514'
+        manifest_path.write_text(json.dumps(value))
+        self.execute()
+        for fmt in FORMATS:
+            text = render(load_scorecard(self.root / 'run', publishable=True), fmt, counts=True)
+            self.assertNotIn('PRIVATE_PUBLISHER_514', text)
+            self.assertNotIn(str(self.root), text)
+            self.assertIn('non-comparable' if fmt != 'json' else '"comparable": false', text)
+            if fmt != 'csv':
+                self.assertIn('--metric delimiter', text)
 
     def test_inner_punctuation_periods_and_unlabeled_rows_are_not_flagged(self):
         _, rows, _ = load_corpus(self.root / 'manifest.json')
