@@ -89,11 +89,29 @@ def check_cohorts(manifest, rows):
     require(isinstance(cohorts, list), "cohort list required")
     ids, available = set(), {r["id"]: r for r in rows}
     for cohort in cohorts:
-        require(isinstance(cohort, dict) and set(cohort) == {"id", "row_ids", "basis"}, "externally supplied cohort id/row_ids/basis required")
+        require(isinstance(cohort, dict) and set(cohort) <= {"id", "row_ids", "basis"} and {"id", "basis"} <= set(cohort), "cohort id/basis required")
         require(isinstance(cohort["id"], str) and cohort["id"] and cohort["id"] not in ids, "unique cohort id required")
         ids.add(cohort["id"])
-        members = cohort["row_ids"]
-        require(isinstance(cohort["basis"], str) and cohort["basis"], "independent preservation basis required")
+        basis = cohort["basis"]
+        if isinstance(basis, dict):
+            from .scoring import GATE_METRICS
+            require(set(basis) <= {"kind", "subset", "splits", "metric", "baseline_pin"}, "unknown cohort basis field")
+            require(basis.get("kind") in ("external", "baseline-correct"), "typed cohort basis required")
+            require(basis.get("metric", "strict") in GATE_METRICS, "unsupported cohort metric")
+            if "subset" in basis:
+                require(basis["subset"] in {s for row in rows for s in row["subsets"]}, "unknown cohort subset")
+            if "splits" in basis:
+                require(isinstance(basis["splits"], list) and basis["splits"] and len(set(basis["splits"])) == len(basis["splits"])
+                        and set(basis["splits"]) <= {row["split"] for row in rows}, "unknown cohort splits")
+            if "baseline_pin" in basis:
+                pin = basis["baseline_pin"]
+                require(isinstance(pin, str) and len(pin) == 64 and all(c in "0123456789abcdef" for c in pin), "cohort baseline SHA-256 required")
+            if basis["kind"] == "baseline-correct":
+                require("row_ids" not in cohort, "derived cohort recipe cannot supply cached members")
+                continue
+        else:
+            require(isinstance(basis, str) and basis, "independent preservation basis required")
+        members = cohort.get("row_ids")
         require(isinstance(members, list) and members and all(isinstance(x, str) for x in members)
                 and len(set(members)) == len(members) and set(members) <= set(available), "unique existing supplied cohort members required")
         require(all(available[x]["reference"]["coverage"] != "none" for x in members), "preservation cohort requires judged references")

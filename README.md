@@ -109,7 +109,7 @@ PYTHONPATH=src python3 -m address_benchmark freeze-plan work/scoped-example/plan
 PYTHONPATH=src python3 -m address_benchmark run-plan work/scoped-example/plan.json
 PYTHONPATH=src python3 -m address_benchmark verify work/scoped-example/execution
 PYTHONPATH=src python3 -m address_benchmark report work/scoped-example/plan.json \
-  --publishable --format json --out work/scoped-example-public.json
+  --publishable --min-denominator 1 --format json --out work/scoped-example-public.json
 ```
 
 An already completed external candidate can use the same synthetic plan recipe:
@@ -250,3 +250,12 @@ marked **non-comparable** in newly rendered strict reports. Exact counts stay
 visible, but no leader is highlighted. Use `report ... --metric delimiter` for
 the existing delimiter-insensitive comparison. References and old artifacts keep
 their original values and spans; see the [reporting policy](docs/spec/scorecards.md#publisher-edge-delimiters-and-strict-comparability).
+
+
+Aggregate-only publication now suppresses measured cells below 20 reference rows
+by default; its threshold and policy version are recorded in the export. The
+synthetic walkthrough explicitly selects 1 to make its authored toy counts
+visible. Real private audits keep their complete records. Gates can select
+strict/delimiter/named streetline judgments, split filters and per-track/view/
+cohort count or rate limits. See the [review additions](docs/spec/plans.md#review-additions-gate-policy-v2-and-command-inventory)
+and [publication policy](docs/spec/scorecards.md#publication-policy-v2).
