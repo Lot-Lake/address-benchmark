@@ -5,13 +5,14 @@ import argparse
 import importlib.metadata
 import json
 import itertools
+import os
 from pathlib import Path
 import sys
 import time
 import traceback
 
 from .adapters import AdapterProtocolError, Unavailable, load_adapter
-from .io import canonical, digest_bytes, loads, read_json, read_jsonl, require, sha256, write_json, write_jsonl
+from .io import identity, canonical, digest_bytes, loads, read_json, read_jsonl, require, sha256, write_json, write_jsonl
 from .protocol import Request, check_prediction, prediction
 
 
@@ -38,7 +39,7 @@ def runtime_identity(adapter):
     imported = {Path(m.__file__).resolve() for m in list(sys.modules.values())
                 if getattr(m, "__file__", None) and Path(m.__file__).is_file()}
     files = {str(p): sha256(p) for p in sorted(imported) if p.suffix != ".pyc"}
-    return dict(adapter=loads(canonical(adapter.metadata)), interpreter=dict(path=str(Path(sys.executable).resolve()), sha256=sha256(sys.executable)),
+    return dict(environment_sha256=identity(dict(os.environ)), adapter=loads(canonical(adapter.metadata)), interpreter=dict(path=str(Path(sys.executable).resolve()), sha256=sha256(sys.executable)),
                 imported_files=files, distributions=distributions, declared_artifacts=extra,
                 coverage="imported files, installed distributions and declared assets; excludes OS/shared libraries not in distribution and undeclared remote services")
 
@@ -61,7 +62,7 @@ def main(argv=None):
     parser.add_argument("--inputs", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--identity", required=True)
-    parser.add_argument("--mode", choices=("accuracy", "timing"), required=True)
+    parser.add_argument("--mode", choices=("accuracy", "timing", "identity"), required=True)
     parser.add_argument("--samples", type=int, default=5)
     parser.add_argument("--min-seconds", type=float, default=.1)
     parser.add_argument("--warmup", type=int, default=1)
@@ -97,6 +98,10 @@ def _execute(args, held):
         held.append(adapter)
         load_ns = time.perf_counter_ns() - started
         initial = runtime_identity(adapter)
+        if args.mode == "identity":
+            write_json(args.identity, initial)
+            write_json(args.output, dict(schema="address-benchmark.identity-probe/v1", input_sha256=sha256(args.inputs)))
+            return 0
         if args.mode == "accuracy":
             if hasattr(adapter, "parse_many"):
                 def outputs():

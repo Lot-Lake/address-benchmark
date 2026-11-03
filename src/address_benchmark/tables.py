@@ -156,6 +156,9 @@ def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', e
                         cell.update(_sum(populations, effective))
                     else:
                         cell['status'] = 'unmeasured'
+                cell["reused"] = effective != "throughput" and entry.get("origin", {}).get("kind") == "reused"
+                cell["source_exit_code"] = entry.get("origin", {}).get("source_exit_code")
+
                 if entry['status'] == 'ok':
                     cell['_publication_rows'] = (sum(p['tokens']['complete'].get('eligible_rows', 0) for p in populations) if effective == 'fine-f1'
                         else sum(p['rows'] for p in populations) if effective == 'throughput' else cell.get('denominator'))
@@ -296,7 +299,7 @@ def cell_text(cell, metric, counts=False):
     if cell is None:
         return 'unmeasured'
     if cell.get('score') is None:
-        return clean(cell['status']) + (' [non-comparable]' if 'reference-edge-delimiters' in cell.get('noncomparable_reasons', []) else '')
+        return clean(cell['status']) + (' [non-comparable]' if 'reference-edge-delimiters' in cell.get('noncomparable_reasons', []) else '') + (' [reused]' if cell.get('reused') else '')
     if metric == 'throughput':
         return f"{cell['score']:,.0f}" + ('†' if cell.get('noisy') else '')
     text = f"{100 * cell['score']:.2f}%"
@@ -305,6 +308,8 @@ def cell_text(cell, metric, counts=False):
                  else f" ({cell['correct']:,}/{cell['denominator']:,})")
     if cell.get('errors') or cell.get('refusals'):
         text += ' !'
+    if cell.get("reused"):
+        text += " [reused]"
     if 'reference-edge-delimiters' in cell.get('noncomparable_reasons', []):
         text += ' [non-comparable]'
     return text

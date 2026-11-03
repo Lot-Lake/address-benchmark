@@ -15,7 +15,7 @@ import sys
 import time
 
 from .corpus import input_requests, load_corpus, reference_comparability
-from .io import identity, read_json, read_jsonl, require, sha256, within, write_json, write_jsonl
+from .io import digest_bytes, identity, loads, read_json, read_jsonl, require, sha256, within, write_json, write_jsonl
 from .protocol import check_metadata, check_prediction
 from .scoring import DELIMITER_POLICY, NORMALIZATION, SCORER, score_case, summarize_views, summarize, comparison
 
@@ -94,7 +94,7 @@ def launch(command, directory, timeout):
 def execute(engine, mode, inputs, directory, *, samples, min_seconds, warmup, timeout):
     directory.mkdir()
     write_json(directory / "config.json", engine.get("config", {}))
-    output = directory / ("predictions.jsonl" if mode == "accuracy" else "timing.json")
+    output = directory / ("predictions.jsonl" if mode == "accuracy" else "identity-probe.json" if mode == "identity" else "timing.json")
     command = [engine.get("python", sys.executable), "-m", "address_benchmark.worker", "--spec", engine["adapter"],
                "--config", str(directory / "config.json"), "--inputs", str(inputs), "--output", str(output),
                "--identity", str(directory / "identity.json"), "--mode", mode,
@@ -156,9 +156,10 @@ def paired_summary(trials, names, *, seed):
 from .gates import check_gate, check_gate_context, accuracy_gate, resolve_cohorts
 
 
-def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_seconds=.1, warmup=1, timeout=120, seed=20261101, baseline=None, gate=None):
+def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_seconds=.1, warmup=1, timeout=120, seed=20261101, baseline=None, gate=None, reuse=None):
     manifest, rows, audit = load_corpus(corpus)
-    engines = read_json(engines_path)
+    engine_bytes = Path(engines_path).read_bytes()
+    engines = loads(engine_bytes.decode("utf-8"))
     require(isinstance(engines, list) and engines, "nonempty engine list required")
     names = [engine.get("name") for engine in engines]
     require(all(isinstance(name, str) and name and name.replace("-", "").replace("_", "").isalnum() and name.isascii()
@@ -172,22 +173,27 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
         check_gate_context(gate, manifest, rows)
     out = Path(output).resolve()
     require(not out.exists(), "fresh output directory required")
+    if reuse is not None:
+        prior_directory = Path(reuse['directory']).resolve()
+        require(not out.is_relative_to(prior_directory) and not prior_directory.is_relative_to(out), 'reuse source and fresh output cannot nest')
     out.mkdir(parents=True, mode=0o700 if manifest["license"]["redistribution"] == "local-only" else 0o755)
     requests = input_requests(manifest, rows)
     write_jsonl(out / "inputs.jsonl", (x.to_dict() for x in requests))
     write_jsonl(out / "references.jsonl", rows)
     write_json(out / "corpus.json", manifest)
-    write_json(out / "engines.json", engines)
+    # Preserve the exact source configuration bytes pinned in the envelope.
+    with (out / "engines.json").open("xb") as snapshot:
+        snapshot.write(engine_bytes)
     write_json(out / "overlap.json", audit)
     # Immutable run records contain sensitive inputs when the corpus is private.
     report = dict(schema=RUN, created_at=datetime.now(timezone.utc).isoformat(), status="running",
                   task=manifest["task"], corpus=dict(id=manifest["id"], manifest_sha256=sha256(corpus), resources=manifest["resources"], exposure=manifest["exposure"]),
                   scorer=manifest.get("scorer", SCORER), privacy="local-only" if manifest["license"]["redistribution"] == "local-only" else "public", normalization=NORMALIZATION, secondary_normalization=DELIMITER_POLICY, source_pins=source_pins(),
-                  input_sha256=sha256(out / "inputs.jsonl"), engine_config_sha256=sha256(engines_path),
+                  input_sha256=sha256(out / "inputs.jsonl"), engine_config_sha256=digest_bytes(engine_bytes),
                   host=host_identity(),
                   settings=dict(timing=timing, trials=trials, samples=samples, min_seconds=min_seconds, warmup=warmup, timeout=timeout, seed=seed,
                                 baseline=baseline, gate=gate, concurrency="one engine process at a time; one caller; runtime helper threads as declared"),
-                  accuracy={}, trials=[], paired={}, deltas={},
+                  accuracy={}, trials=[], paired={}, deltas={}, reuse={},
                   reference_comparability=reference_comparability(rows) if manifest["task"] == "parse" else None,
                   limitations=["No unseen-training claim; exposure is corpus-declared, not independently verified.",
                                "Exact/family audit cannot detect undeclared or fuzzy overlap.",
@@ -196,12 +202,26 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
                                "Conditional bootstrap assumes independent paired trials; shared-host autocorrelation/thermal load remain.",
                                "No latency percentiles, memory, batch/streaming or startup-isolation benchmark is implemented."])
     write_json(out / "started.json", {k: v for k, v in report.items() if k not in ("accuracy", "trials", "paired", "deltas")})
+    from .reuse import verified_source, reuse_accuracy
+    prior_source, reuse_error = None, None
+    if reuse is not None:
+        try:
+            prior_source = verified_source(reuse)
+        except (ValueError, OSError, KeyError, TypeError):
+            reuse_error = 'source-verification-failed'
     all_cases = {}
     for engine in engines:
         name = engine["name"]
         directory = out / (name + "-accuracy")
-        entry = execute(engine, "accuracy", out / "inputs.jsonl", directory, samples=samples,
-                        min_seconds=min_seconds, warmup=warmup, timeout=timeout)
+        entry = None
+        decision = dict(status='fresh', reason=reuse_error or ('no-prior-track' if reuse is None else 'no-matching-cell'))
+        if prior_source is not None:
+            entry, decision = reuse_accuracy(prior_source, engine, out, report, execute, samples=samples,
+                                              min_seconds=min_seconds, warmup=warmup, timeout=timeout)
+        if entry is None:
+            entry = execute(engine, "accuracy", out / "inputs.jsonl", directory, samples=samples,
+                            min_seconds=min_seconds, warmup=warmup, timeout=timeout)
+        report['reuse'][name] = decision
         if entry["status"] == "ok":
             try:
                 predictions = list(read_jsonl(directory / "predictions.jsonl"))
@@ -289,6 +309,8 @@ def verify_run(output):
     expected_id = identity({k: v for k, v in report.items() if k != "content_id"})
     require(report["content_id"] == expected_id, "run content identity differs")
     require(report["source_pins"] == source_pins(), "installed scorer/runner source differs; use the original version to rescore")
+    require(report["input_sha256"] == sha256(out / "inputs.jsonl"), "recorded input panel hash differs")
+    require(report["engine_config_sha256"] == sha256(out / "engines.json"), "recorded engine config hash differs")
     rows = list(read_jsonl(out / "references.jsonl"))
     from .protocol import Request
     requests = [Request.from_dict(x) for x in read_jsonl(out / "inputs.jsonl")]
@@ -302,6 +324,12 @@ def verify_run(output):
     rescored = {}
     for name, entry in report["accuracy"].items():
         require(entry == read_json(out / (name + "-accuracy") / "execution.json"), "execution record differs from report")
+        if entry['status'] == 'ok':
+            require(entry['identity'] == read_json(out / (name + '-accuracy') / 'identity.json') and
+                    entry['identity_sha256'] == identity(entry['identity']), 'recorded runtime identity differs')
+        if entry.get('origin', {}).get('kind') == 'reused':
+            from .reuse import verify_reused
+            verify_reused(out, name, entry, report)
         if entry["status"] == "ok":
             directory = out / (name + "-accuracy")
             cases = validate_predictions(rows, requests, list(read_jsonl(directory / "predictions.jsonl")), entry["identity"]["adapter"],

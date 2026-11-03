@@ -94,14 +94,17 @@ def freeze_plan(path):
     return dict(status="frozen")
 
 
-def run_plan(path):
+def run_plan(path, *, reuse=None):
     path, plan = load_plan(path)
+    from .reuse import plan_sources
+    reuse_index = plan_sources(reuse) if reuse is not None else dict(tracks={}, sources={})
+    prior_tracks = reuse_index["tracks"]
     manifests = [load_corpus(within(path.parent, t["corpus"]))[0] for t in plan["tracks"]]
     private = any(m["license"]["redistribution"] == "local-only" for m in manifests)
     require(not private or "pins" in plan, "local-only plans must be frozen before execution")
     if "pins" in plan:
         require(plan["pins"] == plan_pins(path, plan), "frozen plan assets/framework differ")
-    frozen = dict(schema="address-benchmark.plan-results/v1", plan_sha256=sha256(path), plan_file=path.name, name=plan["name"], privacy="local-only" if private else "public", status="running", tracks=[])
+    frozen = dict(schema="address-benchmark.plan-results/v1", plan_sha256=sha256(path), plan_file=path.name, name=plan["name"], privacy="local-only" if private else "public", status="running", tracks=[], reuse_sources=reuse_index["sources"])
     runs = []
     if private and any(m["license"]["redistribution"] == "allowed" for m in manifests):
         print("publication: mixed private/public plan uses aliases for every track", file=sys.stderr, flush=True)
@@ -121,15 +124,16 @@ def run_plan(path):
             continue
         print(f"track {label}: starting", flush=True, file=sys.stderr)
         output = within(path.parent, track["output"])
-        result = run(within(path.parent, track["corpus"]), within(path.parent, plan["engines"]), output, **{**plan.get("execution", {}), **track.get("execution", {})})
+        result = run(within(path.parent, track["corpus"]), within(path.parent, plan["engines"]), output, reuse=prior_tracks.get(track["id"]), **{**plan.get("execution", {}), **track.get("execution", {})})
         verified = verify(output)
-        frozen["tracks"].append(dict(id=track["id"], output=track["output"], status=result["status"], content_id=result["content_id"], verification=verified["status"]))
+        frozen["tracks"].append(dict(id=track["id"], output=track["output"], status=result["status"], content_id=result["content_id"], verification=verified["status"], engines={name: value["status"] for name, value in result["reuse"].items()}))
         runs.append((track['id'], result))
         stopped = result.get("gate", {}).get("status") == "failed"
         print(f"track {label}: {result['status']}; artifacts {verified['status']}", flush=True, file=sys.stderr)
     frozen["status"] = "complete" if all(t["status"] == "complete" for t in frozen["tracks"]) else "incomplete"
     if "pins" in plan:
         require(plan["pins"] == plan_pins(path, plan), "frozen plan assets/framework changed during execution")
+    require(all(sha256(source) == expected for source, expected in reuse_index["sources"].items()), "reuse source plan changed during execution")
     require(sha256(path) == frozen["plan_sha256"], "plan changed during run")
     from .tables import scorecard, export_scorecard
     export_scorecard(scorecard(runs, engines=engines, title=plan['name']), path.parent)

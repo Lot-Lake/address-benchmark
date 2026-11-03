@@ -17,13 +17,14 @@ def render(report):
              "", "| Engine | Population/view | Rows / families | Supplied fields | Complete address |",
              "| --- | --- | ---: | ---: | ---: |"]
     for name, entry in report["accuracy"].items():
+        display_name = name + (" [reused accuracy]" if entry.get("origin", {}).get("kind") == "reused" else "")
         if entry["status"] != "ok":
-            lines.append(f"| {name} | {entry['status']} (exit {entry['exit_code']}) | — | unmeasured | unmeasured |")
+            lines.append(f"| {display_name} | {entry['status']} (exit {entry['exit_code']}) | — | unmeasured | unmeasured |")
         for population, m in entry.get("populations", {}).items():
             audit = report.get("reference_comparability") or {}
             affected = audit.get("populations", {}).get(population, {}).get("rows", 0)
             marker = " [non-comparable; use edge-delimiter]" if affected else ""
-            lines.append(f"| {name} | {population} | {m['rows']} / {m['source_families']} | {agreement(m['supplied_fields'])}{marker} | {agreement(m['complete_address'])}{marker if audit.get('populations', {}).get(population, {}).get('complete_rows', 0) else ''} |")
+            lines.append(f"| {display_name} | {population} | {m['rows']} / {m['source_families']} | {agreement(m['supplied_fields'])}{marker} | {agreement(m['complete_address'])}{marker if audit.get('populations', {}).get(population, {}).get('complete_rows', 0) else ''} |")
     lines += ["", "Fine token/span precision, recall, F1, role counts, errors/refusals, unsupported roles and per-case deltas are in `run.json` and the hashed case artifacts.",
               "Partial fine annotations support positive-label recall only: precision and F1 remain unmeasured.", ""]
     if report["trials"]:
@@ -50,10 +51,11 @@ def render_task(report):
              "| Engine | Population/view | Rows / families | Exact agreement | Distinct-entity collisions |",
              "| --- | --- | ---: | ---: | ---: |"]
     for name, entry in report["accuracy"].items():
+        display_name = name + (" [reused accuracy]" if entry.get("origin", {}).get("kind") == "reused" else "")
         if entry["status"] != "ok":
-            lines.append(f"| {name} | {entry['status']} (exit {entry['exit_code']}) | — | unmeasured | — |")
+            lines.append(f"| {display_name} | {entry['status']} (exit {entry['exit_code']}) | — | unmeasured | — |")
         for label, m in entry.get("populations", {}).items():
-            lines.append(f"| {name} | {label} | {m['rows']} / {m['source_families']} | {agreement(m['agreement'])} | {m.get('distinct_entity_collisions', 'n/a')} |")
+            lines.append(f"| {display_name} | {label} | {m['rows']} / {m['source_families']} | {agreement(m['agreement'])} | {m.get('distinct_entity_collisions', 'n/a')} |")
     lines += ["", "Normalization compares ordered output strings exactly under the corpus's named profile. Identity uses independently authored pair labels and native key equality; missing/error outputs remain in the agreement denominator.",
               "Pair precision/recall/F1, same-entity stability, collision counts, coverage, statuses and per-case deltas are retained in `run.json` and the case artifacts.", ""]
     if report["trials"]:
