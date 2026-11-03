@@ -14,7 +14,7 @@ import subprocess
 import sys
 import time
 
-from .corpus import input_requests, load_corpus
+from .corpus import input_requests, load_corpus, reference_comparability
 from .io import identity, read_json, read_jsonl, require, sha256, within, write_json, write_jsonl
 from .protocol import check_metadata, check_prediction
 from .scoring import DELIMITER_POLICY, NORMALIZATION, SCORER, score_case, summarize_views
@@ -182,6 +182,7 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
                   settings=dict(timing=timing, trials=trials, samples=samples, min_seconds=min_seconds, warmup=warmup, timeout=timeout, seed=seed,
                                 concurrency="one engine process at a time; one caller; runtime helper threads as declared"),
                   accuracy={}, trials=[], paired={}, deltas={},
+                  reference_comparability=reference_comparability(rows) if manifest["task"] == "parse" else None,
                   limitations=["No unseen-training claim; exposure is corpus-declared, not independently verified.",
                                "Exact/family audit cannot detect undeclared or fuzzy overlap.",
                                "Subset views overlap; origin/split populations are separate and must not be summed.",
@@ -286,6 +287,8 @@ def verify(output):
     for row, request in zip(rows, requests):
         require(row["id"] == request.id and row["text"] == request.text and row.get("other_text") == request.other_text
                 and row.get("payload") == request.payload, "frozen reference/input differs")
+    if report.get("reference_comparability") is not None:
+        require(report["reference_comparability"] == reference_comparability(rows), "reference comparability audit differs")
     for name, entry in report["accuracy"].items():
         require(entry == read_json(out / (name + "-accuracy") / "execution.json"), "execution record differs from report")
         if entry["status"] == "ok":

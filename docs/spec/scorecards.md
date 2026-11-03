@@ -54,3 +54,31 @@ redundant `all` subset; it is mutually exclusive with named subset selection.
 Source content identities and creation timestamps stay separate in JSON.
 Composition never supplies a missing execution result or establishes a single
 contemporaneous cohort. Unsupported or absent engine cells remain explicit.
+
+## Publisher edge delimiters and strict comparability
+
+Reporting policy `address-benchmark.reference-comparability/v1` preserves exact
+publisher values, source spans and the original scorer. References whose supplied
+fields carry leading/trailing comma, semicolon or colon delimiters make the
+corresponding strict cell **non-comparable**. Counts remain visible as diagnostics,
+with `comparable: false`, the affected reference-row count and
+`recommended_metric: delimiter`. Such cells never receive leader highlighting.
+Console, Markdown, CSV and HTML mark them explicitly; rendered reports point to
+`--metric delimiter` for the existing delimiter-insensitive comparison. A clean
+subset remains independently comparable. Complete-address reporting counts only
+affected complete references; partial rows cannot taint its denominator.
+
+The audit uses references only and is independent of engine outputs, aliases and
+scores. It applies to any source with this annotation property, including
+`doorplate-compare`, rather than relying on a hardcoded corpus name. Inner
+punctuation, periods and unannotated rows are unaffected. Fine token F1 continues
+to describe exact publisher-role/offset agreement; this policy does not trim or
+re-tokenize its references or reinterpret named streetline profiles.
+
+New parsing envelopes record the versioned per-view audit; `verify` checks it.
+For older envelopes, `report` derives the presentation audit only after validating
+the recorded `references.jsonl` artifact hash. It never rewrites the historical
+envelope or existing export files. If a Doorplate envelope lacks its reference
+audit/artifact, strict comparability remains unestablished and is marked false
+with a null affected-row count. Re-export to a fresh file for the new presentation
+policy; use the original frozen framework to rescore historical predictions.

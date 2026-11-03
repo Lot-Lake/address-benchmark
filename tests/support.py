@@ -98,3 +98,9 @@ class ExitCloseInterrupts(DemoParser):
 class SuccessfulCloseExits(DemoParser):
     def close(self):
         raise SystemExit(23)
+
+
+class DemoV2(DemoParser):
+    def __init__(self, config):
+        super().__init__(config)
+        self.metadata['ontology'] = 'address-benchmark.us-roles/v2'
