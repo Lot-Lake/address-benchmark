@@ -15,7 +15,7 @@ import sys
 import time
 
 from .corpus import input_requests, load_corpus, reference_comparability
-from .io import identity, read_json, read_jsonl, require, sha256, within, write_json, write_jsonl
+from .io import digest_bytes, identity, loads, read_json, read_jsonl, require, sha256, within, write_json, write_jsonl
 from .protocol import check_metadata, check_prediction
 from .scoring import DELIMITER_POLICY, NORMALIZATION, SCORER, score_case, summarize_views, summarize, comparison
 
@@ -180,7 +180,8 @@ def accuracy_gate(cases, gate, baseline, cohorts):
 
 def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_seconds=.1, warmup=1, timeout=120, seed=20261101, baseline=None, gate=None, reuse=None):
     manifest, rows, audit = load_corpus(corpus)
-    engines = read_json(engines_path)
+    engine_bytes = Path(engines_path).read_bytes()
+    engines = loads(engine_bytes.decode("utf-8"))
     require(isinstance(engines, list) and engines, "nonempty engine list required")
     names = [engine.get("name") for engine in engines]
     require(all(isinstance(name, str) and name and name.replace("-", "").replace("_", "").isalnum() and name.isascii()
@@ -201,13 +202,15 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
     write_jsonl(out / "inputs.jsonl", (x.to_dict() for x in requests))
     write_jsonl(out / "references.jsonl", rows)
     write_json(out / "corpus.json", manifest)
-    write_json(out / "engines.json", engines)
+    # Preserve the exact source configuration bytes pinned in the envelope.
+    with (out / "engines.json").open("xb") as snapshot:
+        snapshot.write(engine_bytes)
     write_json(out / "overlap.json", audit)
     # Immutable run records contain sensitive inputs when the corpus is private.
     report = dict(schema=RUN, created_at=datetime.now(timezone.utc).isoformat(), status="running",
                   task=manifest["task"], corpus=dict(id=manifest["id"], manifest_sha256=sha256(corpus), resources=manifest["resources"], exposure=manifest["exposure"]),
                   scorer=manifest.get("scorer", SCORER), privacy="local-only" if manifest["license"]["redistribution"] == "local-only" else "public", normalization=NORMALIZATION, secondary_normalization=DELIMITER_POLICY, source_pins=source_pins(),
-                  input_sha256=sha256(out / "inputs.jsonl"), engine_config_sha256=sha256(engines_path),
+                  input_sha256=sha256(out / "inputs.jsonl"), engine_config_sha256=digest_bytes(engine_bytes),
                   host=host_identity(),
                   settings=dict(timing=timing, trials=trials, samples=samples, min_seconds=min_seconds, warmup=warmup, timeout=timeout, seed=seed,
                                 baseline=baseline, gate=gate, concurrency="one engine process at a time; one caller; runtime helper threads as declared"),
@@ -322,6 +325,8 @@ def verify(output):
     expected_id = identity({k: v for k, v in report.items() if k != "content_id"})
     require(report["content_id"] == expected_id, "run content identity differs")
     require(report["source_pins"] == source_pins(), "installed scorer/runner source differs; use the original version to rescore")
+    require(report["input_sha256"] == sha256(out / "inputs.jsonl"), "recorded input panel hash differs")
+    require(report["engine_config_sha256"] == sha256(out / "engines.json"), "recorded engine config hash differs")
     rows = list(read_jsonl(out / "references.jsonl"))
     from .protocol import Request
     requests = [Request.from_dict(x) for x in read_jsonl(out / "inputs.jsonl")]
@@ -335,6 +340,9 @@ def verify(output):
     rescored = {}
     for name, entry in report["accuracy"].items():
         require(entry == read_json(out / (name + "-accuracy") / "execution.json"), "execution record differs from report")
+        if entry['status'] == 'ok':
+            require(entry['identity'] == read_json(out / (name + '-accuracy') / 'identity.json') and
+                    entry['identity_sha256'] == identity(entry['identity']), 'recorded runtime identity differs')
         if entry.get('origin', {}).get('kind') == 'reused':
             from .reuse import verify_reused
             verify_reused(out, name, entry, report)

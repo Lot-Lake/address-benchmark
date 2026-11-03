@@ -119,6 +119,9 @@ files and identifies each track engine as `fresh` or `reused`.
 
 For each matching track, the existing `verify` must first validate the prior
 run's artifact hashes, envelope identity, accuracy rescore and policy/source pins.
+Verification also checks that envelope runtime identities match their retained
+identity files and that panel/configuration header hashes match their snapshots.
+Engine configuration snapshots preserve the exact original JSON bytes.
 A selected engine qualifies only when its entire engine configuration matches,
 its source process succeeded, corpus manifest and ordered input/reference panel
 hashes match, and a fresh input-only identity worker establishes the identical

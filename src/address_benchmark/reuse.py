@@ -85,7 +85,7 @@ def reuse_accuracy(source, engine, out, report, execute, *, samples, min_seconds
     probe = execute(engine, 'identity', out / 'inputs.jsonl', probe_directory,
                     samples=samples, min_seconds=min_seconds, warmup=warmup, timeout=timeout)
     write_json(probe_directory / 'execution.json', probe)
-    if probe['status'] != 'ok' or probe.get('identity') != old['identity'] or probe.get('environment') != old.get('environment'):
+    if probe['status'] != 'ok' or probe.get('identity') != old['identity'] or probe.get('identity_sha256') != old['identity_sha256'] or probe.get('environment') != old.get('environment'):
         decision['reason'] = 'runtime-probe-mismatch'
         return None, decision
     command = engine.get('config', {}).get('command', [])

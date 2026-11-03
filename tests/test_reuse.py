@@ -206,7 +206,7 @@ class ReuseTests(unittest.TestCase):
         receipt['tracks'][0]['content_id'] = report['content_id']
         (prior.parent / 'plan-results.json').write_text(json.dumps(receipt))
         _, result = self.execute(self.plan(self.root / 'next', [self.engine]), reuse=prior)
-        self.assertEqual(result['reuse']['incumbent']['reason'], 'input-or-reference-panel-changed')
+        self.assertEqual(result['reuse']['incumbent']['reason'], 'source-verification-failed')
         self.assertEqual(self.count(), 16)
 
     def test_legacy_runtime_without_environment_pin_is_not_reused(self):
@@ -214,6 +214,9 @@ class ReuseTests(unittest.TestCase):
         entry = report['accuracy']['incumbent']
         entry['identity'].pop('environment_sha256')
         entry['identity_sha256'] = identity(entry['identity'])
+        identity_file = prior.parent / 'run/incumbent-accuracy/identity.json'
+        identity_file.write_text(json.dumps(entry['identity']))
+        report['artifacts']['incumbent-accuracy/identity.json'] = sha256(identity_file)
         path = prior.parent / 'run/incumbent-accuracy/execution.json'
         path.write_text(json.dumps(entry))
         report['artifacts']['incumbent-accuracy/execution.json'] = sha256(path)
@@ -316,6 +319,32 @@ class ReuseTests(unittest.TestCase):
             self.assertNotIn(str(fixture.root), text)
             self.assertIn('reused', text)
             self.assertIn('non-comparable' if fmt != 'json' else '"comparable": false', text)
+
+    def test_inconsistent_runtime_envelope_cannot_reuse_another_models_predictions(self):
+        prior, receipt, report = self.prior()
+        entry = report['accuracy']['incumbent']
+        entry['identity']['adapter']['model'] = 'inconsistent-runtime-description'
+        entry['identity_sha256'] = identity(entry['identity'])
+        path = prior.parent / 'run/incumbent-accuracy/execution.json'
+        path.write_text(json.dumps(entry))
+        report['artifacts']['incumbent-accuracy/execution.json'] = sha256(path)
+        report['content_id'] = identity({k: v for k, v in report.items() if k != 'content_id'})
+        (prior.parent / 'run/run.json').write_text(json.dumps(report))
+        receipt['tracks'][0]['content_id'] = report['content_id']
+        (prior.parent / 'plan-results.json').write_text(json.dumps(receipt))
+        _, result = self.execute(self.plan(self.root / 'next', [self.engine]), reuse=prior)
+        self.assertEqual(result['reuse']['incumbent']['reason'], 'source-verification-failed')
+        self.assertEqual(self.count(), 16)
+
+    def test_engine_snapshot_preserves_exact_compact_config_bytes(self):
+        plan = self.plan(self.root / 'compact', [self.engine])
+        path = plan.parent / 'engines.json'
+        encoded = json.dumps([self.engine], separators=(',', ':')).encode()
+        path.write_bytes(encoded)
+        _, report = self.execute(plan)
+        self.assertEqual((plan.parent / 'run/engines.json').read_bytes(), encoded)
+        self.assertEqual(report['engine_config_sha256'], sha256(plan.parent / 'run/engines.json'))
+        self.assertEqual(verify(plan.parent / 'run')['status'], 'verified')
 
     def test_cli_reuse_and_publishable_private_exports_exclude_source_paths_and_ids(self):
         from address_benchmark.plan import freeze_plan
