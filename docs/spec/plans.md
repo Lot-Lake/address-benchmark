@@ -116,6 +116,29 @@ command adapter, plus ordinary `config.artifact_files` for adapters that support
 it. A bridge or model changed after freezing fails the asset check before any
 worker starts. Command adapters keep their existing two-key config contract.
 
+Imports inside a bridge are not discovered by following its import graph. Declare
+each imported module or other asset that must be frozen in
+`config.metadata.artifact_files`, using resolved absolute paths. For example,
+this engine-manifest excerpt lists the bridge and model passed as arguments, plus
+the helper imported by the bridge. Keep the other required protocol metadata
+alongside `artifact_files`:
+
+```json
+{
+  "name": "external-parser",
+  "adapter": "command",
+  "config": {
+    "command": ["/usr/bin/node", "/opt/parser/bridge.mjs", "/opt/parser/model.bin"],
+    "metadata": {
+      "artifact_files": ["/opt/parser/lib/parse.mjs"]
+    }
+  }
+}
+```
+
+The paths are illustrative; use installed files. Declare transitive imports too;
+changing an undeclared imported file is outside the freeze contract.
+
 The original four-key gate shape retains `address-benchmark.gate/v1` semantics.
 New selectors/rates use `address-benchmark.gate/v2` and reuse existing scored
 judgments. `metric` accepts `strict`, `delimiter`, `strict-streetline/v1` or
@@ -146,9 +169,19 @@ successes. Each requirement records its metric, filter, denominator and decision
 privately. A track may provide `execution` overrides over the global settings,
 including its own gate thresholds. Freeze pins these overrides.
 
+A plan-wide subset requirement applies to every executed track. It fails closed
+on a track that does not declare that subset; the track is not silently excluded.
+For subset requirements that belong to only some tracks, put the gate in those
+tracks' `execution.gate` overrides instead of the plan-wide gate. A track override
+replaces the whole gate object, so include every requirement for that track.
+
 `verify` accepts a run, plan JSON, executed plan directory or `plan-results.json`.
 New receipts retain the source plan filename, export hashes and receipt identity;
 verification checks track links, executed audits and explicit skipped tracks.
+`verify` and `compare` refuse runs made with different scorer/runner source using
+the safe reason code `framework-differs`. Use the run's recorded framework
+snapshot or original framework version to verify it; the current version does
+not silently rescore it under a changed policy.
 Mixed private/public plans intentionally alias every track in publication output;
 a fixed progress notice explains that choice without exposing labels. All text
 export formats include one gate-status line per panel.

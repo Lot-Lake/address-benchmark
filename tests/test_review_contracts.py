@@ -288,6 +288,39 @@ class ReviewContracts(unittest.TestCase):
         for fmt in FORMATS:
             self.assertNotIn('gate not-requested', render(card, fmt))
 
+    def test_framework_mismatch_has_a_safe_reason_for_verify_and_compare(self):
+        plan = prepare(self.root / 'PRIVATE_RETIRED_FRAMEWORK')
+        freeze_plan(plan)
+        with redirect_stderr(io.StringIO()):
+            run_plan(plan)
+        output = plan.parent / 'execution'
+        self.assertEqual(verify(output)['status'], 'verified')
+        report = read_json(output / 'run.json')
+        # A valid envelope from a retired framework retains its own source pins.
+        report['source_pins']['runner.py'] = '0' * 64
+        report['content_id'] = identity({k: v for k, v in report.items() if k != 'content_id'})
+        self.write(output / 'run.json', report)
+        comparison = self.root / 'PRIVATE_COMPARISON'
+        commands = [
+            ['verify', str(output)],
+            ['verify', str(output / 'run.json')],
+            ['verify', str(plan.parent / 'plan-results.json')],
+            ['compare', str(output), str(output), '--baseline', 'incumbent',
+             '--candidate', 'candidate', '--out', str(comparison)],
+        ]
+        for command in commands:
+            with self.subTest(command=command[0]), redirect_stderr(io.StringIO()) as err, redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(main(command), 1)
+            self.assertEqual(err.getvalue(), 'address-benchmark: framework-differs\n')
+            self.assertEqual(out.getvalue(), '')
+        self.assertFalse(comparison.exists())
+        # Artifact damage is still diagnosed before the framework mismatch.
+        with (output / 'inputs.jsonl').open('a') as stream:
+            stream.write('{}\n')
+        with redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(main(['verify', str(output)]), 1)
+        self.assertEqual(err.getvalue(), 'address-benchmark: artifact-integrity-failed\n')
+
     def test_errors_have_fixed_safe_reasons_including_verify_and_existing_output(self):
         private = self.root / 'PRIVATE_UNAVAILABLE_981'
         for command in (['verify', str(private)], ['report', str(private), '--publishable']):
