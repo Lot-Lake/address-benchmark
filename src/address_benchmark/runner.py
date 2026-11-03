@@ -94,7 +94,7 @@ def launch(command, directory, timeout):
 def execute(engine, mode, inputs, directory, *, samples, min_seconds, warmup, timeout):
     directory.mkdir()
     write_json(directory / "config.json", engine.get("config", {}))
-    output = directory / ("predictions.jsonl" if mode == "accuracy" else "timing.json")
+    output = directory / ("predictions.jsonl" if mode == "accuracy" else "identity-probe.json" if mode == "identity" else "timing.json")
     command = [engine.get("python", sys.executable), "-m", "address_benchmark.worker", "--spec", engine["adapter"],
                "--config", str(directory / "config.json"), "--inputs", str(inputs), "--output", str(output),
                "--identity", str(directory / "identity.json"), "--mode", mode,
@@ -178,7 +178,7 @@ def accuracy_gate(cases, gate, baseline, cohorts):
                 correct=correct, judged_pairs=paired["judged_pairs"], preservation_passed=retained)
 
 
-def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_seconds=.1, warmup=1, timeout=120, seed=20261101, baseline=None, gate=None):
+def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_seconds=.1, warmup=1, timeout=120, seed=20261101, baseline=None, gate=None, reuse=None):
     manifest, rows, audit = load_corpus(corpus)
     engines = read_json(engines_path)
     require(isinstance(engines, list) and engines, "nonempty engine list required")
@@ -193,6 +193,9 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
         check_gate(gate, names, baseline)
     out = Path(output).resolve()
     require(not out.exists(), "fresh output directory required")
+    if reuse is not None:
+        prior_directory = Path(reuse['directory']).resolve()
+        require(not out.is_relative_to(prior_directory) and not prior_directory.is_relative_to(out), 'reuse source and fresh output cannot nest')
     out.mkdir(parents=True, mode=0o700 if manifest["license"]["redistribution"] == "local-only" else 0o755)
     requests = input_requests(manifest, rows)
     write_jsonl(out / "inputs.jsonl", (x.to_dict() for x in requests))
@@ -208,7 +211,7 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
                   host=host_identity(),
                   settings=dict(timing=timing, trials=trials, samples=samples, min_seconds=min_seconds, warmup=warmup, timeout=timeout, seed=seed,
                                 baseline=baseline, gate=gate, concurrency="one engine process at a time; one caller; runtime helper threads as declared"),
-                  accuracy={}, trials=[], paired={}, deltas={},
+                  accuracy={}, trials=[], paired={}, deltas={}, reuse={},
                   limitations=["No unseen-training claim; exposure is corpus-declared, not independently verified.",
                                "Exact/family audit cannot detect undeclared or fuzzy overlap.",
                                "Subset views overlap; origin/split populations are separate and must not be summed.",
@@ -216,12 +219,26 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
                                "Conditional bootstrap assumes independent paired trials; shared-host autocorrelation/thermal load remain.",
                                "No latency percentiles, memory, batch/streaming or startup-isolation benchmark is implemented."])
     write_json(out / "started.json", {k: v for k, v in report.items() if k not in ("accuracy", "trials", "paired", "deltas")})
+    from .reuse import verified_source, reuse_accuracy
+    prior_source, reuse_error = None, None
+    if reuse is not None:
+        try:
+            prior_source = verified_source(reuse)
+        except (ValueError, OSError, KeyError, TypeError):
+            reuse_error = 'source-verification-failed'
     all_cases = {}
     for engine in engines:
         name = engine["name"]
         directory = out / (name + "-accuracy")
-        entry = execute(engine, "accuracy", out / "inputs.jsonl", directory, samples=samples,
-                        min_seconds=min_seconds, warmup=warmup, timeout=timeout)
+        entry = None
+        decision = dict(status='fresh', reason=reuse_error or ('no-prior-track' if reuse is None else 'no-matching-cell'))
+        if prior_source is not None:
+            entry, decision = reuse_accuracy(prior_source, engine, out, report, execute, samples=samples,
+                                              min_seconds=min_seconds, warmup=warmup, timeout=timeout)
+        if entry is None:
+            entry = execute(engine, "accuracy", out / "inputs.jsonl", directory, samples=samples,
+                            min_seconds=min_seconds, warmup=warmup, timeout=timeout)
+        report['reuse'][name] = decision
         if entry["status"] == "ok":
             try:
                 predictions = list(read_jsonl(directory / "predictions.jsonl"))
@@ -298,7 +315,7 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
 def verify(output):
     out = Path(output).resolve()
     report = read_json(out / "run.json")
-    require(report.get("schema") == RUN, "run schema differs")
+    require(isinstance(report, dict) and report.get("schema") == RUN, "run schema differs")
     for name, expected in report["artifacts"].items():
         require(sha256(within(out, name)) == expected, f"artifact changed: {name}")
     expected_id = identity({k: v for k, v in report.items() if k != "content_id"})
@@ -314,6 +331,9 @@ def verify(output):
     rescored = {}
     for name, entry in report["accuracy"].items():
         require(entry == read_json(out / (name + "-accuracy") / "execution.json"), "execution record differs from report")
+        if entry.get('origin', {}).get('kind') == 'reused':
+            from .reuse import verify_reused
+            verify_reused(out, name, entry, report)
         if entry["status"] == "ok":
             directory = out / (name + "-accuracy")
             cases = validate_predictions(rows, requests, list(read_jsonl(directory / "predictions.jsonl")), entry["identity"]["adapter"],

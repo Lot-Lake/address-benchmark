@@ -17,10 +17,11 @@ def render(report):
              "", "| Engine | Population/view | Rows / families | Supplied fields | Complete address |",
              "| --- | --- | ---: | ---: | ---: |"]
     for name, entry in report["accuracy"].items():
+        display_name = name + (" [reused accuracy]" if entry.get("origin", {}).get("kind") == "reused" else "")
         if entry["status"] != "ok":
-            lines.append(f"| {name} | {entry['status']} (exit {entry['exit_code']}) | — | unmeasured | unmeasured |")
+            lines.append(f"| {display_name} | {entry['status']} (exit {entry['exit_code']}) | — | unmeasured | unmeasured |")
         for population, m in entry.get("populations", {}).items():
-            lines.append(f"| {name} | {population} | {m['rows']} / {m['source_families']} | {agreement(m['supplied_fields'])} | {agreement(m['complete_address'])} |")
+            lines.append(f"| {display_name} | {population} | {m['rows']} / {m['source_families']} | {agreement(m['supplied_fields'])} | {agreement(m['complete_address'])} |")
     lines += ["", "Fine token/span precision, recall, F1, role counts, errors/refusals, unsupported roles and per-case deltas are in `run.json` and the hashed case artifacts.",
               "Partial fine annotations support positive-label recall only: precision and F1 remain unmeasured.", ""]
     if report["trials"]:
@@ -47,10 +48,11 @@ def render_task(report):
              "| Engine | Population/view | Rows / families | Exact agreement | Distinct-entity collisions |",
              "| --- | --- | ---: | ---: | ---: |"]
     for name, entry in report["accuracy"].items():
+        display_name = name + (" [reused accuracy]" if entry.get("origin", {}).get("kind") == "reused" else "")
         if entry["status"] != "ok":
-            lines.append(f"| {name} | {entry['status']} (exit {entry['exit_code']}) | — | unmeasured | — |")
+            lines.append(f"| {display_name} | {entry['status']} (exit {entry['exit_code']}) | — | unmeasured | — |")
         for label, m in entry.get("populations", {}).items():
-            lines.append(f"| {name} | {label} | {m['rows']} / {m['source_families']} | {agreement(m['agreement'])} | {m.get('distinct_entity_collisions', 'n/a')} |")
+            lines.append(f"| {display_name} | {label} | {m['rows']} / {m['source_families']} | {agreement(m['agreement'])} | {m.get('distinct_entity_collisions', 'n/a')} |")
     lines += ["", "Normalization compares ordered output strings exactly under the corpus's named profile. Identity uses independently authored pair labels and native key equality; missing/error outputs remain in the agreement denominator.",
               "Pair precision/recall/F1, same-entity stability, collision counts, coverage, statuses and per-case deltas are retained in `run.json` and the case artifacts.", ""]
     if report["trials"]:
@@ -92,7 +94,7 @@ def public_scorecard(card):
         cells = {}
         for name, cell in row["cells"].items():
             cells[names[name]] = dict(status=public_status(cell["status"]), **public_numbers(cell,
-                ("score", "correct", "denominator", "rows", "errors", "refusals", "tp", "fp", "fn", "trials", "noisy", "exit_code", "comparable")))
+                ("score", "correct", "denominator", "rows", "errors", "refusals", "tp", "fp", "fn", "trials", "noisy", "exit_code", "comparable", "reused", "source_exit_code")))
         rows.append(dict(id=f"{panel}/{view}", label=panel if view == "all" else f"{panel} / {view}", panel=panel,
                          view=view, task=row["task"], metric=row["metric"], **public_numbers(row, ("rows",)), cells=cells))
     return dict(schema="address-benchmark.scorecard/v1", title="Aggregate address benchmark", metric=card["metric"],
@@ -101,7 +103,8 @@ def public_scorecard(card):
                 notes=["Aggregate-only export. Names are positional aliases; the private audit retains their mapping.",
                        "Partial references judge supplied labels only. Unjudged predictions are not correctness.",
                        "Development exposure and training exclusion do not establish blindness.",
-                       "No raw inputs, local identities, paths, per-input hashes or failure examples are exported."])
+                       "No raw inputs, local identities, paths, per-input hashes or failure examples are exported.",
+                       "Reused markers refer to verified prior accuracy only; timing trials execute fresh."])
 
 
 def public_summary(value):
@@ -142,7 +145,7 @@ def publishable_aggregates(runs, *, engines):
             # Each resource/source remains separate. Older runs retain disjoint
             # origin/split populations, never overlapping subset sums.
             sources = entry.get("sources", {k: v for k, v in entry.get("populations", {}).items() if k.endswith("/all")})
-            engines[names[name]] = dict(status=public_status(entry["status"]),
+            engines[names[name]] = dict(reused=entry.get("origin", {}).get("kind") == "reused", status=public_status(entry["status"]),
                 sources=[dict(id=f"source-{i + 1}", **public_summary(value)) for i, (_, value) in enumerate(sorted(sources.items()))])
         deltas = []
         for label, value in report.get("deltas", {}).items():

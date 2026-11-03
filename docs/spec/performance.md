@@ -64,3 +64,9 @@ never zero. v0.1 has no result-cache reuse.
 The production accuracy scheduler selects one engine configuration at a time.
 Execution wall time is not a throughput measurement. Native thread settings
 remain explicit in each configuration and its recorded runtime metadata.
+
+Verified accuracy reuse (`run-plan --reuse`) does not reuse a timing cell. Every
+selected engine participates in the new full balanced timing cohort, with fresh
+processes, orders, samples and uncertainty. A reused accuracy result is explicitly
+marked and is not evidence of contemporaneous accuracy execution. Identity-probe
+load/wall observations and prior accuracy wall time are never speed measurements.

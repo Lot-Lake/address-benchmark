@@ -97,6 +97,21 @@ identities and does not rescore or replace the original scoring policy. Use the
 original frozen framework version for full `verify` rescoring of older runs.
 The [scorecard contract](docs/spec/scorecards.md) documents the export semantics.
 
+## Add engines with verified accuracy reuse
+
+Prepare a new plan with fresh outputs and the expanded engine manifest, then run:
+
+```sh
+address-benchmark run-plan work/expanded/plan.json --reuse work/prior/plan.json
+```
+
+Every retained cell must pass artifact verification and a fresh runtime identity
+probe, with matching corpus/input/reference hashes and full engine configuration.
+Anything that cannot establish the contract runs fresh and records its reason.
+Reused accuracy is visibly marked; all timing trials execute fresh. Local-only
+plans still require freezing and keep the source audit private. See the
+[reuse contract](docs/spec/plans.md#verified-accuracy-reuse).
+
 ## Private local evaluation
 
 Use the existing plan/runner with source-declared annotation scopes and explicit

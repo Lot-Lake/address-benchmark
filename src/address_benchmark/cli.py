@@ -45,6 +45,7 @@ def main(argv=None):
     freeze.add_argument("plan")
     planned = commands.add_parser("run-plan", help="run and verify a versioned declarative JSON experiment plan")
     planned.add_argument("plan")
+    planned.add_argument("--reuse", help="reuse verified matching accuracy cells from an executed plan; timing stays fresh")
     for command in (execute, planned):
         command.add_argument('--json', action='store_true', help='emit the original machine-readable run/plan result instead of a console table')
     from .tables import FORMATS, METRICS
@@ -83,7 +84,7 @@ def main(argv=None):
             return 0 if result["status"] == "complete" else 2
         if args.command == "run-plan":
             from .plan import run_plan
-            result = run_plan(args.plan)
+            result = run_plan(args.plan, reuse=args.reuse)
             if args.json:
                 print(json.dumps(dict(status=result["status"]) if result.get("privacy") == "local-only" else result, indent=2))
             else:

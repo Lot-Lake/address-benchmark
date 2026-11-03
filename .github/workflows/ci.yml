@@ -36,3 +36,12 @@ jobs:
           python -m address_benchmark run-plan "$RUNNER_TEMP/scoped-plan/plan.json" --json
           python -m address_benchmark verify "$RUNNER_TEMP/scoped-plan/execution"
           python -m address_benchmark report "$RUNNER_TEMP/scoped-plan/plan.json" --publishable --format json --out "$RUNNER_TEMP/scoped-aggregate.json"
+      - name: Add an engine through verified accuracy reuse
+        env:
+          PYTHONPATH: src
+        run: |
+          python tools/prepare_reuse_example.py "$RUNNER_TEMP/reuse-plan"
+          python -m address_benchmark run-plan "$RUNNER_TEMP/reuse-plan/prior/plan.json" --json
+          python -m address_benchmark run-plan "$RUNNER_TEMP/reuse-plan/expanded/plan.json" --reuse "$RUNNER_TEMP/reuse-plan/prior/plan.json" --json
+          python -m address_benchmark verify "$RUNNER_TEMP/reuse-plan/expanded/run"
+          python -c 'import json,os,pathlib; r=json.loads((pathlib.Path(os.environ["RUNNER_TEMP"])/"reuse-plan/expanded/run/run.json").read_text()); assert r["reuse"]["demo"]["status"] == "reused"; assert r["reuse"]["refusal"]["status"] == "fresh"'

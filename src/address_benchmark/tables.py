@@ -124,6 +124,8 @@ def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', e
                         cell.update(_sum(populations, effective))
                     else:
                         cell['status'] = 'unmeasured'
+                cell["reused"] = effective != "throughput" and entry.get("origin", {}).get("kind") == "reused"
+                cell["source_exit_code"] = entry.get("origin", {}).get("source_exit_code")
                 cells[name] = cell
             if view != 'all' and not any(c.get('rows') for c in cells.values()):
                 continue
@@ -239,6 +241,8 @@ def cell_text(cell, metric, counts=False):
                  else f" ({cell['correct']:,}/{cell['denominator']:,})")
     if cell.get('errors') or cell.get('refusals'):
         text += ' !'
+    if cell.get("reused"):
+        text += " [reused]"
     return text
 
 

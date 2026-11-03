@@ -103,3 +103,23 @@ class SuccessfulCloseExits(DemoParser):
 class PrivateEcho(DemoParser):
     def parse(self, request):
         raise RuntimeError("private native exception: " + request.text)
+
+
+class Counting(DemoParser):
+    """Input-only invocation witness; counter is observation, never a model."""
+    def __init__(self, config):
+        super().__init__({})
+        self.counter = config['counter']
+        self.metadata['artifact_files'] = [config['model']] if config.get('model') else []
+
+    def parse(self, request):
+        from pathlib import Path
+        with Path(self.counter).open('a') as stream:
+            stream.write('inference\n')
+        return super().parse(request)
+
+
+class LazyCounting(Counting):
+    def parse(self, request):
+        import fractions
+        return super().parse(request)

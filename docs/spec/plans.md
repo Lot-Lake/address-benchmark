@@ -105,5 +105,53 @@ Paired speed uses the existing full input-only panel, independent processes,
 alternating reversed orders, all trials and conditional process-pair bootstrap.
 Failures/refusals invalidate timing rather than selecting an easier panel.
 Native-batch adapters do not acquire warmed per-address timing support from this
-feature. No result reuse is added; comparisons execute fresh until a separately
-verified reuse contract exists.
+feature. Comparisons default to fresh execution. The opt-in verified accuracy-reuse
+contract below never reuses timing trials.
+
+## Verified accuracy reuse
+
+`run-plan NEW_PLAN --reuse PRIOR_PLAN` opts into
+`address-benchmark.accuracy-reuse/v1`. `PRIOR_PLAN` may be its original plan JSON,
+`plan-results.json`, or execution directory. The new plan still needs fresh,
+distinct output directories; the old plan and all its outputs remain untouched.
+Default execution remains fresh. The receipt pins the selected prior plan/receipt
+files and identifies each track engine as `fresh` or `reused`.
+
+For each matching track, the existing `verify` must first validate the prior
+run's artifact hashes, envelope identity, accuracy rescore and policy/source pins.
+A selected engine qualifies only when its entire engine configuration matches,
+its source process succeeded, corpus manifest and ordered input/reference panel
+hashes match, and a fresh input-only identity worker establishes the identical
+adapter/interpreter/imported-file/distribution/model/environment fingerprint.
+The worker loads the adapter and closes it normally without invoking inference;
+its timeout, actual exit, stderr and identity stay in the new audit. Command
+executables must be among the declared artifact pins. The full process environment
+is hashed privately, without copying its potentially secret values into the
+identity. A changed environment, model or dependency therefore forces fresh work.
+
+Lazy imports that prevent a pre-inference identity match deliberately fall back
+to fresh accuracy. Legacy fingerprints without the environment contract also
+fall back. An invalid artifact, stale runtime, missing track, changed corpus,
+changed config, unsupported external command identity or failed prior cell never
+produces reuse. Decisions retain fixed diagnostic reasons privately. A missing or
+changed explicitly selected source plan is rejected before execution. The source
+and target run directories cannot nest.
+
+Successful reuse copies only the selected engine's verified native artifacts,
+including outputs, errors/refusals and logs. It retains the source envelope,
+selected execution/case records, engine configuration and verification receipt;
+copies are rehashed against the source index before acceptance. Cases, aggregates,
+paired deltas, preservation counts and gate decisions use the existing scorer.
+The new accuracy cell has no new inference command/exit/wall duration: the source
+exit remains explicitly source provenance. `verify` checks the retained source
+identity, configuration, probe, copied artifacts and rescored cases even after
+the original directory is unavailable. These are integrity checks, not a signed
+author attestation or a runtime reenactment. Undeclared services/shared-library
+state remains outside the existing adapter identity contract.
+
+Reports mark reused accuracy in every format, including aggregate-only private
+exports. Original local paths and source content identities remain in the
+private audit and are excluded from publication. Timing processes, paired engine
+orders, samples and uncertainty always execute fresh for the entire selected
+cohort; timing results are never copied or relabeled as contemporaneous. A
+throughput cell is therefore never marked reused merely because accuracy was.
