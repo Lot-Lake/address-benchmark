@@ -252,6 +252,18 @@ class ReviewContracts(unittest.TestCase):
         self.assertEqual(len(cohort['basis']['baseline_pin']), 64)
         self.assertEqual(report['deltas']['incumbent/candidate']['preservation']['baseline-floor']['denominator'], 2)
         self.assertEqual(verify(plan.parent)['status'], 'verified')
+        # Importing a saved membership must not create a self-referential hash:
+        # the baseline binds input/reference panels, not its own pin field.
+        imported = prepare(self.root / 'imported')
+        manifest_path = imported.parent / 'manifest.json'
+        manifest = read_json(manifest_path)
+        manifest['preservation_cohorts'] = [dict(id='imported-floor', row_ids=cohort['row_ids'],
+            basis=dict(kind='external', baseline_pin=cohort['basis']['baseline_pin']))]
+        self.write(manifest_path, manifest)
+        freeze_plan(imported)
+        with redirect_stderr(io.StringIO()):
+            self.assertEqual(run_plan(imported)['status'], 'complete')
+        self.assertEqual(verify(imported.parent)['status'], 'verified')
 
     def test_fine_token_volume_cannot_bypass_small_reference_or_role_groups(self):
         from address_benchmark.report import public_summary

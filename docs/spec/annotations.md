@@ -133,8 +133,9 @@ For same-run baseline selection, use a frozen recipe instead of cached row IDs:
 
 The harness resolves membership from the incumbent's already scored cases only,
 then records the exact row IDs and a baseline pin in private `cohorts.json`. The
-pin binds full engine configuration, observed runtime/model identity, corpus and
-framework/scorer policy. Candidate errors or gains never select anchors. Rebuilt
+pin binds full engine configuration, observed runtime/model identity, frozen input/reference panels and
+framework/scorer policy. The manifest remains independently pinned; the cohort
+pin does not hash its own storage field. Candidate errors or gains never select anchors. Rebuilt
 baselines regenerate recipes; imported memberships can demand the recorded pin.
 Verification independently recomputes membership and binding. Empty/unavailable
 baseline cohorts cannot pass a positive retention requirement.

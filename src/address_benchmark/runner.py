@@ -218,7 +218,7 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
         write_json(directory / "execution.json", entry)
         report["accuracy"][name] = entry
     materialized = {name: list(read_jsonl(file)) for name, file in all_cases.items()}
-    cohorts = resolve_cohorts(manifest.get("preservation_cohorts", ()), materialized, baseline, report["accuracy"], engines, contract=dict(framework=report["source_pins"], corpus=report["corpus"]["manifest_sha256"], scorer=report["scorer"]))
+    cohorts = resolve_cohorts(manifest.get("preservation_cohorts", ()), materialized, baseline, report["accuracy"], engines, contract=dict(framework=report["source_pins"], inputs=report["input_sha256"], references=sha256(out / "references.jsonl"), scorer=report["scorer"]))
     report["cohorts"] = cohorts
     write_json(out / "cohorts.json", cohorts)
     report["source_order"] = list(dict.fromkeys(row.get("source", f"{row['origin']}/{row['split']}/all") for row in rows))
@@ -307,7 +307,7 @@ def verify_run(output):
             require(summarize_views(cases) == entry["populations"], "rescored populations differ")
     manifest = read_json(out / "corpus.json")
     cohorts = resolve_cohorts(manifest.get("preservation_cohorts", ()), rescored, report["settings"].get("baseline"),
-                              report["accuracy"], read_json(out / "engines.json"), contract=dict(framework=report["source_pins"], corpus=report["corpus"]["manifest_sha256"], scorer=report["scorer"]))
+                              report["accuracy"], read_json(out / "engines.json"), contract=dict(framework=report["source_pins"], inputs=report["input_sha256"], references=sha256(out / "references.jsonl"), scorer=report["scorer"]))
     if "cohorts" in report:
         require(report["cohorts"] == cohorts == read_json(out / "cohorts.json"), "cohort provenance differs")
     for key, entry in report["deltas"].items():
