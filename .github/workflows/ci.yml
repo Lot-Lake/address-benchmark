@@ -27,3 +27,12 @@ jobs:
           python -m pip install --no-deps .
           address-benchmark conform demo
           address-benchmark validate examples/corpora/us-core/manifest.json
+      - name: Frozen local-only synthetic plan and publishable export
+        env:
+          PYTHONPATH: src
+        run: |
+          python tools/prepare_scoped_example.py "$RUNNER_TEMP/scoped-plan"
+          python -m address_benchmark freeze-plan "$RUNNER_TEMP/scoped-plan/plan.json"
+          python -m address_benchmark run-plan "$RUNNER_TEMP/scoped-plan/plan.json" --json
+          python -m address_benchmark verify "$RUNNER_TEMP/scoped-plan/execution"
+          python -m address_benchmark report "$RUNNER_TEMP/scoped-plan/plan.json" --publishable --format json --out "$RUNNER_TEMP/scoped-aggregate.json"

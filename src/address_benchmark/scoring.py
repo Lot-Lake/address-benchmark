@@ -7,7 +7,9 @@ import re
 from .protocol import FINE_TO_COARSE
 
 SCORER = "address-benchmark.scorer/v1"
+SCOPED_SCORER = "address-benchmark.scorer/v2"
 NORMALIZATION = "casefold-whitespace/v1"
+EFFECT_ROLES = {"unit": ("unit",), "building": ("building",), "recipient": ("recipient",), "road_city": ("road", "city")}
 DELIMITER_POLICY = "casefold-whitespace-edge-delimiters/v1"
 
 
@@ -66,7 +68,11 @@ def fine_score(reference, prediction, metadata, kind):
                 missing_span_items=sum(not x.get("spans") for x in parts))
 
 
-def score_case(row, prediction, metadata, profiles=()):
+def score_case(row, prediction, metadata, profiles=(), *, scorer=SCORER):
+    if scorer == SCOPED_SCORER:
+        return score_scoped_case(row, prediction, metadata, profiles)
+    if scorer != SCORER:
+        raise ValueError("unsupported scorer policy")
     if metadata["tasks"] != ["parse"]:
         from .tasks import score_task
         return score_task(row, prediction, metadata)
@@ -100,6 +106,52 @@ def score_case(row, prediction, metadata, profiles=()):
                 tokens=fine_score(reference, prediction, metadata, "tokens"), **extra)
 
 
+def score_scoped_case(row, prediction, metadata, profiles=()):
+    # Reuse the fixed v1 normalization/projection and fine positive-only policy.
+    # An inactive role cannot earn a TP merely because a broad role_map has it.
+    active = set(metadata.get("active_roles", metadata["supported_roles"]))
+    metadata = {**metadata, "role_map": {key: value if value in active else None
+                                        for key, value in metadata["role_map"].items()}}
+    result = score_case(row, prediction, metadata)
+    expected = row["reference"]["fields"]
+    fields = project(prediction["evidence"], metadata["role_map"])
+    supported = {FINE_TO_COARSE[r] for r in active}
+    scope = set(expected) | (set(fields) if result["coverage"] == "complete" else set())
+    role_agreement = {}
+    for role in sorted(scope):
+        # Unsupported positive assertions remain misses. Unsupported absence is
+        # unjudged, and cannot inflate supplied-field or whole-address accuracy.
+        role_agreement[role] = (None if not expected.get(role) and role not in supported else
+                                prediction["status"] == "ok" and role in supported and
+                                [normalize(v) for v in expected.get(role, [])] ==
+                                [normalize(v) for v in fields.get(role, [])])
+    judged = [v for v in role_agreement.values() if v is not None]
+    passed = all(judged) if judged and len(judged) == len(role_agreement) else None
+    result.update(source=row["source"], role_agreement=role_agreement,
+                  primary_agrees=passed, supplied_fields_agree=passed,
+                  complete_address_agrees=passed if result["coverage"] == "complete" and
+                  all(v is not None for v in role_agreement.values()) else None)
+    result["effects_agreement"] = {key: all(role_agreement[r] for r in roles)
+        if all(role_agreement.get(r) is not None for r in roles) else None for key, roles in EFFECT_ROLES.items()}
+    # Do not let the edge-delimiter view bypass the same eligibility contract.
+    delimiter = [prediction["status"] == "ok" and role not in result["delimiter_mismatched_roles"]
+                 and role in supported
+                 for role, value in role_agreement.items() if value is not None]
+    result["delimiter_fields_agree"] = all(delimiter) if delimiter and len(delimiter) == len(role_agreement) else None
+    result["delimiter_complete_address_agrees"] = (result["delimiter_fields_agree"]
+        if result["complete_address_agrees"] is not None else None)
+    # Existing streetline profiles require their own complete source semantics;
+    # partial source scopes cannot establish those derived whole-line claims.
+    if profiles:
+        from .profiles import COARSE_FIELD, score_profile
+        result["profiles"] = {name: score_profile(name, row, prediction, metadata) for name in profiles}
+        for profile in result["profiles"].values():
+            if any(field in profile["scored_fields"] and role not in supported and not expected.get(role)
+                   for role, field in COARSE_FIELD.items()):
+                profile["agrees"] = None
+    return result
+
+
 def summarize(cases):
     if cases and cases[0]["task"] != "parse":
         from .tasks import summarize_task
@@ -117,12 +169,26 @@ def summarize(cases):
             def total(items):
                 return prf(sum(x["tp"] for x in items), sum(x["fp"] or 0 for x in items),
                            sum(x["fn"] for x in items), partial=coverage == "partial")
-            result[coverage] = dict(rows=len(chosen), metrics=total(metrics) if chosen else None,
+            result[coverage] = dict(rows=len(chosen), eligible_rows=sum(bool(m["tp"] + (m["fp"] or 0) + m["fn"]) for m in metrics), metrics=total(metrics) if chosen else None,
+                                    per_role_rows={role: sum(role in item["per_role"] for item in chosen) for role in roles},
                                     per_role={role: total([x["per_role"][role] for x in chosen if role in x["per_role"]]) for role in roles})
         result["unsupported_rows"] = sum(c[kind]["status"] == "unsupported" for c in cases)
         result["unannotated_rows"] = sum(c[kind]["status"] == "unannotated" for c in cases)
         return result
     extra = {}
+    if cases and "role_agreement" in cases[0]:
+        from .io import identity
+        # Private aggregate membership pins prevent equal-sized but different
+        # eligibility sets from being presented as a matched comparison.
+        extra["eligibility"] = {key: identity(sorted(c["id"] for c in cases if c[field] is not None))
+            for key, field in (("supplied_fields", "supplied_fields_agree"), ("complete_address", "complete_address_agrees"),
+                               ("delimiter_fields", "delimiter_fields_agree"), ("delimiter_complete_address", "delimiter_complete_address_agrees"))}
+        extra["eligibility"]["tokens"] = identity(sorted(c["id"] for c in cases
+            if c["tokens"]["status"] == "measured" and c["tokens"]["coverage"] == "complete"))
+        extra["effects"] = {key: rate([c["effects_agreement"][key] for c in cases]) for key in EFFECT_ROLES}
+        extra["coverage"] = dict(Counter(c["coverage"] for c in cases))
+        extra["roles"] = {role: rate([c["role_agreement"].get(role) for c in cases])
+                          for role in sorted({r for c in cases for r in c["role_agreement"]})}
     if cases and "profiles" in cases[0]:
         from .profiles import summarize_profile
         extra["profiles"] = {name: summarize_profile([c["profiles"][name] for c in cases]) for name in cases[0]["profiles"]}
@@ -146,3 +212,55 @@ def summarize_views(cases):
         for subset in sorted({s for c in population for s in c["subsets"]}):
             result[f"{origin}/{split}/subset:{subset}"] = summarize([c for c in population if subset in c["subsets"]])
     return result
+
+
+
+GATE_METRICS = ("strict", "delimiter", "strict-streetline/v1", "strict-streetline/v2")
+
+
+def case_agreement(case, metric="strict"):
+    if metric == "strict":
+        return case["primary_agrees"]
+    if metric == "delimiter":
+        return case.get("delimiter_fields_agree")
+    if metric in GATE_METRICS:
+        return case.get("profiles", {}).get(metric, {}).get("agrees")
+    raise ValueError("unsupported gate metric")
+
+def comparison(left, right, cohorts=(), *, metric="strict"):
+    """Paired private identities and aggregate effects on identical judgments."""
+    if len(left) != len(right) or any(a["id"] != b["id"] for a, b in zip(left, right)):
+        raise ValueError("comparative case streams differ")
+    records, counts = [], dict(left_only=0, right_only=0, judged_pairs=0, unmatched_judgments=0)
+    roles = defaultdict(lambda: dict(left_only=0, right_only=0, judged_pairs=0))
+    effects = {key: dict(left_only=0, right_only=0, judged_pairs=0) for key in EFFECT_ROLES}
+    for a, b in zip(left, right):
+        av, bv = case_agreement(a, metric), case_agreement(b, metric)
+        counts["unmatched_judgments"] += (av is None) != (bv is None)
+        counts["judged_pairs"] += av is not None and bv is not None
+        counts["left_only"] += av is True and bv is False
+        counts["right_only"] += bv is True and av is False
+        for role in set(a.get("role_agreement", {})) | set(b.get("role_agreement", {})):
+            x, y = a.get("role_agreement", {}).get(role), b.get("role_agreement", {}).get(role)
+            roles[role]["judged_pairs"] += x is not None and y is not None
+            roles[role]["left_only"] += x is True and y is False
+            roles[role]["right_only"] += y is True and x is False
+        for key in EFFECT_ROLES:
+            x, y = a.get("effects_agreement", {}).get(key), b.get("effects_agreement", {}).get(key)
+            effects[key]["judged_pairs"] += x is not None and y is not None
+            effects[key]["left_only"] += x is True and y is False
+            effects[key]["right_only"] += y is True and x is False
+        records.append(dict(id=a["id"], family=a["family"], coverage=a["coverage"],
+                            left_agrees=av, right_agrees=bv,
+                            left_mismatched_roles=a.get("mismatched_roles"), right_mismatched_roles=b.get("mismatched_roles")))
+    retention = {}
+    for cohort in cohorts:
+        members = set(cohort["row_ids"])
+        chosen = [(a, b) for a, b in zip(left, right) if a["id"] in members]
+        retention[cohort["id"]] = dict(denominator=len(members),
+            left_correct=sum(case_agreement(a, metric) is True for a, _ in chosen),
+            right_correct=sum(case_agreement(b, metric) is True for _, b in chosen),
+            retained=sum(case_agreement(a, metric) is True and case_agreement(b, metric) is True for a, b in chosen),
+            left_unjudged=sum(case_agreement(a, metric) is None for a, _ in chosen),
+            right_unjudged=sum(case_agreement(b, metric) is None for _, b in chosen))
+    return records, dict(**counts, roles=dict(roles), effects=effects, preservation=retention)

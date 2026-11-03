@@ -181,6 +181,13 @@
           },
           "coverage": {
             "const": "partial"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "annotation_scope": {
+            "$ref": "#/$defs/annotation_scope"
           }
         },
         "oneOf": [
@@ -221,12 +228,171 @@
           "strict-streetline/v2"
         ]
       }
+    },
+    "scorer": {
+      "enum": [
+        "address-benchmark.scorer/v1",
+        "address-benchmark.scorer/v2"
+      ]
+    },
+    "preservation_cohorts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "basis"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "basis": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "kind"
+                ],
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "external",
+                      "baseline-correct"
+                    ]
+                  },
+                  "metric": {
+                    "enum": [
+                      "strict",
+                      "delimiter",
+                      "strict-streetline/v1",
+                      "strict-streetline/v2"
+                    ]
+                  },
+                  "splits": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "subset": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "baseline_pin": {
+                    "$ref": "#/$defs/sha256"
+                  }
+                }
+              }
+            ]
+          },
+          "row_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "basis": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "const": "baseline-correct"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "row_ids"
+                ]
+              }
+            },
+            "else": {
+              "required": [
+                "row_ids"
+              ]
+            }
+          }
+        ]
+      }
     }
   },
   "$defs": {
     "sha256": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
+    },
+    "annotation_layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coverage",
+        "roles",
+        "absence"
+      ],
+      "properties": {
+        "coverage": {
+          "enum": [
+            "complete",
+            "partial",
+            "none"
+          ]
+        },
+        "roles": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "absence": {
+          "type": "boolean"
+        }
+      }
+    },
+    "annotation_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fields",
+        "tokens",
+        "spans"
+      ],
+      "properties": {
+        "fields": {
+          "$ref": "#/$defs/annotation_layer"
+        },
+        "tokens": {
+          "$ref": "#/$defs/annotation_layer"
+        },
+        "spans": {
+          "$ref": "#/$defs/annotation_layer"
+        }
+      }
     }
   },
   "allOf": [
@@ -248,6 +414,45 @@
             "properties": {
               "redistribution": {
                 "const": "local-only"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "scorer"
+        ],
+        "properties": {
+          "scorer": {
+            "const": "address-benchmark.scorer/v2"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "task": {
+            "const": "parse"
+          },
+          "resources": {
+            "items": {
+              "required": [
+                "annotation_scope"
+              ]
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "resources": {
+            "items": {
+              "not": {
+                "required": [
+                  "annotation_scope"
+                ]
               }
             }
           }

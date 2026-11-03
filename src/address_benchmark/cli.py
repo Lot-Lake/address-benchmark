@@ -14,6 +14,20 @@ from .protocol import check_prediction
 from .runner import run, verify
 
 
+
+def error_reason(exc):
+    # Never interpolate exception text: it can contain filenames or native data.
+    if isinstance(exc, FileExistsError): return 'output-exists'
+    if isinstance(exc, FileNotFoundError): return 'asset-unavailable'
+    if isinstance(exc, PermissionError): return 'access-denied'
+    text = str(exc)
+    rules = [('frozen plan', 'frozen-assets-differ'), ('artifact changed', 'artifact-integrity-failed'),
+             ('installed scorer/runner source differs', 'framework-differs'),
+             ('identity differs', 'identity-mismatch'), ('profile', 'unsupported-profile'),
+             ('gate', 'invalid-gate'), ('cohort baseline pin', 'cohort-baseline-pin-mismatch'),
+             ('hash differs', 'asset-hash-mismatch'), ('fresh', 'output-exists'), ('schema', 'invalid-schema')]
+    return next((code for token, code in rules if token in text), 'invalid-input')
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Independent address parser evaluation; no bundled external corpora or models")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -41,6 +55,8 @@ def main(argv=None):
     execute.add_argument("--timeout", type=float, default=120)
     execute.add_argument("--seed", type=int, default=20261101)
     execute.add_argument("--baseline")
+    freeze = commands.add_parser("freeze-plan", help="pin supplied local plan assets and framework before comparison")
+    freeze.add_argument("plan")
     planned = commands.add_parser("run-plan", help="run and verify a versioned declarative JSON experiment plan")
     planned.add_argument("plan")
     for command in (execute, planned):
@@ -48,6 +64,8 @@ def main(argv=None):
     from .tables import FORMATS, METRICS
     report = commands.add_parser('report', help='export clean score tables from a recorded run or executed plan; no engines rerun')
     report.add_argument('source', nargs='+', help='one or more run/plan JSON files or result directories')
+    report.add_argument('--publishable', action='store_true', help='aggregate-only allowlist export with fixed aliases; also automatic for local-only runs')
+    report.add_argument('--min-denominator', type=int, default=20, help='publication suppression threshold, recorded in export policy (default 20)')
     report.add_argument('--format', choices=FORMATS, default='console')
     report.add_argument('--metric', choices=METRICS, default='strict')
     views = report.add_mutually_exclusive_group()
@@ -59,14 +77,33 @@ def main(argv=None):
     report.add_argument('--ascii', action='store_true', help='use ASCII console separators')
     report.add_argument('--title', default='Address benchmark')
     report.add_argument('--out', help='write a fresh export file instead of stdout')
+    compare = commands.add_parser('compare', help='compare paired judgments from verified runs/plans without model execution')
+    compare.add_argument('left'); compare.add_argument('right')
+    compare.add_argument('--baseline', required=True); compare.add_argument('--candidate', required=True)
+    from .scoring import GATE_METRICS
+    compare.add_argument('--metric', choices=GATE_METRICS, default='strict')
+    compare.add_argument('--track'); compare.add_argument('--out', required=True)
+    compare.add_argument('--min-denominator', type=int, default=20)
     check = commands.add_parser("verify", help="rehash frozen artifacts and rescore accuracy with original source")
     check.add_argument("run")
     args = parser.parse_args(argv)
     try:
+        if args.command == 'compare':
+            from .comparison import compare_sources, public_comparison
+            result = compare_sources(args.left, args.right, args.out, baseline=args.baseline, candidate=args.candidate, metric=args.metric, track=args.track)
+            verify(args.out)
+            print(json.dumps(public_comparison(result, args.min_denominator), indent=2))
+            return 0
+        if args.command == "freeze-plan":
+            from .plan import freeze_plan
+            print(json.dumps(freeze_plan(args.plan)))
+            return 0
         if args.command == "run":
             result = run(args.corpus, args.engines, args.out, timing=args.timing, trials=args.trials,
                          samples=args.samples, min_seconds=args.min_seconds, warmup=args.warmup, timeout=args.timeout, seed=args.seed, baseline=args.baseline)
-            if args.json:
+            if args.json and result.get("privacy") == "local-only":
+                print(json.dumps(dict(status=result["status"])))
+            elif args.json:
                 print(json.dumps(dict(status=result["status"], content_id=result["content_id"], report=str(Path(args.out).resolve() / "report.md"))))
             else:
                 from .tables import load_scorecard, render_console
@@ -76,14 +113,14 @@ def main(argv=None):
             from .plan import run_plan
             result = run_plan(args.plan)
             if args.json:
-                print(json.dumps(result, indent=2))
+                print(json.dumps(dict(status=result["status"]) if result.get("privacy") == "local-only" else result, indent=2))
             else:
                 from .tables import load_scorecard, render_console
                 print(render_console(load_scorecard(args.plan), terminal_width=max(40, shutil.get_terminal_size((120, 24)).columns), color=sys.stdout.isatty() and 'NO_COLOR' not in os.environ and os.environ.get('TERM') != 'dumb'), end='')
             return 0 if result["status"] == "complete" else 2
         if args.command == 'report':
             from .tables import load_scorecard, render
-            card = load_scorecard(args.source, metric=args.metric, subsets=args.subsets, all_views=args.all_views, title=args.title)
+            card = load_scorecard(args.source, metric=args.metric, subsets=args.subsets, all_views=args.all_views, title=args.title, publishable=args.publishable, min_denominator=args.min_denominator)
             use_color = args.color == 'always' or (args.color == 'auto' and sys.stdout.isatty() and not args.out and 'NO_COLOR' not in os.environ and os.environ.get('TERM') != 'dumb')
             output = render(card, args.format, counts=args.counts, terminal_width=args.width if args.width is not None else max(40, shutil.get_terminal_size((120, 24)).columns), color=use_color, ascii=args.ascii)
             if args.out:
@@ -116,8 +153,9 @@ def main(argv=None):
             result = conform_adapter(args.adapter, read_json(args.config) if args.config else {})
         print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
         return 0
-    except (ValueError, OSError, KeyError, TypeError, RuntimeError) as exc:
-        print(f"address-benchmark: {exc}", file=sys.stderr)
+    except (ValueError, OSError, KeyError, TypeError, AttributeError, RuntimeError) as exc:
+        reason = error_reason(exc)
+        print(f"address-benchmark: {reason}", file=sys.stderr)
         return 1
 
 

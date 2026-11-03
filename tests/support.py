@@ -98,3 +98,17 @@ class ExitCloseInterrupts(DemoParser):
 class SuccessfulCloseExits(DemoParser):
     def close(self):
         raise SystemExit(23)
+
+
+class PrivateEcho(DemoParser):
+    def parse(self, request):
+        raise RuntimeError("private native exception: " + request.text)
+
+
+class EdgeDemo(DemoParser):
+    def parse(self, request):
+        result = super().parse(request)
+        if result['status'] == 'ok':
+            road = [x for x in result['evidence'] if x['native_role'].startswith('road_')]
+            if road: road[-1]['value'] += ','
+        return result

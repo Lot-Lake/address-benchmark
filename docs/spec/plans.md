@@ -65,3 +65,132 @@ MIT-licensed source files; external parser/model/data assets stay installed in
 place and separately pinned. This avoids invalidating a long run when report
 work continues in the live checkout. To rescore later, use the recorded source
 snapshot's Python module path and the original run directory.
+
+## Frozen local plans and accuracy gates
+
+Local-only plans must first run `address-benchmark freeze-plan PLAN`. This
+validates every local corpus and writes pins into the existing plan: experiment
+configuration, framework source, engine manifest, corpus manifests, interpreters,
+command executables and declared `config.artifact_files` (including models).
+The matching Python framework is copied to `framework-source/address_benchmark`
+beside the plan. Retain that directory and the input-only adapter code/assets for
+later verification. This is a content-integrity contract, not a signed timestamp
+or proof of private data custody. It performs no training or source acquisition.
+
+Frozen assets are checked before launching adapters and again at completion.
+Frozen plans cannot be refrozen in place. A policy, corpus, limit, engine, model
+or runtime change requires a new experiment directory. Worker identities still
+record imported packages/modules, native metadata, declared model files, actual
+exits and runtime hashes. Undeclared dynamic libraries/build flags remain subject
+to the existing performance supplement limits.
+
+An optional `execution.gate` object specifies `candidate`, `max_losses`,
+`min_correct`, `min_preservation` (a fraction in [0,1]); `execution.baseline` names
+the incumbent. Accuracy executes fresh through the ordinary runner. The gate
+requires paired judgments, no mismatched judgment eligibility, a maximum number
+of incumbent-only correct cases, the candidate correct-count floor and the
+candidate's correctness on every supplied preservation cohort divided by that
+cohort's fixed supplied membership. A positive preservation threshold without a
+supplied cohort fails. Engine failures cannot pass a gate.
+
+A failed gate records the run as `gated`, skips timing and stops the plan before
+all subsequent tracks, including any intended public evaluation. Those tracks
+have `not-executed` receipts and cells; their output directories are not created.
+A gated plan is incomplete (CLI exit 2), while its executed private audit can
+still verify. Public evaluation must be an explicit later track; there is no
+implicit public suite. Timing, public-evaluation scheduling, memory and latency
+execution status are explicit; absence of a measurement is never a zero.
+
+Paired speed uses the existing full input-only panel, independent processes,
+alternating reversed orders, all trials and conditional process-pair bootstrap.
+Failures/refusals invalidate timing rather than selecting an easier panel.
+Native-batch adapters do not acquire warmed per-address timing support from this
+feature. No result reuse is added; comparisons execute fresh until a separately
+verified reuse contract exists.
+
+## Review additions: gate policy v2 and command inventory
+
+Freeze and `CommandAdapter` now share the same file inventory: the resolved
+executable, existing files in `command[1:]`, and `metadata.artifact_files` for a
+command adapter, plus ordinary `config.artifact_files` for adapters that support
+it. A bridge or model changed after freezing fails the asset check before any
+worker starts. Command adapters keep their existing two-key config contract.
+
+Imports inside a bridge are not discovered by following its import graph. Declare
+each imported module or other asset that must be frozen in
+`config.metadata.artifact_files`, using resolved absolute paths. For example,
+this engine-manifest excerpt lists the bridge and model passed as arguments, plus
+the helper imported by the bridge. Keep the other required protocol metadata
+alongside `artifact_files`:
+
+```json
+{
+  "name": "external-parser",
+  "adapter": "command",
+  "config": {
+    "command": ["/usr/bin/node", "/opt/parser/bridge.mjs", "/opt/parser/model.bin"],
+    "metadata": {
+      "artifact_files": ["/opt/parser/lib/parse.mjs"]
+    }
+  }
+}
+```
+
+The paths are illustrative; use installed files. Declare transitive imports too;
+changing an undeclared imported file is outside the freeze contract.
+
+The original four-key gate shape retains `address-benchmark.gate/v1` semantics.
+New selectors/rates use `address-benchmark.gate/v2` and reuse existing scored
+judgments. `metric` accepts `strict`, `delimiter`, `strict-streetline/v1` or
+`strict-streetline/v2`; profile metrics must be declared by the corpus. Unsupported
+or missing judgments never become a passing gate. Example:
+
+```json
+{
+  "baseline": "incumbent",
+  "gate": {
+    "candidate": "candidate",
+    "metric": "delimiter",
+    "splits": ["test"],
+    "requirements": [
+      {"subset": "unit", "max_loss_rate": 0.0005, "min_correct_rate": 0.99},
+      {"cohort": "preserve", "min_preservation": 1}
+    ]
+  }
+}
+```
+
+Count thresholds (`max_losses`, `min_correct`) and rates can be combined. Loss
+and correct rates use the matching judged-pair denominator after split/selector
+filtering. Excluded splits contribute neither judgments nor preservation members.
+Unknown selectors, empty judged sets and mismatched eligibility fail closed.
+Preservation uses the filtered fixed cohort membership, never candidate-selected
+successes. Each requirement records its metric, filter, denominator and decision
+privately. A track may provide `execution` overrides over the global settings,
+including its own gate thresholds. Freeze pins these overrides.
+
+A plan-wide subset requirement applies to every executed track. It fails closed
+on a track that does not declare that subset; the track is not silently excluded.
+For subset requirements that belong to only some tracks, put the gate in those
+tracks' `execution.gate` overrides instead of the plan-wide gate. A track override
+replaces the whole gate object, so include every requirement for that track.
+
+`verify` accepts a run, plan JSON, executed plan directory or `plan-results.json`.
+New receipts retain the source plan filename, export hashes and receipt identity;
+verification checks track links, executed audits and explicit skipped tracks.
+`verify` and `compare` refuse runs made with different scorer/runner source using
+the safe reason code `framework-differs`. Use the run's recorded framework
+snapshot or original framework version to verify it; the current version does
+not silently rescore it under a changed policy.
+Mixed private/public plans intentionally alias every track in publication output;
+a fixed progress notice explains that choice without exposing labels. All text
+export formats include one gate-status line per panel.
+
+`compare LEFT RIGHT --baseline ENGINE --candidate ENGINE --out PRIVATE_DIR`
+compares existing verified runs or plans without model execution. Use `--track`
+to select one matching executed track and `--metric` for a declared gate metric.
+Input/reference panels and scorer/framework policies must match. The fresh private
+directory retains source envelopes/cases and paired identities; `verify` checks
+these paired judgments. Original native rescoring still requires the original
+source audits. Console output is aggregate-only and uses the same default minimum
+20; no source paths, case identities or failure examples are printed.

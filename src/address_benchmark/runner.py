@@ -17,7 +17,7 @@ import time
 from .corpus import input_requests, load_corpus
 from .io import identity, read_json, read_jsonl, require, sha256, within, write_json, write_jsonl
 from .protocol import check_metadata, check_prediction
-from .scoring import DELIMITER_POLICY, NORMALIZATION, SCORER, score_case, summarize_views
+from .scoring import DELIMITER_POLICY, NORMALIZATION, SCORER, score_case, summarize_views, summarize, comparison
 
 RUN = "address-benchmark.run/v1"
 
@@ -113,13 +113,13 @@ def execute(engine, mode, inputs, directory, *, samples, min_seconds, warmup, ti
     return record
 
 
-def validate_predictions(rows, requests, predictions, metadata, profiles=()):
+def validate_predictions(rows, requests, predictions, metadata, profiles=(), *, scorer=SCORER):
     require(len(predictions) == len(rows), "prediction stream length differs")
     require(len(requests) == len(rows), "input stream length differs")
     cases = []
     for row, request, pred in zip(rows, requests, predictions):
         check_prediction(pred, request, metadata)
-        cases.append(score_case(row, pred, metadata, profiles))
+        cases.append(score_case(row, pred, metadata, profiles, scorer=scorer))
     return cases
 
 
@@ -153,7 +153,10 @@ def paired_summary(trials, names, *, seed):
     return result
 
 
-def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_seconds=.1, warmup=1, timeout=120, seed=20261101, baseline=None):
+from .gates import check_gate, check_gate_context, accuracy_gate, resolve_cohorts
+
+
+def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_seconds=.1, warmup=1, timeout=120, seed=20261101, baseline=None, gate=None):
     manifest, rows, audit = load_corpus(corpus)
     engines = read_json(engines_path)
     require(isinstance(engines, list) and engines, "nonempty engine list required")
@@ -164,9 +167,12 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
     require(baseline is None or baseline in names, "comparison baseline must be a selected engine")
     require(trials >= 2 and trials % 2 == 0 and samples > 0 and min_seconds > 0 and warmup >= 0 and timeout > 0,
             "use an even number of >=2 trials, positive samples/duration/timeout and nonnegative warmup")
+    if gate is not None:
+        check_gate(gate, names, baseline)
+        check_gate_context(gate, manifest, rows)
     out = Path(output).resolve()
     require(not out.exists(), "fresh output directory required")
-    out.mkdir(parents=True)
+    out.mkdir(parents=True, mode=0o700 if manifest["license"]["redistribution"] == "local-only" else 0o755)
     requests = input_requests(manifest, rows)
     write_jsonl(out / "inputs.jsonl", (x.to_dict() for x in requests))
     write_jsonl(out / "references.jsonl", rows)
@@ -176,11 +182,11 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
     # Immutable run records contain sensitive inputs when the corpus is private.
     report = dict(schema=RUN, created_at=datetime.now(timezone.utc).isoformat(), status="running",
                   task=manifest["task"], corpus=dict(id=manifest["id"], manifest_sha256=sha256(corpus), resources=manifest["resources"], exposure=manifest["exposure"]),
-                  scorer=SCORER, normalization=NORMALIZATION, secondary_normalization=DELIMITER_POLICY, source_pins=source_pins(),
+                  scorer=manifest.get("scorer", SCORER), privacy="local-only" if manifest["license"]["redistribution"] == "local-only" else "public", normalization=NORMALIZATION, secondary_normalization=DELIMITER_POLICY, source_pins=source_pins(),
                   input_sha256=sha256(out / "inputs.jsonl"), engine_config_sha256=sha256(engines_path),
                   host=host_identity(),
                   settings=dict(timing=timing, trials=trials, samples=samples, min_seconds=min_seconds, warmup=warmup, timeout=timeout, seed=seed,
-                                concurrency="one engine process at a time; one caller; runtime helper threads as declared"),
+                                baseline=baseline, gate=gate, concurrency="one engine process at a time; one caller; runtime helper threads as declared"),
                   accuracy={}, trials=[], paired={}, deltas={},
                   limitations=["No unseen-training claim; exposure is corpus-declared, not independently verified.",
                                "Exact/family audit cannot detect undeclared or fuzzy overlap.",
@@ -199,31 +205,34 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
             try:
                 predictions = list(read_jsonl(directory / "predictions.jsonl"))
                 require(entry["identity"]["adapter"]["ontology"] == manifest["ontology"], "adapter/corpus ontology differs")
-                cases = validate_predictions(rows, requests, predictions, entry["identity"]["adapter"], manifest.get("scoring_profiles", ()))
+                cases = validate_predictions(rows, requests, predictions, entry["identity"]["adapter"], manifest.get("scoring_profiles", ()), scorer=report["scorer"])
                 write_jsonl(directory / "cases.jsonl", cases)
                 all_cases[name] = directory / "cases.jsonl"
                 entry["populations"] = summarize_views(cases)
+                if manifest.get("scorer") == "address-benchmark.scorer/v2":
+                    entry["sources"] = {source: summarize([c for c in cases if c["source"] == source])
+                                        for source in sorted({c["source"] for c in cases})}
                 del cases, predictions
             except (ValueError, OSError, KeyError, TypeError) as exc:
                 entry.update(status="invalid", validation_error=str(exc))
         write_json(directory / "execution.json", entry)
         report["accuracy"][name] = entry
+    materialized = {name: list(read_jsonl(file)) for name, file in all_cases.items()}
+    cohorts = resolve_cohorts(manifest.get("preservation_cohorts", ()), materialized, baseline, report["accuracy"], engines, contract=dict(framework=report["source_pins"], inputs=report["input_sha256"], references=sha256(out / "references.jsonl"), scorer=report["scorer"]))
+    report["cohorts"] = cohorts
+    write_json(out / "cohorts.json", cohorts)
+    report["source_order"] = list(dict.fromkeys(row.get("source", f"{row['origin']}/{row['split']}/all") for row in rows))
     for left, right in itertools.combinations(all_cases, 2):
         if baseline is not None and baseline not in (left, right):
             continue
         file = f"delta-{left}-{right}.jsonl"
-        counts = dict(left_only=0, right_only=0)
-        def deltas():
-            for a, b in itertools.zip_longest(read_jsonl(all_cases[left]), read_jsonl(all_cases[right])):
-                require(a is not None and b is not None and a["id"] == b["id"], "comparative case streams differ")
-                counts["left_only"] += a["primary_agrees"] is True and b["primary_agrees"] is False
-                counts["right_only"] += b["primary_agrees"] is True and a["primary_agrees"] is False
-                yield dict(id=a["id"], family=a["family"], coverage=a["coverage"],
-                           left_agrees=a["primary_agrees"], right_agrees=b["primary_agrees"],
-                           left_mismatched_roles=a.get("mismatched_roles"), right_mismatched_roles=b.get("mismatched_roles"))
-        write_jsonl(out / file, deltas())
+        records, counts = comparison(materialized[left], materialized[right], cohorts)
+        write_jsonl(out / file, records)
         report["deltas"][f"{left}/{right}"] = dict(artifact=file, **counts)
-    if timing:
+    report["gate"] = accuracy_gate(materialized, gate, baseline, cohorts)
+    report["measurements"] = dict(timing="not-requested" if not timing else "blocked-by-accuracy-gate" if report["gate"]["status"] == "failed" else "executed",
+                                  public_evaluation="not-executed" if report["privacy"] == "local-only" else "executed", memory="not-executed", latency="not-executed")
+    if timing and report["gate"]["status"] != "failed":
         # Freeze the entire corpus as one identical panel; no gold-conditioned filter.
         panel = list(requests)
         random.Random(seed).shuffle(panel)
@@ -258,7 +267,7 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
     require(report["source_pins"] == source_pins(), "benchmark source changed during run; artifacts incomplete")
     require(sha256(corpus) == report["corpus"]["manifest_sha256"] and sha256(engines_path) == report["engine_config_sha256"], "run configuration changed during execution")
     cells = list(report["accuracy"].values()) + [e for trial in report["trials"] for e in trial["engines"].values()]
-    report["status"] = "complete" if all(e["status"] == "ok" for e in cells) else "incomplete"
+    report["status"] = "gated" if report["gate"]["status"] == "failed" else "complete" if all(e["status"] == "ok" for e in cells) else "incomplete"
     from .report import render
     (out / "report.md").write_text(render(report), encoding="utf-8")
     from .tables import scorecard, export_scorecard
@@ -270,10 +279,10 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
     return report
 
 
-def verify(output):
+def verify_run(output):
     out = Path(output).resolve()
     report = read_json(out / "run.json")
-    require(report.get("schema") == RUN, "run schema differs")
+    require(isinstance(report, dict) and report.get("schema") == RUN, "run schema differs")
     for name, expected in report["artifacts"].items():
         require(sha256(within(out, name)) == expected, f"artifact changed: {name}")
     expected_id = identity({k: v for k, v in report.items() if k != "content_id"})
@@ -286,16 +295,57 @@ def verify(output):
     for row, request in zip(rows, requests):
         require(row["id"] == request.id and row["text"] == request.text and row.get("other_text") == request.other_text
                 and row.get("payload") == request.payload, "frozen reference/input differs")
+    rescored = {}
     for name, entry in report["accuracy"].items():
         require(entry == read_json(out / (name + "-accuracy") / "execution.json"), "execution record differs from report")
         if entry["status"] == "ok":
             directory = out / (name + "-accuracy")
             cases = validate_predictions(rows, requests, list(read_jsonl(directory / "predictions.jsonl")), entry["identity"]["adapter"],
-                                         read_json(out / "corpus.json").get("scoring_profiles", ()))
+                                         read_json(out / "corpus.json").get("scoring_profiles", ()), scorer=report["scorer"])
+            rescored[name] = cases
             require(cases == list(read_jsonl(directory / "cases.jsonl")), "rescored cases differ")
             require(summarize_views(cases) == entry["populations"], "rescored populations differ")
+    manifest = read_json(out / "corpus.json")
+    cohorts = resolve_cohorts(manifest.get("preservation_cohorts", ()), rescored, report["settings"].get("baseline"),
+                              report["accuracy"], read_json(out / "engines.json"), contract=dict(framework=report["source_pins"], inputs=report["input_sha256"], references=sha256(out / "references.jsonl"), scorer=report["scorer"]))
+    if "cohorts" in report:
+        require(report["cohorts"] == cohorts == read_json(out / "cohorts.json"), "cohort provenance differs")
+    for key, entry in report["deltas"].items():
+        left, right = key.split("/")
+        records, counts = comparison(rescored[left], rescored[right], cohorts)
+        # Older v1 envelopes did not retain the extra aggregate counters.
+        require(all(counts[k] == v for k, v in entry.items() if k != "artifact"), "rescored paired aggregates differ")
+        require(records == list(read_jsonl(within(out, entry["artifact"]))), "rescored paired identities differ")
+    if "gate" in report:
+        require(report["gate"] == accuracy_gate(rescored, report["settings"].get("gate"), report["settings"].get("baseline"), cohorts), "rescored gate differs")
+    for name, cases in rescored.items():
+        if "sources" in report["accuracy"][name]:
+            require(report["accuracy"][name]["sources"] == {source: summarize([c for c in cases if c["source"] == source])
+                    for source in sorted({c["source"] for c in cases})}, "rescored sources differ")
     for trial in report["trials"]:
         for name, entry in trial["engines"].items():
             require(entry == read_json(out / f"trial-{trial['trial']:03d}-{name}" / "execution.json"), "timing execution differs from report")
     return dict(status="verified", content_id=report["content_id"], artifacts=len(report["artifacts"]),
                 scope="artifact integrity and accuracy rescoring; not a cryptographic author signature or runtime reenactment")
+
+
+def verify(output):
+    path = Path(output).resolve()
+    if path.is_file():
+        value = read_json(path)
+        require(isinstance(value, dict), 'verification envelope object required')
+        if value.get('schema') == 'address-benchmark.comparison/v1':
+            from .comparison import verify_comparison
+            return verify_comparison(path)
+        if value.get('schema') in ('address-benchmark.plan/v1', 'address-benchmark.plan-results/v1'):
+            from .plan import verify_plan
+            return verify_plan(path)
+        require(path.name == 'run.json', 'run envelope filename required')
+        return verify_run(path.parent)
+    if (path / 'comparison.json').exists():
+        from .comparison import verify_comparison
+        return verify_comparison(path)
+    if (path / 'plan-results.json').exists():
+        from .plan import verify_plan
+        return verify_plan(path)
+    return verify_run(path)
