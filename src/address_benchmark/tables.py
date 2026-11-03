@@ -104,9 +104,10 @@ def reference_warning(report, view, metric):
     return None
 
 
-def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', engines=None, publishable=False):
+def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', engines=None, publishable=False, min_denominator=20):
     """Build from recorded aggregates, never raw addresses or native output."""
     require(metric in METRICS, 'unknown report metric')
+    require(type(min_denominator) is int and min_denominator >= 1, 'positive publication minimum denominator required')
     require(runs, 'at least one recorded run is required')
     require(len(set(subsets)) == len(subsets) and 'all' not in subsets, 'subset names must be unique; all is already included')
     require(metric != 'throughput' or not subsets, 'timing is recorded for whole panels; subset throughput is unavailable')
@@ -145,6 +146,10 @@ def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', e
                         cell['status'] = 'unmeasured'
                 cell["reused"] = effective != "throughput" and entry.get("origin", {}).get("kind") == "reused"
                 cell["source_exit_code"] = entry.get("origin", {}).get("source_exit_code")
+
+                if entry['status'] == 'ok':
+                    cell['_publication_rows'] = (sum(p['tokens']['complete'].get('eligible_rows', 0) for p in populations) if effective == 'fine-f1'
+                        else sum(p['rows'] for p in populations) if effective == 'throughput' else cell.get('denominator'))
                 cells[name] = cell
             if view != 'all' and not any(c.get('rows') for c in cells.values()):
                 continue
@@ -176,9 +181,19 @@ def scorecard(runs, *, metric='strict', subsets=(), title='Address benchmark', e
                     'The report command checks recorded run identities. Exports do not rescore predictions or rehash every artifact.'
                 ])
     if publishable or any(report.get('privacy') == 'local-only' for _, report in runs):
-        from .report import public_scorecard, publishable_aggregates
-        card = public_scorecard(card)
-        card['aggregates'] = publishable_aggregates(runs, engines=names)
+        from .report import public_scorecard, publishable_aggregates, publication_aliases
+        aliases = publication_aliases(card, runs)
+        card = public_scorecard(card, aliases=aliases, min_denominator=min_denominator)
+        card['aggregates'] = publishable_aggregates(runs, engines=names, aliases=aliases, min_denominator=min_denominator)
+    for row in card['rows']:
+        for cell in row['cells'].values():
+            cell.pop('_publication_rows', None)
+    from .report import public_status
+    notes = [f"{aliases['panels'][label] if publishable or any(r.get('privacy') == 'local-only' for _, r in runs) else label}: gate " +
+        public_status(report.get('gate', {}).get('status', 'not-executed')) for label, report in runs
+        if report.get('gate', {}).get('status') in ('passed', 'failed') or report['status'] == 'not-executed']
+    if notes:
+        card['gate_notes'] = notes
     return card
 
 
@@ -267,7 +282,7 @@ def cell_text(cell, metric, counts=False):
     if cell is None:
         return 'unmeasured'
     if cell.get('score') is None:
-        return clean(cell['status'])
+        return clean(cell['status']) + (' [non-comparable]' if cell.get('comparable') is False else '') + (' [reused]' if cell.get('reused') else '')
     if metric == 'throughput':
         return f"{cell['score']:,.0f}" + ('†' if cell.get('noisy') else '')
     text = f"{100 * cell['score']:.2f}%"
@@ -285,7 +300,7 @@ def cell_text(cell, metric, counts=False):
 
 
 def display_notes(card):
-    notes = list(card['notes'])
+    notes = [*card.get('gate_notes', []), *card['notes']]
     if card['metric'] in ('strict', 'complete') and any(cell.get('comparable') is False
             for row in card['rows'] for cell in row['cells'].values()):
         notes.append('Non-comparable cells are diagnostic counts, not ranked parser accuracy. For publisher reference edge delimiters, use --metric delimiter; original references and counts are unchanged.')
@@ -361,6 +376,8 @@ def render_csv(card):
     writer.writerow(['Dataset / view', *(safe(n) for n in card['engines'])])
     for row in card['rows']:
         writer.writerow([safe(row['label']), *(cell_text(row['cells'].get(n), row['metric'], True) for n in card['engines'])])
+    for note in card.get('gate_notes', []):
+        writer.writerow([safe(note)])
     return output.getvalue()
 
 

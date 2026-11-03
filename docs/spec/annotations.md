@@ -125,3 +125,32 @@ engine's correct and unjudged counts, and joint retained count. Candidate failur
 never create, remove or replace preservation anchors. Exposure status/history
 remain private audit evidence: excluding data from training does not establish
 blindness when development exposure or custody is unresolved.
+
+## Bound preservation recipes
+
+A supplied cohort can keep a legacy text basis (recorded as `external-unbound`),
+or use `{"kind":"external","baseline_pin":"<sha256>"}` to bind imported
+membership to a particular baseline. A mismatching pin rejects the experiment.
+Independent externally authored membership does not need to claim baseline
+correctness.
+
+For same-run baseline selection, use a frozen recipe instead of cached row IDs:
+
+```json
+{"id":"preserve","basis":{"kind":"baseline-correct","subset":"unit","splits":["test"],"metric":"delimiter"}}
+```
+
+The harness resolves membership from the incumbent's already scored cases only,
+then records the exact row IDs and a baseline pin in private `cohorts.json`. The
+pin binds full engine configuration, observed runtime/model identity, frozen input/reference panels and
+framework/scorer policy. The manifest remains independently pinned; the cohort
+pin does not hash its own storage field. Candidate errors or gains never select anchors. Rebuilt
+baselines regenerate recipes; imported memberships can demand the recorded pin.
+Verification independently recomputes membership and binding. Empty/unavailable
+baseline cohorts cannot pass a positive retention requirement.
+
+A complete-scope streetline profile asserts absent aggregate fields too. When an
+adapter cannot represent a relevant absent role (for example unit), v2 leaves that
+profile unmeasured: matching nothing cannot prove absence. A partial source can
+still measure its explicitly supplied supported profile fields. This eligibility
+rule does not change either versioned streetline transformation.

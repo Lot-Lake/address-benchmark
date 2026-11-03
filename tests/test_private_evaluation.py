@@ -224,10 +224,10 @@ class PrivateEvaluationTests(unittest.TestCase):
             for value in forbidden:
                 self.assertNotIn(value, out.getvalue() + err.getvalue(), format)
         data = load_scorecard(self.plan, publishable=True)['aggregates'][0]
-        self.assertEqual(data['deltas'][0]['preservation'][0]['denominator'], 2)
+        self.assertEqual(data['deltas'][0]['preservation'][0]['status'], 'suppressed')
         self.assertEqual(data['blindness'], 'not-established')
-        self.assertEqual(data['engines']['engine-3']['sources'][0]['statuses']['error'], 2)
-        self.assertEqual(load_scorecard(self.plan)['rows'][0]['cells']['engine-3']['errors'], 4)
+        self.assertEqual(data['engines']['engine-3']['sources'][0]['status'], 'suppressed')
+        self.assertEqual(load_scorecard(self.plan, min_denominator=1)['rows'][0]['cells']['engine-3']['errors'], 4)
         failures = list(read_jsonl(self.plan.parent / 'execution' / (engines[-1]['name'] + '-accuracy') / 'predictions.jsonl'))
         self.assertEqual(failures[0]['status'], 'error')
         self.assertIn(private_inputs[0]['text'], failures[0]['message'])

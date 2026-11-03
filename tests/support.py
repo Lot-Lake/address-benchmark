@@ -128,3 +128,11 @@ class LazyCounting(Counting):
     def parse(self, request):
         import fractions
         return super().parse(request)
+
+class EdgeDemo(DemoParser):
+    def parse(self, request):
+        result = super().parse(request)
+        if result['status'] == 'ok':
+            road = [x for x in result['evidence'] if x['native_role'].startswith('road_')]
+            if road: road[-1]['value'] += ','
+        return result

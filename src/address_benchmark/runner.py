@@ -153,29 +153,7 @@ def paired_summary(trials, names, *, seed):
     return result
 
 
-def check_gate(gate, names, baseline):
-    require(isinstance(gate, dict) and set(gate) == {"candidate", "max_losses", "min_correct", "min_preservation"}, "gate candidate/max_losses/min_correct/min_preservation required")
-    require(baseline in names and gate["candidate"] in names and baseline != gate["candidate"], "gate needs selected baseline and distinct candidate")
-    require(all(type(gate[k]) is int and gate[k] >= 0 for k in ("max_losses", "min_correct")), "nonnegative gate counts required")
-    value = gate["min_preservation"]
-    require(type(value) in (float, int) and math.isfinite(value) and 0 <= value <= 1, "gate preservation rate must be in [0,1]")
-
-
-def accuracy_gate(cases, gate, baseline, cohorts):
-    if gate is None:
-        return dict(status="not-requested")
-    if baseline not in cases or gate["candidate"] not in cases:
-        return dict(status="failed", reason="accuracy-unavailable")
-    _, paired = comparison(cases[baseline], cases[gate["candidate"]], cohorts)
-    correct = sum(c["primary_agrees"] is True for c in cases[gate["candidate"]])
-    preservation = paired["preservation"].values()
-    # The supplied denominator is never rebuilt from candidate successes/failures.
-    retained = all(p["right_correct"] / p["denominator"] >= gate["min_preservation"] and
-                   not p["right_unjudged"] for p in preservation)
-    passed = (paired["judged_pairs"] > 0 and not paired["unmatched_judgments"] and paired["left_only"] <= gate["max_losses"] and
-              correct >= gate["min_correct"] and retained and (bool(cohorts) or gate["min_preservation"] == 0))
-    return dict(status="passed" if passed else "failed", losses=paired["left_only"],
-                correct=correct, judged_pairs=paired["judged_pairs"], preservation_passed=retained)
+from .gates import check_gate, check_gate_context, accuracy_gate, resolve_cohorts
 
 
 def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_seconds=.1, warmup=1, timeout=120, seed=20261101, baseline=None, gate=None, reuse=None):
@@ -192,6 +170,7 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
             "use an even number of >=2 trials, positive samples/duration/timeout and nonnegative warmup")
     if gate is not None:
         check_gate(gate, names, baseline)
+        check_gate_context(gate, manifest, rows)
     out = Path(output).resolve()
     require(not out.exists(), "fresh output directory required")
     if reuse is not None:
@@ -259,14 +238,19 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
                 entry.update(status="invalid", validation_error=str(exc))
         write_json(directory / "execution.json", entry)
         report["accuracy"][name] = entry
+    materialized = {name: list(read_jsonl(file)) for name, file in all_cases.items()}
+    cohorts = resolve_cohorts(manifest.get("preservation_cohorts", ()), materialized, baseline, report["accuracy"], engines, contract=dict(framework=report["source_pins"], inputs=report["input_sha256"], references=sha256(out / "references.jsonl"), scorer=report["scorer"]))
+    report["cohorts"] = cohorts
+    write_json(out / "cohorts.json", cohorts)
+    report["source_order"] = list(dict.fromkeys(row.get("source", f"{row['origin']}/{row['split']}/all") for row in rows))
     for left, right in itertools.combinations(all_cases, 2):
         if baseline is not None and baseline not in (left, right):
             continue
         file = f"delta-{left}-{right}.jsonl"
-        records, counts = comparison(list(read_jsonl(all_cases[left])), list(read_jsonl(all_cases[right])), manifest.get("preservation_cohorts", ()))
+        records, counts = comparison(materialized[left], materialized[right], cohorts)
         write_jsonl(out / file, records)
         report["deltas"][f"{left}/{right}"] = dict(artifact=file, **counts)
-    report["gate"] = accuracy_gate({name: list(read_jsonl(file)) for name, file in all_cases.items()}, gate, baseline, manifest.get("preservation_cohorts", ()))
+    report["gate"] = accuracy_gate(materialized, gate, baseline, cohorts)
     report["measurements"] = dict(timing="not-requested" if not timing else "blocked-by-accuracy-gate" if report["gate"]["status"] == "failed" else "executed",
                                   public_evaluation="not-executed" if report["privacy"] == "local-only" else "executed", memory="not-executed", latency="not-executed")
     if timing and report["gate"]["status"] != "failed":
@@ -316,7 +300,7 @@ def run(corpus, engines_path, output, *, timing=False, trials=4, samples=5, min_
     return report
 
 
-def verify(output):
+def verify_run(output):
     out = Path(output).resolve()
     report = read_json(out / "run.json")
     require(isinstance(report, dict) and report.get("schema") == RUN, "run schema differs")
@@ -354,14 +338,18 @@ def verify(output):
             require(cases == list(read_jsonl(directory / "cases.jsonl")), "rescored cases differ")
             require(summarize_views(cases) == entry["populations"], "rescored populations differ")
     manifest = read_json(out / "corpus.json")
+    cohorts = resolve_cohorts(manifest.get("preservation_cohorts", ()), rescored, report["settings"].get("baseline"),
+                              report["accuracy"], read_json(out / "engines.json"), contract=dict(framework=report["source_pins"], inputs=report["input_sha256"], references=sha256(out / "references.jsonl"), scorer=report["scorer"]))
+    if "cohorts" in report:
+        require(report["cohorts"] == cohorts == read_json(out / "cohorts.json"), "cohort provenance differs")
     for key, entry in report["deltas"].items():
         left, right = key.split("/")
-        records, counts = comparison(rescored[left], rescored[right], manifest.get("preservation_cohorts", ()))
+        records, counts = comparison(rescored[left], rescored[right], cohorts)
         # Older v1 envelopes did not retain the extra aggregate counters.
         require(all(counts[k] == v for k, v in entry.items() if k != "artifact"), "rescored paired aggregates differ")
         require(records == list(read_jsonl(within(out, entry["artifact"]))), "rescored paired identities differ")
     if "gate" in report:
-        require(report["gate"] == accuracy_gate(rescored, report["settings"].get("gate"), report["settings"].get("baseline"), manifest.get("preservation_cohorts", ())), "rescored gate differs")
+        require(report["gate"] == accuracy_gate(rescored, report["settings"].get("gate"), report["settings"].get("baseline"), cohorts), "rescored gate differs")
     for name, cases in rescored.items():
         if "sources" in report["accuracy"][name]:
             require(report["accuracy"][name]["sources"] == {source: summarize([c for c in cases if c["source"] == source])
@@ -371,3 +359,25 @@ def verify(output):
             require(entry == read_json(out / f"trial-{trial['trial']:03d}-{name}" / "execution.json"), "timing execution differs from report")
     return dict(status="verified", content_id=report["content_id"], artifacts=len(report["artifacts"]),
                 scope="artifact integrity and accuracy rescoring; not a cryptographic author signature or runtime reenactment")
+
+
+def verify(output):
+    path = Path(output).resolve()
+    if path.is_file():
+        value = read_json(path)
+        require(isinstance(value, dict), 'verification envelope object required')
+        if value.get('schema') == 'address-benchmark.comparison/v1':
+            from .comparison import verify_comparison
+            return verify_comparison(path)
+        if value.get('schema') in ('address-benchmark.plan/v1', 'address-benchmark.plan-results/v1'):
+            from .plan import verify_plan
+            return verify_plan(path)
+        require(path.name == 'run.json', 'run envelope filename required')
+        return verify_run(path.parent)
+    if (path / 'comparison.json').exists():
+        from .comparison import verify_comparison
+        return verify_comparison(path)
+    if (path / 'plan-results.json').exists():
+        from .plan import verify_plan
+        return verify_plan(path)
+    return verify_run(path)

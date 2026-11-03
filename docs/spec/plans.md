@@ -158,3 +158,57 @@ private audit and are excluded from publication. Timing processes, paired engine
 orders, samples and uncertainty always execute fresh for the entire selected
 cohort; timing results are never copied or relabeled as contemporaneous. A
 throughput cell is therefore never marked reused merely because accuracy was.
+
+## Review additions: gate policy v2 and command inventory
+
+Freeze and `CommandAdapter` now share the same file inventory: the resolved
+executable, existing files in `command[1:]`, and `metadata.artifact_files` for a
+command adapter, plus ordinary `config.artifact_files` for adapters that support
+it. A bridge or model changed after freezing fails the asset check before any
+worker starts. Command adapters keep their existing two-key config contract.
+
+The original four-key gate shape retains `address-benchmark.gate/v1` semantics.
+New selectors/rates use `address-benchmark.gate/v2` and reuse existing scored
+judgments. `metric` accepts `strict`, `delimiter`, `strict-streetline/v1` or
+`strict-streetline/v2`; profile metrics must be declared by the corpus. Unsupported
+or missing judgments never become a passing gate. Example:
+
+```json
+{
+  "baseline": "incumbent",
+  "gate": {
+    "candidate": "candidate",
+    "metric": "delimiter",
+    "splits": ["test"],
+    "requirements": [
+      {"subset": "unit", "max_loss_rate": 0.0005, "min_correct_rate": 0.99},
+      {"cohort": "preserve", "min_preservation": 1}
+    ]
+  }
+}
+```
+
+Count thresholds (`max_losses`, `min_correct`) and rates can be combined. Loss
+and correct rates use the matching judged-pair denominator after split/selector
+filtering. Excluded splits contribute neither judgments nor preservation members.
+Unknown selectors, empty judged sets and mismatched eligibility fail closed.
+Preservation uses the filtered fixed cohort membership, never candidate-selected
+successes. Each requirement records its metric, filter, denominator and decision
+privately. A track may provide `execution` overrides over the global settings,
+including its own gate thresholds. Freeze pins these overrides.
+
+`verify` accepts a run, plan JSON, executed plan directory or `plan-results.json`.
+New receipts retain the source plan filename, export hashes and receipt identity;
+verification checks track links, executed audits and explicit skipped tracks.
+Mixed private/public plans intentionally alias every track in publication output;
+a fixed progress notice explains that choice without exposing labels. All text
+export formats include one gate-status line per panel.
+
+`compare LEFT RIGHT --baseline ENGINE --candidate ENGINE --out PRIVATE_DIR`
+compares existing verified runs or plans without model execution. Use `--track`
+to select one matching executed track and `--metric` for a declared gate metric.
+Input/reference panels and scorer/framework policies must match. The fresh private
+directory retains source envelopes/cases and paired identities; `verify` checks
+these paired judgments. Original native rescoring still requires the original
+source audits. Console output is aggregate-only and uses the same default minimum
+20; no source paths, case identities or failure examples are printed.

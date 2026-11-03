@@ -112,3 +112,28 @@ execution directory. Local-only execution directories are created with mode
 0700. `verify` independently rescores cases, source metrics, paired gains/losses,
 cohort counts and gate decisions with the pinned framework, besides checking
 artifact hashes. Integrity is not a cryptographic author signature.
+
+## Publication policy v2
+
+Aggregate-only exports now default to `min_denominator: 20`, recorded in
+`publication_policy`. A measured cell below that threshold becomes `suppressed`
+with no score, numerator, denominator, row/error/refusal counts or fine metrics.
+Detailed source, fine-layer/role, effect and preservation-cohort summaries apply
+the same rule; fine-layer thresholds use annotated reference rows rather than
+letting many tokens in a tiny input set bypass suppression. Small gate scopes
+publish no numeric decision details. Gate pass/fail remains an explicit status.
+Unavailable and unmeasured results remain distinct and expose no numeric counts.
+
+`report --min-denominator N` selects another positive threshold and records it.
+Use an explicit threshold of 1 only when publishing authored synthetic controls
+or when your publication policy permits it. Private full audits are unchanged.
+This threshold is not differential privacy or protection against arbitrary
+repeated-query differencing, and does not establish independently held-out data.
+
+Panel/source/view/cohort aliases now share one registry. Panels number once;
+views number within each panel; resource sources follow frozen declaration/first
+occurrence order; cohorts follow declaration order, never sorted private IDs.
+Detailed aggregates use the same panel namespace as the scorecard. All formats
+include gate-status notes. CLI failures use fixed reason codes such as
+`output-exists`, `asset-unavailable`, `frozen-assets-differ` and
+`cohort-baseline-pin-mismatch`; even `verify` never prints exception filenames.
