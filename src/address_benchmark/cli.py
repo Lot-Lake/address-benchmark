@@ -22,6 +22,7 @@ def error_reason(exc):
     if isinstance(exc, PermissionError): return 'access-denied'
     text = str(exc)
     rules = [('frozen plan', 'frozen-assets-differ'), ('artifact changed', 'artifact-integrity-failed'),
+             ('installed scorer/runner source differs', 'framework-differs'),
              ('identity differs', 'identity-mismatch'), ('profile', 'unsupported-profile'),
              ('gate', 'invalid-gate'), ('cohort baseline pin', 'cohort-baseline-pin-mismatch'),
              ('hash differs', 'asset-hash-mismatch'), ('fresh', 'output-exists'), ('schema', 'invalid-schema')]

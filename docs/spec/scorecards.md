@@ -124,6 +124,11 @@ letting many tokens in a tiny input set bypass suppression. Small gate scopes
 publish no numeric decision details. Gate pass/fail remains an explicit status.
 Unavailable and unmeasured results remain distinct and expose no numeric counts.
 
+The threshold applies to the supporting denominator, not each numerator. A paired
+count such as `right_only: 1` or a rare role outcome may still be published when
+its supporting panel or role has at least the minimum eligible reference rows.
+Policy v2 does not additionally suppress small numerators or their complements.
+
 `report --min-denominator N` selects another positive threshold and records it.
 Use an explicit threshold of 1 only when publishing authored synthetic controls
 or when your publication policy permits it. Private full audits are unchanged.
@@ -135,5 +140,5 @@ views number within each panel; resource sources follow frozen declaration/first
 occurrence order; cohorts follow declaration order, never sorted private IDs.
 Detailed aggregates use the same panel namespace as the scorecard. All formats
 include gate-status notes. CLI failures use fixed reason codes such as
-`output-exists`, `asset-unavailable`, `frozen-assets-differ` and
+`output-exists`, `asset-unavailable`, `frozen-assets-differ`, `framework-differs` and
 `cohort-baseline-pin-mismatch`; even `verify` never prints exception filenames.
