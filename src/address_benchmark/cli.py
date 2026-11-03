@@ -41,6 +41,8 @@ def main(argv=None):
     execute.add_argument("--timeout", type=float, default=120)
     execute.add_argument("--seed", type=int, default=20261101)
     execute.add_argument("--baseline")
+    freeze = commands.add_parser("freeze-plan", help="pin supplied local plan assets and framework before comparison")
+    freeze.add_argument("plan")
     planned = commands.add_parser("run-plan", help="run and verify a versioned declarative JSON experiment plan")
     planned.add_argument("plan")
     for command in (execute, planned):
@@ -48,6 +50,7 @@ def main(argv=None):
     from .tables import FORMATS, METRICS
     report = commands.add_parser('report', help='export clean score tables from a recorded run or executed plan; no engines rerun')
     report.add_argument('source', nargs='+', help='one or more run/plan JSON files or result directories')
+    report.add_argument('--publishable', action='store_true', help='aggregate-only allowlist export with fixed aliases; also automatic for local-only runs')
     report.add_argument('--format', choices=FORMATS, default='console')
     report.add_argument('--metric', choices=METRICS, default='strict')
     views = report.add_mutually_exclusive_group()
@@ -63,10 +66,16 @@ def main(argv=None):
     check.add_argument("run")
     args = parser.parse_args(argv)
     try:
+        if args.command == "freeze-plan":
+            from .plan import freeze_plan
+            print(json.dumps(freeze_plan(args.plan)))
+            return 0
         if args.command == "run":
             result = run(args.corpus, args.engines, args.out, timing=args.timing, trials=args.trials,
                          samples=args.samples, min_seconds=args.min_seconds, warmup=args.warmup, timeout=args.timeout, seed=args.seed, baseline=args.baseline)
-            if args.json:
+            if args.json and result.get("privacy") == "local-only":
+                print(json.dumps(dict(status=result["status"])))
+            elif args.json:
                 print(json.dumps(dict(status=result["status"], content_id=result["content_id"], report=str(Path(args.out).resolve() / "report.md"))))
             else:
                 from .tables import load_scorecard, render_console
@@ -76,14 +85,14 @@ def main(argv=None):
             from .plan import run_plan
             result = run_plan(args.plan)
             if args.json:
-                print(json.dumps(result, indent=2))
+                print(json.dumps(dict(status=result["status"]) if result.get("privacy") == "local-only" else result, indent=2))
             else:
                 from .tables import load_scorecard, render_console
                 print(render_console(load_scorecard(args.plan), terminal_width=max(40, shutil.get_terminal_size((120, 24)).columns), color=sys.stdout.isatty() and 'NO_COLOR' not in os.environ and os.environ.get('TERM') != 'dumb'), end='')
             return 0 if result["status"] == "complete" else 2
         if args.command == 'report':
             from .tables import load_scorecard, render
-            card = load_scorecard(args.source, metric=args.metric, subsets=args.subsets, all_views=args.all_views, title=args.title)
+            card = load_scorecard(args.source, metric=args.metric, subsets=args.subsets, all_views=args.all_views, title=args.title, publishable=args.publishable)
             use_color = args.color == 'always' or (args.color == 'auto' and sys.stdout.isatty() and not args.out and 'NO_COLOR' not in os.environ and os.environ.get('TERM') != 'dumb')
             output = render(card, args.format, counts=args.counts, terminal_width=args.width if args.width is not None else max(40, shutil.get_terminal_size((120, 24)).columns), color=use_color, ascii=args.ascii)
             if args.out:
@@ -117,7 +126,10 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
         return 0
     except (ValueError, OSError, KeyError, TypeError, RuntimeError) as exc:
-        print(f"address-benchmark: {exc}", file=sys.stderr)
+        publication = args.command in ("run", "run-plan", "freeze-plan", "report")
+        # Exception text may contain a private filename or native error. Detailed
+        # worker errors remain in the private execution directory.
+        print("address-benchmark: operation failed; inspect the private assets and execution logs" if publication else f"address-benchmark: {exc}", file=sys.stderr)
         return 1
 
 

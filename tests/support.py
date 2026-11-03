@@ -98,3 +98,8 @@ class ExitCloseInterrupts(DemoParser):
 class SuccessfulCloseExits(DemoParser):
     def close(self):
         raise SystemExit(23)
+
+
+class PrivateEcho(DemoParser):
+    def parse(self, request):
+        raise RuntimeError("private native exception: " + request.text)

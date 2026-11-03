@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from copy import deepcopy
 from pathlib import Path
 import urllib.request
 
@@ -30,18 +31,75 @@ def check_manifest(manifest):
     check_profiles(manifest)
     if "row_limit" in manifest:
         require(type(manifest["row_limit"]) is int and manifest["row_limit"] > 0, "positive explicit integration row limit required")
+    from .scoring import SCORER, SCOPED_SCORER
+    require(manifest.get("scorer", SCORER) in (SCORER, SCOPED_SCORER), "unsupported scorer policy")
+    scoped = manifest.get("scorer") == SCOPED_SCORER
+    require(not scoped or manifest["task"] == "parse", "scoped scorer requires parsing")
     for resource in manifest["resources"]:
-        require(set(resource) <= {"path", "external_path", "sha256", "url", "bytes", "format", "split", "origin", "coverage"}, "unsupported resource field")
+        require(set(resource) <= {"path", "external_path", "sha256", "url", "bytes", "format", "split", "origin", "coverage", "source", "annotation_scope"}, "unsupported resource field")
         require(("path" in resource) != ("external_path" in resource), "one resource location required")
         if "external_path" in resource:
             require(manifest["license"]["redistribution"] == "local-only" and Path(resource["external_path"]).is_absolute(), "external corpus paths require explicit local-only policy")
+        if "source" in resource:
+            require(isinstance(resource["source"], str) and resource["source"], "nonempty source identity required")
+        require(scoped or "annotation_scope" not in resource, "source scope requires explicit scoped scorer/v2")
+        if scoped:
+            check_scope(resource.get("annotation_scope"))
         if "coverage" in resource:
+            require(not scoped, "scoped resources use annotation_scope instead of legacy coverage override")
             require(manifest["task"] == "parse" and resource["coverage"] == "partial", "resource coverage override may only downgrade parsing references to partial")
         require(isinstance(resource.get("sha256"), str) and len(resource["sha256"]) == 64
                 and all(x in "0123456789abcdef" for x in resource["sha256"]), "SHA-256 pin required")
 
 
-def check_reference(reference, text, task="parse"):
+def check_scope(scope):
+    """Source-declared ceiling; a row may narrow, never expand, these assertions."""
+    require(isinstance(scope, dict) and set(scope) == {"fields", "tokens", "spans"}, "three source annotation layers required")
+    for kind, layer in scope.items():
+        require(isinstance(layer, dict) and set(layer) == {"coverage", "roles", "absence"}, "scope coverage/roles/absence required")
+        require(layer["coverage"] in ("complete", "partial", "none"), "invalid scope coverage")
+        roles = layer["roles"]
+        inventory = set(FINE_TO_COARSE.values()) if kind == "fields" else set(FINE_TO_COARSE)
+        require(isinstance(roles, list) and len(roles) == len(set(roles)) and set(roles) <= inventory, "invalid scope roles")
+        require(type(layer["absence"]) is bool, "explicit source absence capability required")
+        require(layer["coverage"] != "none" or not roles and not layer["absence"], "unannotated scope contains claims")
+        require(layer["coverage"] != "complete" or set(roles) == inventory and layer["absence"], "complete scope requires exhaustive roles and absence assertions")
+        require(kind == "fields" or layer["coverage"] != "partial" or not layer["absence"], "partial fine scope is positive-only")
+
+
+def apply_scope(reference, scope):
+    reference = deepcopy(reference)
+    for kind, layer in scope.items():
+        key = "coverage" if kind == "fields" else kind + "_coverage"
+        supplied = reference["fields"] if kind == "fields" else reference[kind]
+        roles = set(supplied) if kind == "fields" else {x["role"] for x in supplied}
+        require(roles <= set(layer["roles"]), "reference exceeds source role scope")
+        if kind == "fields":
+            require(layer["absence"] or all(supplied.values()), "unsupported source absence assertion")
+        if layer["coverage"] == "none":
+            require(not supplied, "reference exceeds unannotated source scope")
+            reference[key] = "none"
+        elif layer["coverage"] == "partial" and reference[key] == "complete":
+            reference[key] = "partial"
+    return reference
+
+
+def check_cohorts(manifest, rows):
+    cohorts = manifest.get("preservation_cohorts", [])
+    require(isinstance(cohorts, list), "cohort list required")
+    ids, available = set(), {r["id"]: r for r in rows}
+    for cohort in cohorts:
+        require(isinstance(cohort, dict) and set(cohort) == {"id", "row_ids", "basis"}, "externally supplied cohort id/row_ids/basis required")
+        require(isinstance(cohort["id"], str) and cohort["id"] and cohort["id"] not in ids, "unique cohort id required")
+        ids.add(cohort["id"])
+        members = cohort["row_ids"]
+        require(isinstance(cohort["basis"], str) and cohort["basis"], "independent preservation basis required")
+        require(isinstance(members, list) and members and all(isinstance(x, str) for x in members)
+                and len(set(members)) == len(members) and set(members) <= set(available), "unique existing supplied cohort members required")
+        require(all(available[x]["reference"]["coverage"] != "none" for x in members), "preservation cohort requires judged references")
+
+
+def check_reference(reference, text, task="parse", *, scorer="address-benchmark.scorer/v1"):
     require(reference.get("coverage") in ("complete", "partial", "none"), "explicit reference coverage required")
     if task != "parse":
         require(reference["coverage"] in ("complete", "none"), "non-parse tasks require complete or absent references")
@@ -85,7 +143,7 @@ def check_reference(reference, text, task="parse"):
             require(key not in seen, "duplicate fine annotation")
             seen.add(key)
     if reference["coverage"] == "none":
-        require(not fields and all(reference[k + "_coverage"] == "none" for k in ("spans", "tokens")), "unlabeled row contains reference")
+        require(not fields and (scorer == "address-benchmark.scorer/v2" or all(reference[k + "_coverage"] == "none" for k in ("spans", "tokens"))), "unlabeled row contains reference")
     elif reference["coverage"] == "partial":
         require(fields, "partial coarse coverage needs supplied fields")
 
@@ -95,7 +153,7 @@ def load_corpus(path):
     manifest = read_json(path)
     check_manifest(manifest)
     rows, seen = [], set()
-    for resource in manifest["resources"]:
+    for index, resource in enumerate(manifest["resources"]):
         data = Path(resource["external_path"]).resolve() if "external_path" in resource else within(path.parent, resource["path"])
         require(data.is_file(), f"dataset unavailable: {data}; use fetch with the pinned manifest")
         require(sha256(data) == resource["sha256"], "corpus resource hash differs")
@@ -111,6 +169,10 @@ def load_corpus(path):
                 break
             require(isinstance(row.get("id"), str) and row["id"] and row["id"] not in seen, "missing/duplicate corpus ID")
             seen.add(row["id"])
+            if "annotation_scope" in resource:
+                row["reference"] = apply_scope(row["reference"], resource["annotation_scope"])
+                row["annotation_scope"] = resource["annotation_scope"]
+                row["source"] = resource.get("source", f"resource-{index + 1}")
             if resource.get("coverage") == "partial":
                 row["reference"]["coverage"] = "partial"
                 for layer in ("tokens", "spans"):
@@ -130,13 +192,14 @@ def load_corpus(path):
                 require(all(isinstance(field, dict) and set(field) == {"role", "value"} and isinstance(field["role"], str) and isinstance(field["value"], str) for field in row["payload"]["fields"]), "literal role/value fields required")
             if manifest["task"] == "stability":
                 require(isinstance(row.get("payload", {}).get("texts"), list) and row["payload"]["texts"] and all(isinstance(x, str) for x in row["payload"]["texts"]), "stability requires input text list")
-            check_reference(row["reference"], row["text"], manifest["task"])
+            check_reference(row["reference"], row["text"], manifest["task"], scorer=manifest.get("scorer", "address-benchmark.scorer/v1"))
             if manifest['task'] == 'match':
                 property_profile = manifest['profile'] == 'address-benchmark.property-key-equality/v1'
                 require((row['reference']['entity_level'] == 'property') == property_profile,
                         'identity level differs from the manifest profile')
             rows.append(row)
     require(rows, "corpus has no inputs")
+    check_cohorts(manifest, rows)
     audit = audit_corpora([(manifest["id"], rows)])
     require(not audit["cross_split_exact"] and not audit["cross_split_families"], "heldout split leakage detected; inspect corpus audit")
     return manifest, rows, audit

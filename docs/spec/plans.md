@@ -65,3 +65,45 @@ MIT-licensed source files; external parser/model/data assets stay installed in
 place and separately pinned. This avoids invalidating a long run when report
 work continues in the live checkout. To rescore later, use the recorded source
 snapshot's Python module path and the original run directory.
+
+## Frozen local plans and accuracy gates
+
+Local-only plans must first run `address-benchmark freeze-plan PLAN`. This
+validates every local corpus and writes pins into the existing plan: experiment
+configuration, framework source, engine manifest, corpus manifests, interpreters,
+command executables and declared `config.artifact_files` (including models).
+The matching Python framework is copied to `framework-source/address_benchmark`
+beside the plan. Retain that directory and the input-only adapter code/assets for
+later verification. This is a content-integrity contract, not a signed timestamp
+or proof of private data custody. It performs no training or source acquisition.
+
+Frozen assets are checked before launching adapters and again at completion.
+Frozen plans cannot be refrozen in place. A policy, corpus, limit, engine, model
+or runtime change requires a new experiment directory. Worker identities still
+record imported packages/modules, native metadata, declared model files, actual
+exits and runtime hashes. Undeclared dynamic libraries/build flags remain subject
+to the existing performance supplement limits.
+
+An optional `execution.gate` object specifies `candidate`, `max_losses`,
+`min_correct`, `min_preservation` (a fraction in [0,1]); `execution.baseline` names
+the incumbent. Accuracy executes fresh through the ordinary runner. The gate
+requires paired judgments, no mismatched judgment eligibility, a maximum number
+of incumbent-only correct cases, the candidate correct-count floor and the
+candidate's correctness on every supplied preservation cohort divided by that
+cohort's fixed supplied membership. A positive preservation threshold without a
+supplied cohort fails. Engine failures cannot pass a gate.
+
+A failed gate records the run as `gated`, skips timing and stops the plan before
+all subsequent tracks, including any intended public evaluation. Those tracks
+have `not-executed` receipts and cells; their output directories are not created.
+A gated plan is incomplete (CLI exit 2), while its executed private audit can
+still verify. Public evaluation must be an explicit later track; there is no
+implicit public suite. Timing, public-evaluation scheduling, memory and latency
+execution status are explicit; absence of a measurement is never a zero.
+
+Paired speed uses the existing full input-only panel, independent processes,
+alternating reversed orders, all trials and conditional process-pair bootstrap.
+Failures/refusals invalidate timing rather than selecting an easier panel.
+Native-batch adapters do not acquire warmed per-address timing support from this
+feature. No result reuse is added; comparisons execute fresh until a separately
+verified reuse contract exists.
