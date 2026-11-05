@@ -210,6 +210,11 @@ that is Occupancy and Subaddress type/identifier; level and PO box are outside):
   reference's. Judged on complete references and on partial references that
   assert a unit-family field, so it works on field-only corpora.
 
+`fine-exact/v1` judges the whole row on fine roles. Every reference token's fine
+role and byte span must be predicted, with no extra or unplaced tokens. It is
+judged only on complete token references, and a refusal is wrong. Summaries add
+`fine_exact`.
+
 Run summaries add `unit_ownership` with the unit-span and unit-field rates,
 false-unit rows over judged negatives, and false-positive unit tokens (reference
 non-unit tokens whose exact span the prediction owns as a unit) over judged
