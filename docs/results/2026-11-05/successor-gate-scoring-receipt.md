@@ -5,10 +5,16 @@ score unit ownership or exact fine roles. This branch adds unit-ownership
 judgments (`unit-span/v1`, `unit-negative/v1`, `unit-field/v1`) and a whole-row
 fine-role judgment (`fine-exact/v1`). Synthetic `run-plan` controls show that each
 perturbation moves only its intended gates. The frozen scorer reproduces every
-e429 count recorded on Doorplate v1 exactly. The whole-address count reproduces
-under `delimiter`, not `strict`, so the whole-address gates move to `delimiter`.
-geo-dev and the original unit-target rows are PENDING: their corpora are not in
-the retained-baseline archive.
+recorded e429 baseline count exactly:
+- geo-dev 59,845/60,522;
+- the original unit-target rows, 662/688;
+- the original negatives, 537/543 exact, with 10 false-positive unit tokens;
+- Doorplate whole 17,316, fine-exact 16,441, false-unit rows 54 and
+  false-positive unit tokens 93.
+
+Numerators are reproduced; the Doorplate denominators are mapped by a traced row
+set. Whole-address reproduces under `delimiter`, not `strict`, so the
+whole-address gates move to `delimiter`.
 
 Plan: `experiments/us_parser/rounds/successor_e429/PLAN.md` (Lot-Lake/us-address-normalizer
 PR #18), sections 6 and 7, the "Gate scoring validation" row.
@@ -25,8 +31,9 @@ PR #18), sections 6 and 7, the "Gate scoring validation" row.
 3. **Whole-address metric: decided by the data.** `delimiter` reproduces e429's recorded
    Doorplate whole count exactly; `strict` does not (section 5). These gates change
    metric from `strict` to `delimiter`: A1 whole cohorts, A2, A3 whole, and C3's tracked
-   hard whole gains. geo-dev has not been reproduced yet, so the change is confirmed on
-   Doorplate only.
+   hard whole gains. On the original DEV and geo-dev, `strict` and `delimiter` give
+   identical counts. The switch changes only Doorplate's handwritten rows, which carry
+   edge delimiters.
 4. **C3 hard fine gains read `fine-exact/v1`,** added here with the same controls.
 
 The whole-address judgments are unchanged. The only additions are the
@@ -42,7 +49,7 @@ entries.
 | A2 | `delimiter` | `delimiter_fields_agree` | each DEV track, `max_losses` 6 / 1 / 0 / 0 |
 | A3 whole | `delimiter`, via `compare` | `delimiter_fields_agree` | pooled DEV; net = `right_only - left_only` |
 | A3 unit | `unit-span/v1`, via `compare` | `unit_ownership.span_agrees` | the 688 original unit-target rows; net ≥ +3 |
-| A4 | `unit-negative/v1`, via `compare` | `unit_ownership.span_agrees` where `gold_unit` is false | DEV rows with complete token references and no unit; false-unit rows = judged − correct |
+| A4 | `unit-negative/v1`, via `compare` | `unit_ownership.span_agrees` where `gold_unit` is false | **subset `no-unit` only** (the 543 gold-defined negatives); false-unit rows = judged − correct |
 | C3 tracked hard whole gains | `delimiter` | `delimiter_fields_agree` | pinned cohort file, `min_preservation: 1` |
 | C3 tracked hard fine gains | `fine-exact/v1` | `tokens` fine score: `status == ok`, `metrics.fp == 0`, `metrics.fn == 0`, no unplaced tokens | pinned cohort file, `min_preservation: 1` |
 | C3 Doorplate false-unit rows | `unit-negative/v1` | as A4 | Doorplate rows labeled without a unit; `min_correct` = judged − 54 |
@@ -54,6 +61,12 @@ The unit family is the legacy one (`UNIT_ROLES` in
 OccupancyType, OccupancyIdentifier, SubaddressType and SubaddressIdentifier, so
 the coarse `unit` and `subaddress` roles. Level and PO box are outside it.
 
+**A4 must select the `no-unit` subset.** GeoSearch's publisher ontology has no
+unit roles, so `unit-negative/v1` treats every geo-dev row as a judged negative.
+On e429 that gives 20 false-unit rows and 22 tokens over 60,522 rows. The legacy
+cohorts exclude GeoSearch from both unit cohorts. A pooled DEV A4 would therefore
+mix in a population the legacy gate never judged.
+
 ## 2. Denominators
 
 | Corpus | Metric | Judged denominator | Source |
@@ -61,8 +74,10 @@ the coarse `unit` and `subaddress` roles. Level and PO box are outside it.
 | geo-dev | whole | 60,522 | PLAN section 5; DEV is full-scope |
 | municipal-dev / seed-dev / wisconsin-dev | whole | 823 / 280 / 128 | PLAN section 5 |
 | pooled DEV (A3) | whole | 61,753 | sum of the four; equals the 61,753 rows in the e429 report |
-| original unit-target (A1 unit, A3 unit) | `unit-span/v1` | 688 (cohort 662 if e429 reproduces) | `retained_model.json` `original_unit_positive` |
-| original fine DEV negatives (A4) | `unit-negative/v1` | 543 | `unit_event_risk_20261102/DESIGN.md` |
+| geo-dev | whole, measured | **60,522** | regenerated references `15e9e622…0961` |
+| seed / municipal / wisconsin | whole, measured | **280 / 823 / 128** | original DEV package |
+| original unit-target (A1 unit, A3 unit) | `unit-span/v1`, measured | **688** (139 / 537 / 12); A1 cohort 662 | package membership |
+| original DEV negatives (A4) | `unit-negative/v1`, measured | **543** (141 / 286 / 116); negative tokens 4,025 | package membership |
 | Doorplate v1 | whole (`delimiter`) | **19,586** (measured) | section 5 |
 | Doorplate v1 | `unit-negative/v1` | **16,465** (measured) | section 5 |
 | Doorplate v1 | negative unit tokens | **133,047** (measured); 132,399 on the kept rows | section 3 |
@@ -176,7 +191,7 @@ asserts these movements and the case-level judgments. The full suite passed:
 
 ## 5. e429 baseline reproduced by the frozen scorer
 
-**Doorplate v1: reproduced exactly.** **geo-dev and the original unit-target rows: PENDING.**
+**Doorplate v1, geo-dev and the original DEV unit cohorts: reproduced exactly.**
 
 - **Engine:** `learned-parser --batch`, built from us-address-normalizer
   `packages/rust-core` (`--features learned-model`). Its `--metadata` reports model
@@ -199,27 +214,43 @@ asserts these movements and the case-level judgments. The full suite passed:
 | false-positive unit tokens | **93** / 133,047 | 93 / 132,399 | count exact; denominator mapped exactly (section 3) |
 | exact unit ownership | **1,925** / 3,121 | 1,925 / 3,060 | count exact; denominator mapped exactly (section 3) |
 
-**Still pending:**
-- **geo-dev 59,845/60,522:** this needs the GeoSearch references in the
-  framework's `geosearch-reference` intake format, Alex's
-  `.cache/us-geosearch-fine-evaluation-20261029/execution-v1/dev/references.jsonl`.
-- **Original unit-target 662/688 and the 543 DEV negatives:** these need Alex's
-  private DEV bundle.
+### Original DEV and geo-dev: reproduced exactly
 
-Neither is in `retained-baseline-v1` (its helper never reads protected
-DEV/TEST references) or on this machine. When either is present, add it as a
-track to the same plan, then read `delimiter_fields`, `fine_exact` and
-`unit_ownership` from the run's populations.
+**Inputs:**
+- **Original DEV:** `e429-original-dev-private.tar.gz`, SHA-256 `e6dd460d…4ba5`, 11
+  members.
+- **geo-dev:** GeoSearch references regenerated with the package's DEV-only
+  script from the public pinned `dev.txt` (SHA-256 `a3276155…`). The script's
+  helpers are us-address-normalizer `f694775` (`tests/corpora/geosearch_benchmark.py`,
+  `tests/benchmark/{geosearch_bridge,fine_roles}.py`), and they match the script's
+  three pins. The output is SHA-256 `15e9e622…0961`, 60,522 rows and 396,980
+  tokens, all equal to the pins. The TEST split was never fetched.
+- **Install:** `tools/original_dev_intake.py` installs the package as local-only
+  corpora. Subsets `unit-target` and `no-unit` come from the package's
+  gold-defined membership files, and every one of the 1,231 rows matched its
+  membership input hash.
+
+**Run:** one frozen 4-track plan → `run-plan` → `verify` (all 4 tracks
+`verified`) with the same e429 learned-parser. Aggregates only:
+
+| Measure | Frozen scorer | e429 record |
+| --- | ---: | ---: |
+| geo-dev whole (`strict` = `delimiter`) | **59,845 / 60,522** | 59,845 / 60,522 |
+| unit-target exact unit ownership (seed 115/139, municipal 535/537, Wisconsin 12/12) | **662 / 688** | 662 / 688 |
+| no-unit exact rows (false-unit rows 4 + 0 + 2) | **537 / 543** | 537 / 543 |
+| no-unit false-positive unit tokens (8 + 0 + 2) | **10** / 4,025 | 10 |
+| seed / municipal / Wisconsin whole (`strict` = `delimiter`) | 210/280, 818/823, 126/128 | not in the record; e429 is rerun paired |
+| geo-dev fine exact | 59,441 / 60,522 | not in the record |
 
 ## Per-gate status
 
 | Gate | Field | Controls | e429 reproduced |
 | --- | --- | --- | --- |
-| A1 whole | pass (`delimiter`; metric changed) | pass | Doorplate exact; geo-dev and DEV pending |
-| A1 unit | pass (`unit-span/v1`) | pass | Doorplate unit ownership exact; DEV 662/688 pending |
-| A2 | pass (`delimiter`; metric changed) | pass | geo-dev and DEV pending |
-| A3 | pass (`delimiter` + `unit-span/v1`, via compare) | pass | DEV pending |
-| A4 | pass (`unit-negative/v1`) | pass | Doorplate exact; DEV 543 pending |
+| A1 whole | pass (`delimiter`; metric changed) | pass | geo-dev 59,845 and Doorplate 17,316 exact |
+| A1 unit | pass (`unit-span/v1`) | pass | 662/688 exact |
+| A2 | pass (`delimiter`; metric changed) | pass | geo-dev exact; seed/municipal/Wisconsin measured |
+| A3 | pass (`delimiter` + `unit-span/v1`, via compare) | pass | whole and unit baselines exact |
+| A4 | pass (`unit-negative/v1`, subset `no-unit`) | pass | 537/543 and 10 tokens exact |
 | C3 hard whole gains | pass (`delimiter`; metric changed) | pass | Doorplate hard 1,402 exact |
 | C3 hard fine gains | pass (`fine-exact/v1`, new) | pass | Doorplate hard 1,221 exact |
 | C3 false-unit rows and tokens | pass | pass | 54 rows and 93 tokens exact |
