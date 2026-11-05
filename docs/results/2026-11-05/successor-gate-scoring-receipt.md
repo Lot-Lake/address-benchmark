@@ -65,9 +65,9 @@ the coarse `unit` and `subaddress` roles. Level and PO box are outside it.
 | original fine DEV negatives (A4) | `unit-negative/v1` | 543 | `unit_event_risk_20261102/DESIGN.md` |
 | Doorplate v1 | whole (`delimiter`) | **19,586** (measured) | section 5 |
 | Doorplate v1 | `unit-negative/v1` | **16,465** (measured) | section 5 |
-| Doorplate v1 | negative unit tokens | **133,047** (measured; the record has 132,399) | section 5 |
-| Doorplate v1 | `unit-span/v1` | **3,121** (measured; the record has 3,060) | section 5 |
-| Doorplate v1 | `fine-exact/v1` | **19,586** (measured; the record has 19,488 aligned) | section 5 |
+| Doorplate v1 | negative unit tokens | **133,047** (measured); 132,399 on the kept rows | section 3 |
+| Doorplate v1 | `unit-span/v1` | **3,121** (measured); 3,060 on the kept rows | section 3 |
+| Doorplate v1 | `fine-exact/v1` | **19,586** (measured); 19,488 on the kept rows | section 3 |
 | us-units-adversarial | `strict` / `delimiter` | **104** (measured) | `examples/corpora/us-units-adversarial` |
 | us-units-adversarial | `unit-field/v1` | **103** (62 unit, 41 no unit; measured) | ruling 2 |
 | us-units-adversarial | `unit-span/v1`, `unit-negative/v1`, `fine-exact/v1` | **0** (measured) | no token annotations |
@@ -84,13 +84,55 @@ the coarse `unit` and `subaddress` roles. Level and PO box are outside it.
 | `false_positive_tokens` | `unit_ownership.false_positive_tokens`: reference non-unit tokens whose exact span is predicted with a unit-family role | Doorplate 93 exact |
 | fine exact (`fine_exact` rows) | `fine-exact/v1`: every fine role and span, whole row | Doorplate 16,441 / hard 1,221 / natural 14,537 / hand 683, all exact |
 
-The numerators all reproduce. The legacy denominators were over the 19,488
-token-aligned rows: the legacy run fixed 98 baseline-unaligned rows as
-exclusions. The frozen scorer places tokens by byte span and judges all 19,586
-rows. That is why the unit-span, negative-token and fine-exact denominators are
-larger. This is inferred from the record's `aligned_rows` and was not traced row
-by row. A gate threshold is therefore stated as a count (for example ≤ 54 rows,
-≤ 93 tokens), never as a rate carried over from the legacy denominators.
+### Denominator mapping (traced by row, not inferred)
+
+The numerators reproduce exactly. The denominators map onto the legacy ones through
+one explicit row set:
+
+- **The excluded set.** Doorplate rows whose gold token values differ from the
+  input's whitespace tokens (`[value for value, _ in tokens] != input.split()`).
+- **Size.** There are 98 such rows: 93 hand, 4 natural and 1 hard. That equals
+  the legacy record's per-stratum `baseline_unaligned_rows`.
+- **Same set as the e429 mismatch.** These are exactly the rows where the e429
+  output token values differ from the gold token values.
+- **Pinned ID set.** The SHA-256 of the sorted Doorplate IDs is
+  `578da8ca375b2c76a2b425614c45dd5089e05cda399df977602b43cdd907df9a`. The IDs
+  are kept privately under
+  `~/data/lotlake-archives/doorplate-legacy-unaligned-v1/`.
+
+`tools/doorplate_alignment_map.py COMPARE CASES` reproduces the split below from
+the e429 run's `cases.jsonl`, printing aggregates only:
+
+| Measure | All 19,586 rows | Excluded 98 | Kept 19,488 | e429 record |
+| --- | ---: | ---: | ---: | --- |
+| fine-exact rows (correct / judged) | 16,441 / 19,586 | 0 / 98 | **16,441 / 19,488** | 16,441 / 19,488 aligned |
+| unit-positive rows (correct / judged) | 1,925 / 3,121 | 0 / 61 | **1,925 / 3,060** | 1,925 / 3,060 |
+| negative unit tokens (false positive / judged) | 93 / 133,047 | 0 / 648 | **93 / 132,399** | 93 / 132,399 |
+| false-unit rows (false / judged negatives) | **54 / 16,465** | 7 / 37 | 47 / 16,428 | 54 / 16,465 |
+| whole, `delimiter` | **17,316** | 5 | 17,311 | 17,316 |
+| whole, `strict` | 17,311 | 0 | 17,311 | (17,316) |
+
+**The mapping, stated exactly:**
+- **Kept rows only:** the legacy fine-exact, unit-ownership and negative-token
+  measures were taken over the 19,488 kept rows. Each frozen denominator minus
+  the excluded rows' contribution equals the legacy denominator: 19,586 − 98,
+  3,121 − 61 and 133,047 − 648. The excluded rows contribute 0 to each
+  numerator.
+- **All rows:** the legacy false-unit-row measure and the whole-address measure
+  were taken over all 19,586 rows. Their frozen counts match on all rows:
+  54/16,465 and 17,316.
+- **Why `strict` falls short:** the `strict` shortfall is 5 rows, and all 5 are
+  in the excluded set. `delimiter` judges them correct.
+
+**Consequence.** The frozen scorer judges by byte span, so it scores the 98
+excluded rows instead of dropping them. On the full population the gate counts
+(≤ 54 false-unit rows, ≤ 93 false-positive tokens) are unchanged. A C3 cohort
+pinned from legacy ledgers must use the frozen membership. Thresholds are stated
+as counts.
+
+The exclusion rule is reconstructed from the data, not from legacy source,
+which is not available here. It reproduces every legacy denominator and the
+per-stratum unaligned counts exactly.
 
 ## 4. Synthetic controls (run through `run-plan`)
 
@@ -151,11 +193,11 @@ asserts these movements and the case-level judgments. The full suite passed:
 | whole, `delimiter` | **17,316** / 19,586 (816 hand + 16,500) | 17,316 / 19,586 | exact |
 | whole, `strict` | 17,311 / 19,586 (811 + 16,500) | 17,316 | off by 5; not used |
 | natural / hard / hand, whole | 15,098 / 1,402 / 816 | 15,098 / 1,402 / 816 | exact |
-| fine exact, all | **16,441** / 19,586 | 16,441 / 19,488 aligned | exact |
+| fine exact, all | **16,441** / 19,586 | 16,441 / 19,488 aligned | count exact; denominator mapped exactly (section 3) |
 | fine exact, natural / hard / hand | 14,537 / 1,221 / 683 | 14,537 / 1,221 / 683 | exact |
 | false-unit rows | **54** / 16,465 | 54 / 16,465 | exact |
-| false-positive unit tokens | **93** / 133,047 | 93 / 132,399 | count exact |
-| exact unit ownership | **1,925** / 3,121 | 1,925 / 3,060 | count exact |
+| false-positive unit tokens | **93** / 133,047 | 93 / 132,399 | count exact; denominator mapped exactly (section 3) |
+| exact unit ownership | **1,925** / 3,121 | 1,925 / 3,060 | count exact; denominator mapped exactly (section 3) |
 
 **Still pending:**
 - **geo-dev 59,845/60,522:** this needs the GeoSearch references in the
