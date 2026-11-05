@@ -221,6 +221,8 @@ def summarize(cases):
         extra["coverage"] = dict(Counter(c["coverage"] for c in cases))
         extra["roles"] = {role: rate([c["role_agreement"].get(role) for c in cases])
                           for role in sorted({r for c in cases for r in c["role_agreement"]})}
+    if cases and "tokens" in cases[0]:
+        extra["fine_exact"] = rate([case_agreement(c, "fine-exact/v1") for c in cases])
     if cases and "unit_ownership" in cases[0]:
         units = [c["unit_ownership"] for c in cases]
         negatives = [u["span_agrees"] for u in units if u["gold_unit"] is False and u["span_agrees"] is not None]
@@ -256,7 +258,7 @@ def summarize_views(cases):
 
 
 
-GATE_METRICS = ("strict", "delimiter", "strict-streetline/v1", "strict-streetline/v2", "unit-span/v1", "unit-negative/v1", "unit-field/v1")
+GATE_METRICS = ("strict", "delimiter", "strict-streetline/v1", "strict-streetline/v2", "unit-span/v1", "unit-negative/v1", "unit-field/v1", "fine-exact/v1")
 
 
 def case_agreement(case, metric="strict"):
@@ -264,6 +266,13 @@ def case_agreement(case, metric="strict"):
         return case["primary_agrees"]
     if metric == "delimiter":
         return case.get("delimiter_fields_agree")
+    if metric == "fine-exact/v1":
+        # Whole-row exact fine roles and token spans; complete token references only.
+        tokens = case.get("tokens") or {}
+        if tokens.get("status") != "measured" or tokens.get("coverage") != "complete":
+            return None
+        return (case["status"] == "ok" and not tokens["metrics"]["fp"] and not tokens["metrics"]["fn"]
+                and not tokens.get("missing_span_items"))
     if metric.startswith("unit-"):
         unit = case.get("unit_ownership") or {}
         if metric == "unit-span/v1":

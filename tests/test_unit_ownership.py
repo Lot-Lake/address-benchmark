@@ -68,7 +68,7 @@ class UnitOwnershipCaseTests(unittest.TestCase):
         return score_case(row(text, gold, **kwargs), predict(text, predicted, status=status), META)
 
     def test_metrics_are_registered_for_gates_and_compare(self):
-        self.assertTrue({"unit-span/v1", "unit-negative/v1", "unit-field/v1"} <= set(GATE_METRICS))
+        self.assertTrue({"unit-span/v1", "unit-negative/v1", "unit-field/v1", "fine-exact/v1"} <= set(GATE_METRICS))
 
     def test_exact_fine_unit_tokens_agree(self):
         case = self.score(POSITIVE_TEXT, POSITIVE, POSITIVE)
@@ -124,6 +124,22 @@ class UnitOwnershipCaseTests(unittest.TestCase):
         self.assertIsNone(case_agreement(case, "unit-field/v1"))
         self.assertIsNone(case["unit_ownership"]["gold_unit"])
 
+    def test_fine_exact_requires_every_token_role_and_span(self):
+        self.assertIs(case_agreement(self.score(POSITIVE_TEXT, POSITIVE, POSITIVE), "fine-exact/v1"), True)
+        # Road name/type swap keeps the coarse road value: only the fine judgment moves.
+        case = self.score(NEGATIVE_TEXT, NEGATIVE, relabel(NEGATIVE, 2, "road_name"))
+        self.assertIs(case["primary_agrees"], True)
+        self.assertIs(case_agreement(case, "unit-negative/v1"), True)
+        self.assertIs(case_agreement(case, "fine-exact/v1"), False)
+
+    def test_fine_exact_is_wrong_on_refusal_and_unjudged_without_complete_tokens(self):
+        self.assertIs(case_agreement(self.score(NEGATIVE_TEXT, NEGATIVE, NEGATIVE, status="refused"), "fine-exact/v1"), False)
+        self.assertIsNone(case_agreement(self.score(NEGATIVE_TEXT, NEGATIVE, NEGATIVE, tokens_coverage="none"), "fine-exact/v1"))
+
+    def test_summary_reports_fine_exact_rows(self):
+        cases = [self.score(NEGATIVE_TEXT, NEGATIVE, NEGATIVE), self.score(NEGATIVE_TEXT, NEGATIVE, relabel(NEGATIVE, 2, "road_name"))]
+        self.assertEqual(summarize(cases)["fine_exact"], dict(correct=1, denominator=2, rate=0.5))
+
     def test_summary_reports_unit_denominators_and_token_counts(self):
         cases = [self.score(POSITIVE_TEXT, POSITIVE, POSITIVE), self.score(NEGATIVE_TEXT, NEGATIVE, relabel(NEGATIVE, 2, "unit_type")),
                  self.score(NEGATIVE_TEXT, NEGATIVE, NEGATIVE)]
@@ -158,11 +174,14 @@ class UnitGateControlTests(unittest.TestCase):
         self.assertEqual(self.moved("e429"), set())
 
     def test_unrelated_regression_moves_only_whole_address_gates(self):
-        self.assertEqual(self.moved("whole-regress"), {"A1-whole", "A2", "A3-whole"})
+        self.assertEqual(self.moved("whole-regress"), {"A1-whole", "A2", "A3-whole", "C3-hard-fine"})
 
     def test_unit_regression_moves_only_unit_gates(self):
-        self.assertEqual(self.moved("unit-regress"), {"A1-unit", "A3-unit", "A4", "C3-false-unit-rows", "C3-unit-field"})
+        self.assertEqual(self.moved("unit-regress"), {"A1-unit", "A3-unit", "A4", "C3-false-unit-rows", "C3-unit-field", "C3-hard-fine"})
 
+
+    def test_fine_only_regression_moves_only_the_fine_gate(self):
+        self.assertEqual(self.moved("fine-regress"), {"C3-hard-fine"})
 
 if __name__ == "__main__":
     unittest.main()

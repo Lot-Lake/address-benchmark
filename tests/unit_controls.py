@@ -24,8 +24,10 @@ GATES = (("A1-whole", dict(cohort="dev-preservation", min_preservation=1)),
          ("A3-unit", dict(subset="unit-target", metric="unit-span/v1", max_losses=0)),
          ("A4", dict(metric="unit-negative/v1", max_losses=0)),
          ("C3-false-unit-rows", dict(metric="unit-negative/v1", min_correct=2)),
-         ("C3-unit-field", dict(metric="unit-field/v1", max_losses=0)))
+         ("C3-unit-field", dict(metric="unit-field/v1", max_losses=0)),
+         ("C3-hard-fine", dict(cohort="fine-preservation", metric="fine-exact/v1", min_preservation=1)))
 GATE_NAMES = [name for name, _ in GATES]
+VARIANTS = ("e429", "whole-regress", "unit-regress", "fine-regress")
 
 
 def label(text):
@@ -68,7 +70,7 @@ ROWS = [dict(id=i, family="address-benchmark:" + i, origin="authored", split="de
 
 class Parser:
     def __init__(self, config):
-        require(set(config) == {"variant"} and config["variant"] in ("e429", "whole-regress", "unit-regress"), "select control variant")
+        require(set(config) == {"variant"} and config["variant"] in VARIANTS, "select control variant")
         self.variant = config["variant"]
         roles = ("house_number", "road_name", "road_type", "unit_type", "unit_id", "city", "state", "postcode")
         self.metadata = metadata("unit-controls", {r: r for r in roles}, version="control-" + self.variant, spans=True, tokens=True)
@@ -85,6 +87,9 @@ class Parser:
             labels = [(v, swap.get(r, r)) for v, r in labels]
             if request.text.startswith("22 "):
                 labels = [(v, "unit_type" if r == "road_type" else r) for v, r in labels]
+        elif self.variant == "fine-regress":
+            # Road type read as road name: the coarse road value is unchanged.
+            labels = [(v, "road_name" if r == "road_type" else r) for v, r in labels]
         evidence = [dict(native_role=role, value=value, spans=[span]) for value, role, span in tokens(request.text, labels)]
         return prediction(request, evidence, tokens=evidence, native={"variant": self.variant})
 
@@ -105,7 +110,8 @@ def write_control_plan(directory, variant):
         split_policy="All rows are dev controls.", family_policy="One authored family per row.",
         resources=[dict(path="cases.jsonl", sha256=sha256(data), bytes=data.stat().st_size)],
         preservation_cohorts=[dict(id="dev-preservation", basis=dict(kind="baseline-correct")),
-                              dict(id="unit-preservation", basis=dict(kind="baseline-correct", subset="unit-target", metric="unit-span/v1"))]))
+                              dict(id="unit-preservation", basis=dict(kind="baseline-correct", subset="unit-target", metric="unit-span/v1")),
+                              dict(id="fine-preservation", basis=dict(kind="baseline-correct", metric="fine-exact/v1"))]))
     engines = [dict(name="e429", adapter="tests.unit_controls:Parser", config=dict(variant="e429")),
                dict(name="successor", adapter="tests.unit_controls:Parser", config=dict(variant=variant))]
     write_json(Path(directory) / "engines.json", engines)
@@ -124,7 +130,7 @@ def summarize_controls(root):
     from address_benchmark.io import read_json
     from address_benchmark.plan import run_plan
     result = {}
-    for variant in ("e429", "whole-regress", "unit-regress"):
+    for variant in VARIANTS:
         plan = write_control_plan(Path(root) / variant, variant)
         with redirect_stderr(io.StringIO()):
             receipt = run_plan(plan)
