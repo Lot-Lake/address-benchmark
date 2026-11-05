@@ -210,6 +210,13 @@ that is Occupancy and Subaddress type/identifier; level and PO box are outside):
   reference's. Judged on complete references and on partial references that
   assert a unit-family field, so it works on field-only corpora.
 
+A gate requirement may also set `max_unit_false_positive_tokens` (an integer).
+It sums the candidate's `unit_ownership.false_positive_tokens` over the selected
+rows that have token references. It fails when that sum exceeds the cap, or when
+no selected row has token references. A row judgment does not have to change for
+this cap to fail. The result records `unit_false_positive_tokens`,
+`unit_negative_tokens` and `unit_token_rows`.
+
 `fine-exact/v1` judges the whole row on fine roles. Every reference token's fine
 role and byte span must be predicted, with no extra or unplaced tokens. It is
 judged only on complete token references, and a refusal is wrong. Summaries add
