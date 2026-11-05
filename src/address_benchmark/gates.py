@@ -7,7 +7,8 @@ from .io import identity, require
 from .scoring import GATE_METRICS, case_agreement, comparison
 
 LEGACY_KEYS = {'candidate', 'max_losses', 'min_correct', 'min_preservation'}
-THRESHOLDS = {'max_losses', 'max_loss_rate', 'min_correct', 'min_correct_rate', 'min_preservation'}
+THRESHOLDS = {'max_losses', 'max_loss_rate', 'min_correct', 'min_correct_rate', 'min_preservation', 'max_unit_false_positive_tokens'}
+COUNTS = ('max_losses', 'min_correct', 'max_unit_false_positive_tokens')
 SELECTORS = {'subset', 'cohort', 'splits', 'metric'}
 
 
@@ -33,7 +34,7 @@ def check_gate(gate, names, baseline):
         for key in THRESHOLDS & set(scope):
             v = scope[key]
             require(type(v) in (int, float) and math.isfinite(v) and v >= 0, 'finite nonnegative gate threshold required')
-            require(type(v) is int if key in ('max_losses', 'min_correct') else v <= 1, 'gate count/rate threshold differs')
+            require(type(v) is int if key in COUNTS else v <= 1, 'gate count/rate threshold differs')
 
 
 def resolve_cohorts(recipes, cases, baseline, accuracy, engine_configs, *, contract):
@@ -110,6 +111,15 @@ def accuracy_gate(cases, gate, baseline, cohorts):
         if 'max_loss_rate' in spec: passed &= bool(judged) and losses / judged <= spec['max_loss_rate']
         if 'min_correct' in spec: passed &= correct >= spec['min_correct']
         if 'min_correct_rate' in spec: passed &= bool(judged) and correct / judged >= spec['min_correct_rate']
+        extra = {}
+        if 'max_unit_false_positive_tokens' in spec:
+            # Candidate-only token count over the selected rows with token references;
+            # it can fail even when no row judgment changes.
+            units = [b.get('unit_ownership') or {} for _, b in chosen]
+            measured = [u for u in units if u.get('negative_tokens') is not None]
+            extra = dict(unit_false_positive_tokens=sum(u['false_positive_tokens'] for u in measured),
+                         unit_negative_tokens=sum(u['negative_tokens'] for u in measured), unit_token_rows=len(measured))
+            passed &= bool(measured) and extra['unit_false_positive_tokens'] <= spec['max_unit_false_positive_tokens']
         preservation = []
         if spec.get('min_preservation', 0) > 0:
             eligible_ids = {a['id'] for a, _ in chosen}
@@ -124,7 +134,7 @@ def accuracy_gate(cases, gate, baseline, cohorts):
         results.append(dict(id=number + 1, status='passed' if passed else 'failed', metric=metric,
             rows=len(chosen), judged_pairs=judged, unmatched_judgments=mismatched, correct=correct, losses=losses,
             loss_rate=losses / judged if judged else None, correct_rate=correct / judged if judged else None,
-            selector={k: spec[k] for k in ('subset', 'cohort') if k in spec}, splits=splits, preservation=preservation))
+            selector={k: spec[k] for k in ('subset', 'cohort') if k in spec}, splits=splits, preservation=preservation, **extra))
     return dict(status='passed' if all(r['status'] == 'passed' for r in results) else 'failed',
                 policy='address-benchmark.gate/v2', metric=gate.get('metric', 'strict'), requirements=results)
 

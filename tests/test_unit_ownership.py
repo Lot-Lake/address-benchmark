@@ -165,7 +165,7 @@ class UnitGateControlTests(unittest.TestCase):
 
     def moved(self, variant):
         _, gates = self.execute(variant)
-        return {name for name, result in gates.items() if result["losses"]}
+        return {name for name, result in gates.items() if result["status"] == "failed"}
 
     def test_fixture_rows_cover_unit_positives_and_negatives(self):
         self.assertEqual(sorted({r["subsets"][0] for r in ROWS}), ["unit-negative", "unit-target"])
@@ -174,11 +174,17 @@ class UnitGateControlTests(unittest.TestCase):
         self.assertEqual(self.moved("e429"), set())
 
     def test_unrelated_regression_moves_only_whole_address_gates(self):
-        self.assertEqual(self.moved("whole-regress"), {"A1-whole", "A2", "A3-whole", "C3-hard-fine"})
+        self.assertEqual(self.moved("whole-regress"), {"A1-whole", "A2", "A3-whole", "C3-units-whole", "C3-hard-fine"})
 
     def test_unit_regression_moves_only_unit_gates(self):
-        self.assertEqual(self.moved("unit-regress"), {"A1-unit", "A3-unit", "A4", "C3-false-unit-rows", "C3-unit-field", "C3-hard-fine"})
+        self.assertEqual(self.moved("unit-regress"), {"A1-unit", "A3-unit", "A4", "C3-false-unit-rows", "C3-false-unit-tokens", "C3-unit-field", "C3-hard-fine"})
 
+
+    def test_extra_false_unit_token_on_an_already_wrong_row_trips_only_the_token_cap(self):
+        _, gates = self.execute("token-regress")
+        self.assertEqual({n for n, r in gates.items() if r["status"] == "failed"}, {"C3-false-unit-tokens"})
+        self.assertEqual({n for n, r in gates.items() if r["losses"]}, set())
+        self.assertEqual(gates["C3-false-unit-tokens"]["unit_false_positive_tokens"], 2)
 
     def test_fine_only_regression_moves_only_the_fine_gate(self):
         self.assertEqual(self.moved("fine-regress"), {"C3-hard-fine"})

@@ -15,19 +15,24 @@ ROAD_TYPES = {"St", "Rd"}
 TEXTS = (("unit-01", "12 Alder St Apt 4, Exampleville, NY 00123", "unit-target"),
          ("unit-02", "40 Birch Rd Unit 7, Exampleville, NY 00123", "unit-target"),
          ("unit-03", "15 Cedar St, Exampleville, NY 00123", "unit-negative"),
-         ("unit-04", "22 Dogwood Rd, Exampleville, NY 00123", "unit-negative"))
+         ("unit-04", "22 Dogwood Rd, Exampleville, NY 00123", "unit-negative"),
+         ("unit-05", "30 Elm St, Exampleville, NY 00123", "unit-negative"))
 # Each requirement is named after the plan gate it stands in for (PLAN sections 6-7).
-GATES = (("A1-whole", dict(cohort="dev-preservation", min_preservation=1)),
+# Whole-address requirements declare `delimiter` explicitly: it is the metric that
+# reproduces the e429 record (strict differs on edge-delimited references).
+GATES = (("A1-whole", dict(cohort="dev-preservation", metric="delimiter", min_preservation=1)),
          ("A1-unit", dict(cohort="unit-preservation", metric="unit-span/v1", min_preservation=1)),
-         ("A2", dict(max_losses=0)),
-         ("A3-whole", dict(splits=["dev"], max_losses=0)),
+         ("A2", dict(metric="delimiter", max_losses=0)),
+         ("A3-whole", dict(splits=["dev"], metric="delimiter", max_losses=0)),
          ("A3-unit", dict(subset="unit-target", metric="unit-span/v1", max_losses=0)),
          ("A4", dict(metric="unit-negative/v1", max_losses=0)),
          ("C3-false-unit-rows", dict(metric="unit-negative/v1", min_correct=2)),
+         ("C3-false-unit-tokens", dict(metric="unit-negative/v1", max_unit_false_positive_tokens=1)),
          ("C3-unit-field", dict(metric="unit-field/v1", max_losses=0)),
+         ("C3-units-whole", dict(metric="delimiter", max_losses=0)),
          ("C3-hard-fine", dict(cohort="fine-preservation", metric="fine-exact/v1", min_preservation=1)))
 GATE_NAMES = [name for name, _ in GATES]
-VARIANTS = ("e429", "whole-regress", "unit-regress", "fine-regress")
+VARIANTS = ("e429", "whole-regress", "unit-regress", "fine-regress", "token-regress")
 
 
 def label(text):
@@ -77,9 +82,12 @@ class Parser:
 
     def parse(self, request):
         labels = label(request.text)
-        if request.text.startswith("22 "):
+        if request.text.startswith(("22 ", "30 ")):
             # Shared incumbent whole-address error, so a later unit bug cannot move strict.
             labels = [(v, "state" if r == "postcode" else r) for v, r in labels]
+        if request.text.startswith("30 "):
+            # Incumbent false unit token on an already-wrong row (the C3 token cap is 1).
+            labels = [(v, "unit_type" if r == "road_type" else r) for v, r in labels]
         if self.variant == "whole-regress":
             labels = [(v, "city" if r == "state" and v == "NY" else r) for v, r in labels]
         elif self.variant == "unit-regress":
@@ -87,6 +95,10 @@ class Parser:
             labels = [(v, swap.get(r, r)) for v, r in labels]
             if request.text.startswith("22 "):
                 labels = [(v, "unit_type" if r == "road_type" else r) for v, r in labels]
+        elif self.variant == "token-regress":
+            # A second false unit token on the same already-wrong row: no row judgment changes.
+            if request.text.startswith("30 "):
+                labels = [(v, "unit_id" if r == "road_name" else r) for v, r in labels]
         elif self.variant == "fine-regress":
             # Road type read as road name: the coarse road value is unchanged.
             labels = [(v, "road_name" if r == "road_type" else r) for v, r in labels]
@@ -109,7 +121,7 @@ def write_control_plan(directory, variant):
         exposure=dict(status="public-conformance-development-exposed", history=["Authored for scorer controls"]),
         split_policy="All rows are dev controls.", family_policy="One authored family per row.",
         resources=[dict(path="cases.jsonl", sha256=sha256(data), bytes=data.stat().st_size)],
-        preservation_cohorts=[dict(id="dev-preservation", basis=dict(kind="baseline-correct")),
+        preservation_cohorts=[dict(id="dev-preservation", basis=dict(kind="baseline-correct", metric="delimiter")),
                               dict(id="unit-preservation", basis=dict(kind="baseline-correct", subset="unit-target", metric="unit-span/v1")),
                               dict(id="fine-preservation", basis=dict(kind="baseline-correct", metric="fine-exact/v1"))]))
     engines = [dict(name="e429", adapter="tests.unit_controls:Parser", config=dict(variant="e429")),
