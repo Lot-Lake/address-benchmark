@@ -11,6 +11,10 @@ SCOPED_SCORER = "address-benchmark.scorer/v2"
 NORMALIZATION = "casefold-whitespace/v1"
 EFFECT_ROLES = {"unit": ("unit",), "building": ("building",), "recipient": ("recipient",), "road_city": ("road", "city")}
 DELIMITER_POLICY = "casefold-whitespace-edge-delimiters/v1"
+# Unit ownership as e429 was selected: OccupancyType/Identifier and SubaddressType/Identifier
+# fine roles, exact per token. Level and PO box roles are outside the family.
+UNIT_POLICY = "legacy-unit-roles-exact/v1"
+UNIT_FAMILY = ("unit", "subaddress")
 
 
 def normalize(value):
@@ -68,6 +72,33 @@ def fine_score(reference, prediction, metadata, kind):
                 missing_span_items=sum(not x.get("spans") for x in parts))
 
 
+def unit_ownership(reference, prediction, metadata, fields):
+    """Row-level unit judgments. Spans need complete token references; fields need a unit-scope assertion."""
+    def family(role):
+        return bool(role) and FINE_TO_COARSE.get(role) in UNIT_FAMILY
+    ok = prediction["status"] == "ok"
+    expected = reference["fields"]
+    asserted = reference["coverage"] == "complete" or (reference["coverage"] == "partial" and any(r in expected for r in UNIT_FAMILY))
+    field_agrees = (ok and all([normalize(v) for v in expected.get(r, [])] == [normalize(v) for v in fields.get(r, [])]
+                               for r in UNIT_FAMILY)) if asserted else None
+    result = dict(policy=UNIT_POLICY, gold_unit=any(expected.get(r) for r in UNIT_FAMILY) if asserted else None,
+                  span_agrees=None, field_agrees=field_agrees, negative_tokens=None, false_positive_tokens=None)
+    if reference["tokens_coverage"] != "complete" or not metadata["token_support"]:
+        return result
+    gold = sorted((x["role"], *x["span"]) for x in reference["tokens"] if family(x["role"]))
+    predicted, unplaced = [], False
+    for item in prediction["tokens"] if ok else ():
+        role = metadata["role_map"].get(item["native_role"])
+        if family(role):
+            unplaced |= not item.get("spans")
+            predicted.extend((role, *span) for span in item.get("spans") or [])
+    owned = {(start, end) for _, start, end in predicted}
+    negatives = [tuple(x["span"]) for x in reference["tokens"] if not family(x["role"])]
+    result.update(gold_unit=bool(gold), span_agrees=ok and not unplaced and sorted(predicted) == gold,
+                  negative_tokens=len(negatives), false_positive_tokens=sum(span in owned for span in negatives))
+    return result
+
+
 def score_case(row, prediction, metadata, profiles=(), *, scorer=SCORER):
     if scorer == SCOPED_SCORER:
         return score_scoped_case(row, prediction, metadata, profiles)
@@ -103,7 +134,8 @@ def score_case(row, prediction, metadata, profiles=(), *, scorer=SCORER):
                 unsupported_reference_roles=sorted(r for r in expected if r not in {FINE_TO_COARSE[v] for v in metadata.get("active_roles", metadata["supported_roles"])}),
                 unsupported_fine_reference_roles=sorted({x["role"] for x in reference["tokens"]} - set(metadata.get("active_roles", metadata["supported_roles"]))),
                 spans=fine_score(reference, prediction, metadata, "spans"),
-                tokens=fine_score(reference, prediction, metadata, "tokens"), **extra)
+                tokens=fine_score(reference, prediction, metadata, "tokens"),
+                unit_ownership=unit_ownership(reference, prediction, metadata, fields), **extra)
 
 
 def score_scoped_case(row, prediction, metadata, profiles=()):
@@ -189,6 +221,17 @@ def summarize(cases):
         extra["coverage"] = dict(Counter(c["coverage"] for c in cases))
         extra["roles"] = {role: rate([c["role_agreement"].get(role) for c in cases])
                           for role in sorted({r for c in cases for r in c["role_agreement"]})}
+    if cases and "tokens" in cases[0]:
+        extra["fine_exact"] = rate([case_agreement(c, "fine-exact/v1") for c in cases])
+    if cases and "unit_ownership" in cases[0]:
+        units = [c["unit_ownership"] for c in cases]
+        negatives = [u["span_agrees"] for u in units if u["gold_unit"] is False and u["span_agrees"] is not None]
+        measured = [u for u in units if u["negative_tokens"] is not None]
+        extra["unit_ownership"] = dict(policy=UNIT_POLICY, unit_span=rate([u["span_agrees"] for u in units if u["gold_unit"]]),
+            unit_field=rate([u["field_agrees"] for u in units]),
+            false_unit_rows=dict(rows=sum(not x for x in negatives), denominator=len(negatives)),
+            false_positive_tokens=dict(tokens=sum(u["false_positive_tokens"] for u in measured),
+                                       denominator=sum(u["negative_tokens"] for u in measured)))
     if cases and "profiles" in cases[0]:
         from .profiles import summarize_profile
         extra["profiles"] = {name: summarize_profile([c["profiles"][name] for c in cases]) for name in cases[0]["profiles"]}
@@ -215,7 +258,7 @@ def summarize_views(cases):
 
 
 
-GATE_METRICS = ("strict", "delimiter", "strict-streetline/v1", "strict-streetline/v2")
+GATE_METRICS = ("strict", "delimiter", "strict-streetline/v1", "strict-streetline/v2", "unit-span/v1", "unit-negative/v1", "unit-field/v1", "fine-exact/v1")
 
 
 def case_agreement(case, metric="strict"):
@@ -223,6 +266,22 @@ def case_agreement(case, metric="strict"):
         return case["primary_agrees"]
     if metric == "delimiter":
         return case.get("delimiter_fields_agree")
+    if metric == "fine-exact/v1":
+        # Whole-row exact fine roles and token spans; complete token references only.
+        tokens = case.get("tokens") or {}
+        if tokens.get("status") != "measured" or tokens.get("coverage") != "complete":
+            return None
+        return (case["status"] == "ok" and not tokens["metrics"]["fp"] and not tokens["metrics"]["fn"]
+                and not tokens.get("missing_span_items"))
+    if metric.startswith("unit-"):
+        unit = case.get("unit_ownership") or {}
+        if metric == "unit-span/v1":
+            return unit.get("span_agrees")
+        if metric == "unit-negative/v1":
+            # Judged only on rows whose complete token reference has no unit.
+            return unit.get("span_agrees") if unit.get("gold_unit") is False else None
+        if metric == "unit-field/v1":
+            return unit.get("field_agrees")
     if metric in GATE_METRICS:
         return case.get("profiles", {}).get(metric, {}).get("agrees")
     raise ValueError("unsupported gate metric")

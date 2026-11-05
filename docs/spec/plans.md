@@ -194,7 +194,38 @@ The original four-key gate shape retains `address-benchmark.gate/v1` semantics.
 New selectors/rates use `address-benchmark.gate/v2` and reuse existing scored
 judgments. `metric` accepts `strict`, `delimiter`, `strict-streetline/v1` or
 `strict-streetline/v2`; profile metrics must be declared by the corpus. Unsupported
-or missing judgments never become a passing gate. Example:
+or missing judgments never become a passing gate.
+
+Unit ownership has its own metrics, read from each case's `unit_ownership`
+record (`legacy-unit-roles-exact/v1`: the unit and subaddress coarse families,
+that is Occupancy and Subaddress type/identifier; level and PO box are outside):
+
+- `unit-span/v1`: the exact multiset of (fine role, byte span) unit tokens equals
+  the reference's. Judged only with complete token references and adapter token
+  support; a refusal or a unit token without spans is wrong.
+- `unit-negative/v1`: the same judgment, restricted to rows whose complete token
+  reference has no unit. `correct` is clean rows; false-unit rows are
+  `judged_pairs - correct`.
+- `unit-field/v1`: normalized unit and subaddress field values equal the
+  reference's. Judged on complete references and on partial references that
+  assert a unit-family field, so it works on field-only corpora.
+
+A gate requirement may also set `max_unit_false_positive_tokens` (an integer).
+It sums the candidate's `unit_ownership.false_positive_tokens` over the selected
+rows that have token references. It fails when that sum exceeds the cap, or when
+no selected row has token references. A row judgment does not have to change for
+this cap to fail. The result records `unit_false_positive_tokens`,
+`unit_negative_tokens` and `unit_token_rows`.
+
+`fine-exact/v1` judges the whole row on fine roles. Every reference token's fine
+role and byte span must be predicted, with no extra or unplaced tokens. It is
+judged only on complete token references, and a refusal is wrong. Summaries add
+`fine_exact`.
+
+Run summaries add `unit_ownership` with the unit-span and unit-field rates,
+false-unit rows over judged negatives, and false-positive unit tokens (reference
+non-unit tokens whose exact span the prediction owns as a unit) over judged
+negative tokens. `strict` stays whole-address. Example:
 
 ```json
 {
