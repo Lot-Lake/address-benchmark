@@ -27,13 +27,33 @@ PR #18), sections 6 and 7, the "Gate scoring validation" row.
 2. **us-units-adversarial reads `unit-field/v1`.** The corpus has no token annotations.
    `unit-span/v1` judges 0 of its rows, and a v2 gate with 0 judged pairs fails closed.
    `unit-field/v1` judges 103 rows (62 with a unit, 41 without). The one partial row
-   asserts no unit field, so it is unjudged.
+   asserts no unit field, so it is unjudged. **Whole-row preservation stays:**
+   us-units-adversarial also carries a whole-row requirement, `metric: "delimiter"`
+   with `max_losses: 0`, over all 104 judged rows. A state or city regression that
+   keeps the unit passes `unit-field/v1` but fails the whole-row check (control (a),
+   section 4).
 3. **Whole-address metric: decided by the data.** `delimiter` reproduces e429's recorded
    Doorplate whole count exactly; `strict` does not (section 5). These gates change
    metric from `strict` to `delimiter`: A1 whole cohorts, A2, A3 whole, and C3's tracked
    hard whole gains. On the original DEV and geo-dev, `strict` and `delimiter` give
    identical counts. The switch changes only Doorplate's handwritten rows, which carry
    edge delimiters.
+
+   **Pinned explicitly:** every whole-address requirement declares
+   `"metric": "delimiter"`, and so does the A1 whole cohort basis. It never relies
+   on the gate default, which is `strict`. Both counts are recorded:
+
+   | Population | `delimiter` | `strict` |
+   | --- | ---: | ---: |
+   | Doorplate | 17,316 (= record) | 17,311 |
+   | geo-dev | 59,845 | 59,845 |
+   | seed / municipal / Wisconsin | 210 / 818 / 126 | 210 / 818 / 126 |
+
+   **The data chose this metric; its approval is separate.** The two metrics are
+   not decision-equivalent. A candidate that adds or drops an edge `,;:` passes
+   `delimiter` and fails `strict`, so equal incumbent scores do not make candidate
+   decisions equal. The choice takes effect only through the frozen plan's
+   explicit pin, which goes through plan approval.
 4. **C3 hard fine gains read `fine-exact/v1`,** added here with the same controls.
 
 The whole-address judgments are unchanged. The only additions are the
@@ -53,8 +73,36 @@ entries.
 | C3 tracked hard whole gains | `delimiter` | `delimiter_fields_agree` | pinned cohort file, `min_preservation: 1` |
 | C3 tracked hard fine gains | `fine-exact/v1` | `tokens` fine score: `status == ok`, `metrics.fp == 0`, `metrics.fn == 0`, no unplaced tokens | pinned cohort file, `min_preservation: 1` |
 | C3 Doorplate false-unit rows | `unit-negative/v1` | as A4 | Doorplate rows labeled without a unit; `min_correct` = judged − 54 |
-| C3 Doorplate false-positive unit tokens | run summary, not a gate | `unit_ownership.false_positive_tokens` / `negative_tokens`, in `summary.unit_ownership.false_positive_tokens` | ≤ 93 tokens |
-| C3 us-units-adversarial | `unit-field/v1` | `unit_ownership.field_agrees` | the 103 rows that assert unit-family fields |
+| C3 Doorplate false-positive unit tokens | **gate requirement** `max_unit_false_positive_tokens: 93` | candidate `unit_ownership.false_positive_tokens`, summed over the selected rows with token references | all 19,586 Doorplate rows; fails at 94, even if no row judgment changes |
+| C3 us-units-adversarial, unit | `unit-field/v1`, `max_losses: 0` | `unit_ownership.field_agrees` | the 103 rows that assert unit-family fields |
+| C3 us-units-adversarial, whole row | `delimiter`, `max_losses: 0` | `delimiter_fields_agree` | all 104 judged rows |
+
+The gate config to freeze (`address-benchmark.gate/v2`) has every metric
+explicit, and no requirement relies on the `strict` default. Each per-corpus loss
+cap is a track `execution.gate` override.
+
+```json
+{"stage_a_geo_dev": {"baseline": "e429", "gate": {"candidate": "successor", "metric": "delimiter",
+  "requirements": [{"cohort": "dev-preservation", "metric": "delimiter", "min_preservation": 1},
+                   {"metric": "delimiter", "max_losses": 6}]}},
+ "stage_a_unit_tracks": {"requirements": [
+   {"cohort": "unit-preservation", "metric": "unit-span/v1", "min_preservation": 1},
+   {"subset": "no-unit", "metric": "unit-negative/v1", "max_losses": 0}]},
+ "stage_c_doorplate": {"requirements": [
+   {"cohort": "hard-whole-gains", "metric": "delimiter", "min_preservation": 1},
+   {"cohort": "hard-fine-gains", "metric": "fine-exact/v1", "min_preservation": 1},
+   {"metric": "unit-negative/v1", "min_correct": 16411},
+   {"metric": "unit-negative/v1", "max_unit_false_positive_tokens": 93}]},
+ "stage_c_units_adversarial": {"requirements": [
+   {"metric": "unit-field/v1", "max_losses": 0},
+   {"metric": "delimiter", "max_losses": 0}]}}
+```
+
+Cohort bases use the same metric as their requirement. For example,
+`dev-preservation` is `{"kind": "baseline-correct", "metric": "delimiter"}`.
+`min_correct` 16,411 is 16,465 − 54 judged negatives. The `max_losses: 0` on
+the `no-unit` subset is the strictest form of A4's "≤ e429's" rule. The net form
+is evaluated with `compare --metric unit-negative/v1` on the same judgments.
 
 The unit family is the legacy one (`UNIT_ROLES` in
 `experiments/us_parser/rounds/boundary_plasticity_round_20261101/unit_components.py`):
@@ -151,43 +199,50 @@ per-stratum unaligned counts exactly.
 
 ## 4. Synthetic controls (run through `run-plan`)
 
-The fixture is `tests/unit_controls.py`: 4 authored rows (2 unit-target, 2
+The fixture is `tests/unit_controls.py`: 5 authored rows (2 unit-target, 3
 unit-negative; complete fields, spans and tokens) and an input-only synthetic
-parser. The incumbent `e429` has one shared whole-address error, on a negative
-row, so a unit bug there cannot move whole-address. Each variant is a
-single-track plan whose gate holds one requirement per PLAN gate. Every
-requirement uses a zero-loss threshold, so any loss shows as movement. All four
-plans were run with `run-plan` and passed `address-benchmark verify`.
+parser. The incumbent `e429` gets two negative rows whole-address wrong. On one
+of them it also predicts one false unit token, so unit bugs there cannot move
+whole-address. The C3 token cap is set to the incumbent's 1.
 
-Losses per gate (judged pairs for the identity run in parentheses):
+Each variant is a single-track plan whose gate holds one requirement per PLAN
+gate; whole-address requirements declare `delimiter`. All five plans were run
+with `run-plan` and passed `address-benchmark verify`.
 
-| Gate | Metric | identity | (a) unit kept, state regressed | (b) unit type/ID swapped + false unit on a whole-wrong negative | (c) road type read as road name |
-| --- | --- | ---: | ---: | ---: | ---: |
-| A1 whole | `strict`, cohort | 0 (3) | **3** | 0 | 0 |
-| A1 unit | `unit-span/v1`, cohort | 0 (2) | 0 | **2** | 0 |
-| A2 | `strict` | 0 (4) | **3** | 0 | 0 |
-| A3 whole | `strict` | 0 (4) | **3** | 0 | 0 |
-| A3 unit | `unit-span/v1` | 0 (2) | 0 | **2** | 0 |
-| A4 | `unit-negative/v1` | 0 (2) | 0 | **1** | 0 |
-| C3 false-unit rows | `unit-negative/v1` | 0 (2) | 0 | **1** | 0 |
-| C3 unit field | `unit-field/v1` | 0 (4) | 0 | **1** | 0 |
-| C3 hard fine | `fine-exact/v1`, cohort | 0 (3) | **3** | **2** | **3** |
+Requirement failures (`losses` in parentheses):
 
-- Control (a) moves only the whole-address gates.
-- Control (b) moves only the unit gates.
-- Control (c) keeps the whole-address value and the unit, and moves only the
-  fine gate.
-- The fine gate also moves under (a) and (b). That is by design: an exact fine
-  row implies a correct whole address and unit, so any whole or unit error is
-  also a fine error.
-- The fixture has no edge delimiters, so `strict` and `delimiter` judge it
-  identically. The whole-address rows stand for both.
+| Gate | Metric / threshold | identity | (a) unit kept, state regressed | (b) unit type/ID swap + false unit on a whole-wrong negative | (c) road type read as road name | (d) a second false unit token on an already-wrong row |
+| --- | --- | :-: | :-: | :-: | :-: | :-: |
+| A1 whole | `delimiter`, cohort | pass | **fail (3)** | pass | pass | pass |
+| A1 unit | `unit-span/v1`, cohort | pass | pass | **fail (2)** | pass | pass |
+| A2 | `delimiter`, `max_losses` 0 | pass | **fail (3)** | pass | pass | pass |
+| A3 whole | `delimiter`, `max_losses` 0 | pass | **fail (3)** | pass | pass | pass |
+| A3 unit | `unit-span/v1`, `max_losses` 0 | pass | pass | **fail (2)** | pass | pass |
+| A4 | `unit-negative/v1`, `max_losses` 0 | pass | pass | **fail (1)** | pass | pass |
+| C3 false-unit rows | `unit-negative/v1`, `min_correct` | pass | pass | **fail (1)** | pass | pass |
+| C3 false-unit tokens | `max_unit_false_positive_tokens` 1 | pass (1) | pass | **fail (2 tokens)** | pass | **fail (2 tokens; 0 losses)** |
+| C3 units, unit | `unit-field/v1`, `max_losses` 0 | pass | pass | **fail (1)** | pass | pass |
+| C3 units, whole row | `delimiter`, `max_losses` 0 | pass | **fail (3)** | pass | pass | pass |
+| C3 hard fine | `fine-exact/v1`, cohort | pass | **fail (3)** | **fail (2)** | **fail (3)** | pass |
 
-`plan-results.json` SHA-256: identity `51257332…8b61ffcb`, (a) `9a64ad87…daa024e4b`,
-(b) `f9f7770e…b1f29f1df4`, (c) `b91e94c0…a9f056b3f`. They are regenerated by
-`python -E -s -m tests.unit_controls DIR`. `tests/test_unit_ownership.py`
-asserts these movements and the case-level judgments. The full suite passed:
-238 tests OK.
+- Control (a) fails only the whole-address gates, including C3's whole-row
+  check, while `unit-field/v1` passes.
+- Control (b) fails only the unit gates.
+- Control (c) fails only the fine gate.
+- Control (d) changes no row judgment for any metric (0 losses everywhere). It
+  fails only the token cap.
+- The fine gate also fails under (a) and (b). That is by design: an exact fine
+  row implies a correct whole address and unit.
+
+**On Doorplate,** the same requirement applied to e429's frozen cases passes at
+cap 93 (93 tokens over 133,047 negative tokens, all 19,586 rows) and fails at
+cap 92.
+
+`plan-results.json` SHA-256: identity `a9faa017…d5ee3eaf`, (a) `e1c222bb…184fdfbc`,
+(b) `6ee1921b…0f59b241`, (c) `c0c6ec3f…b5d7864b`, (d) `5482cd35…e80b2630`.
+They are regenerated by `python -E -s -m tests.unit_controls DIR`.
+`tests/test_unit_ownership.py` asserts these outcomes. The full suite passed:
+239 tests OK.
 
 ## 5. e429 baseline reproduced by the frozen scorer
 
@@ -253,5 +308,5 @@ asserts these movements and the case-level judgments. The full suite passed:
 | A4 | pass (`unit-negative/v1`, subset `no-unit`) | pass | 537/543 and 10 tokens exact |
 | C3 hard whole gains | pass (`delimiter`; metric changed) | pass | Doorplate hard 1,402 exact |
 | C3 hard fine gains | pass (`fine-exact/v1`, new) | pass | Doorplate hard 1,221 exact |
-| C3 false-unit rows and tokens | pass | pass | 54 rows and 93 tokens exact |
-| C3 us-units-adversarial | pass (`unit-field/v1`, 103 judged) | pass | no e429 record; it is new in the paired run |
+| C3 false-unit rows and tokens | pass (token cap is a gate requirement) | pass, including (d) | 54 rows and 93 tokens exact |
+| C3 us-units-adversarial | pass (`unit-field/v1`, 103 judged + `delimiter` whole row, 104 judged) | pass | no e429 record; it is new in the paired run |
