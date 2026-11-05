@@ -6,8 +6,9 @@ cohort, A3's unit arm, A4 and C3's unit vetoes could not be scored as specified.
 This branch adds `legacy-unit-roles-exact/v1` judgments and three gate metrics
 (`unit-span/v1`, `unit-negative/v1`, `unit-field/v1`). Synthetic `run-plan`
 controls show that each perturbation moves only its intended gates. The e429
-baseline reproduction (item 5) is **PENDING**: no e429 prediction ledger is
-available locally yet.
+baseline reproduction (item 5) is done for Doorplate v1: whole, false-unit rows, false-positive
+unit tokens and exact unit ownership all match exactly, with whole matching under `delimiter`.
+geo-dev and the original unit-target rows are PENDING, because their corpora are not available.
 
 Plan: `experiments/us_parser/rounds/successor_e429/PLAN.md` (Lot-Lake/us-address-normalizer
 PR #18), sections 6 and 7, the "Gate scoring validation" row.
@@ -109,40 +110,61 @@ nothing. `plan-results.json` SHA-256: identity `d98369ad…f0da644`, (a)
 asserts these movements and the case-level judgments. The full suite passed:
 234 tests OK.
 
-## 5. e429 baseline under the frozen scorer: PENDING
+## 5. e429 baseline under the frozen scorer
 
-Checked: `~/Downloads/intake-handoff-core-v1.tar.gz` (a protected input index
-and intake tooling) and `legacy-exclusion-index-v1.tar.gz` (a hash-only index).
-Their manifests were extracted, read-only, under `~/data/lotlake-archives/`.
-Neither contains e429 predictions, report `06ada057…` or a case ledger.
-`retained-baseline-v1.tar.gz` is not present yet.
+**Doorplate v1: reproduced.** **geo-dev and original unit-target: PENDING.**
 
-When it lands:
+Engine: `learned-parser --batch`, built from us-address-normalizer `packages/rust-core`
+(`--features learned-model`). `--metadata` reports model SHA-256 `e429c2cf…a889fe965`,
+which equals the `model/model.bin` in Alex's `retained-baseline-v1` archive. Corpus:
+the Doorplate suite v1 `compare.jsonl.gz` at upstream `3fc5ec4fd79c`. Its SHA-256
+`2336f099…f006b430` matches the catalog pin, and it has 19,586 rows. The plan is a
+local-only `freeze-plan` → `run-plan` → `verify` run (status `verified`). The
+framework reports the two Doorplate origins as separate populations, and the
+counts below add them. Aggregates only:
 
-```sh
-D=~/data/lotlake-archives/retained-baseline-v1
-mkdir "$D" && tar -xzf ~/Downloads/retained-baseline-v1.tar.gz -C "$D" && tar -tzf ~/Downloads/retained-baseline-v1.tar.gz
-# P = a fresh plan directory: engines.json holds e429 (native-batch, model sha256 e429c2cf…),
-# tracks are geo-dev, the original fine DEV (unit-target subset) and Doorplate v1
-.venv/bin/address-benchmark freeze-plan P/plan.json
-.venv/bin/address-benchmark run-plan P/plan.json && .venv/bin/address-benchmark verify P/plan.json
-.venv/bin/python -E -s -c "import json,sys; r=json.load(open(sys.argv[1])); [print(k, v['supplied_fields'], v['delimiter_fields'], v.get('unit_ownership')) for k, v in r['accuracy']['e429']['populations'].items()]" P/runs/TRACK/run.json
-```
+| Measure | Frozen scorer | e429 record | Result |
+| --- | ---: | ---: | --- |
+| whole, `strict` | 17,311 / 19,586 (811 hand + 16,500) | 17,316 / 19,586 | differs by the 5 hand rows with edge delimiters |
+| whole, `delimiter` | **17,316** / 19,586 (816 + 16,500) | 17,316 | **exact** |
+| natural / hard / hand (`delimiter`) | 15,098 / 1,402 / 816 | 15,098 / 1,402 / 816 | **exact** |
+| false-unit rows (`unit-negative/v1`) | **54** / 16,465 (15 + 39) | 54 / 16,465 | **exact** |
+| false-positive unit tokens | **93** / 133,047 | 93 / 132,399 | count exact; denominator +648 |
+| exact unit ownership (`unit-span/v1`) | **1,925** / 3,121 | 1,925 / 3,060 | count exact; denominator +61 |
 
-Expected values: geo-dev 59,845/60,522; original unit-target 662/688
-(`unit_span`); Doorplate whole 17,316/19,586; false-unit rows 54/16,465; and
-false-positive unit tokens 93/132,399. Aggregate counts only. No rows are
-printed.
+Both denominator gaps are consistent with the legacy run's 98 fixed
+baseline-unaligned exclusions (19,488 of 19,586 aligned rows). The legacy scorer
+dropped those rows' tokens, while the frozen scorer judges every row by span
+(inferred from the record's `aligned_rows`; not traced row by row). The numerators
+reproduce exactly. So the C3 caps should be stated as counts (≤ 54 rows, ≤ 93
+tokens) on the frozen denominators, 16,465 and 133,047.
+
+**This settles decision 3:** the legacy whole-address count is the frozen
+`delimiter` metric, not `strict`. A1, A2, A3 and C3's whole-address checks must
+use `metric: "delimiter"`.
+
+**Still pending:**
+- **geo-dev 59,845/60,522:** the GeoSearch references for the framework
+  (`geosearch-reference` intake, Alex's
+  `.cache/us-geosearch-fine-evaluation-20261029/.../dev/references.jsonl`)
+  are not in the archive or on this machine.
+- **Original unit-target 662/688 and the 543 DEV negatives:** these are in Alex's
+  private DEV bundle, which is also not in the archive. The archive's helper
+  states that it never reads protected DEV/TEST references.
+
+Once either is present, run the same plan with that corpus as an extra track and
+read `supplied_fields`, `delimiter_fields` and `unit_ownership` from the
+run's populations.
 
 ## Per-gate status
 
 | Gate | Field defined | Controls | Baseline reproduced |
 | --- | --- | --- | --- |
-| A1 whole | pass | pass | pending (and the strict-vs-delimiter question) |
+| A1 whole | pass with `delimiter` | pass | Doorplate whole reproduced under `delimiter`; geo-dev pending |
 | A1 unit | pass (new `unit-span/v1`) | pass | pending; needs complete token references and a `unit-target` subset in the DEV bundle |
-| A2 | pass | pass | pending |
+| A2 | pass with `delimiter` | pass | geo-dev pending |
 | A3 | pass (via `compare`) | pass | pending |
 | A4 | pass (new `unit-negative/v1`) | pass | pending |
-| C3 false-unit rows and tokens | pass | pass | pending |
+| C3 false-unit rows and tokens | pass | pass | **reproduced** (54 rows, 93 tokens) |
 | C3 us-units-adversarial | pass with `unit-field/v1` (needs a ruling) | pass | pending |
 | C3 hard fine gains | **open**: no fine-exact gate metric | — | — |
