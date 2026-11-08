@@ -21,6 +21,10 @@ python3 -m unittest discover -s tests -v
 
 Or install into your virtual environment with `python3 -m pip install -e .`, then use `address-benchmark`. Use fresh output directories. On a machine with a workload coordinator, follow its local policy before running evaluations or installing/building optional runtimes.
 
+For a bounded local review sample of changed native outputs from retained runs,
+use the [changed-output review tool](docs/changed-output-review.md). It reads saved
+artifacts without invoking adapters or changing scoring and experiment gates.
+
 ## Declare an experiment in JSON
 
 Use a versioned [benchmark plan](docs/spec/plans.md) to select corpus manifests, engine configurations, execution settings and fresh result directories:
