@@ -26,8 +26,9 @@ are rejected. Existing outputs are never overwritten. Output directories use
 mode `0700` and files `0600`; keep the entire result local. Output contains real
 input text and native outputs, including failure messages. Do not upload it to
 GitHub. Stdout contains fixed aggregate count fields only, with no IDs, source
-names, paths, native messages or text. Failures emit a fixed error code without
-interpolating exception text.
+names, paths, native messages or text. Artifact-processing failures emit a fixed
+error code without interpolating exception text. Invalid command-line syntax uses
+normal argparse errors, which may echo supplied arguments.
 
 ## Identity and validation contract
 
